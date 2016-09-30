@@ -127,4 +127,4 @@ class ifj16
 
 }
 
-/* Zde bude nasledovat program jazyka IFJ16 */
+/* Zde bude nasledovat program jazyka IFJ16 */ 
