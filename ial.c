@@ -12,7 +12,7 @@
 
 
 // TODO - List-Merge sort, tab. sym. binarnim vyhledavacim stromem, vyhledavani podretezce Knuth-Morris-Pratt
-// TODO - Zacal jsem sort a dodelam ho. Bohuzel, jsem musel jit. Jirka
+// TODO - Zacal jsem sort -> dodelam ho. Bohuzel, jsem musel jit. Jirka
 
 #include <stdlib.h>
 
