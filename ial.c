@@ -1,36 +1,34 @@
 /*
-* Projekt IFJ: IFJ16 
-* FIT VUTBR
-* Vytvořili:
-*       xzaryb00 - Zarybnický Jakub
-*       xtamas01 - Tamaškovič Marek
-*       xvasko12 - Vaško Martin
-*       xvasko14 - Vaško Michal
-*       xzales12 - Záleský Jiří
-* Datum: 1.10.2016
-*/
-
+ * Project: IFJ16, a programming language interpreter
+ * FIT VUT Brno
+ * Authors: xzaryb00 - Zarybnický Jakub
+ *          xtamas01 - Tamaškovič Marek
+ *          xvasko12 - Vaško Martin
+ *          xvasko14 - Vaško Michal
+ *          xzales12 - Záleský Jiří
+ */
 
 // TODO - List-Merge sort, tab. sym. binarnim vyhledavacim stromem, vyhledavani podretezce Knuth-Morris-Pratt
 // TODO - Zacal jsem sort -> dodelam ho. Bohuzel, jsem musel jit. Jirka
 
-#include <stdlib.h>
+#include "ial.h"
 
-
-
-String sort(String s){
-    usigned int len = lenght(s);    //LENGTH - TODO - fce. na delku stringu 
-    if (len != 1){  // Rozdeleni Na mensi stringy
-        unsigned int half = len/2;
-        
-        string left = substr(s,0,half);    
-        if (len%2 == 0){ // String sudy X lichy pocet clenu 
-            string right = substr(s,half,half);        
-        }else{
-            string right = substr(s,half,half+1);    
-        }
-    }
-
+char *substr(char *s, unsigned start, unsigned length)
+{
+  return "";
 }
 
-int find(String s, String search);
+char *sort(char *s)
+{
+    unsigned len = strlen(s);
+    if (len != 1) {  // Rozdeleni Na mensi stringy
+        unsigned half = len / 2;
+
+        char *left = substr(s, 0, half);
+        if (len % 2 == 0) { // char *sudy X lichy pocet clenu
+            char *right = substr(s, half, half);
+        } else {
+            char *right = substr(s, half, half + 1);
+        }
+    }
+}
