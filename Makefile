@@ -14,7 +14,7 @@ all: interpreter
 interpreter: $(LIBOBJ)
 
 test: interpreter
-	bash testsuite.sh -v
+	bash testsuite.sh
 
 clean:
 	$(RM) interpreter $(LIBOBJ)
