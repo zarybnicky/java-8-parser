@@ -2,7 +2,7 @@
 
 . test/assert.sh
 
-#assert_raises "./interpreter test/1_unknown_char.java" 1
+assert_raises "./interpreter test/1_unknown_char.java" 1
 #assert_raises "./interpreter test/2_no_class.java" 2
 #assert_raises "./interpreter test/3_class_redefinition.java" 3
 #assert_raises "./interpreter test/3_ifj16_redefinition.java" 3
