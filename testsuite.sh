@@ -1,3 +1,5 @@
+#!/bin/env bash
+
 . test/assert.sh
 
 assert_raises "interpreter test/1_unknown_char.java" 1
