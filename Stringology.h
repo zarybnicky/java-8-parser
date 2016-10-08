@@ -8,6 +8,7 @@
  *          xzales12 - Záleský Jiří
  */
  
+#define String char*
 
 int readInt();
 double readDouble();
