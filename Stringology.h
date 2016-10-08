@@ -16,5 +16,3 @@ void print();
 int length(String s);
 String substr(String s,int i, int n);
 int compare(String s1, String s2);
-int find(String s, String search);
-String sort(String s);
