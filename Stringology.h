@@ -8,6 +8,7 @@
  *          xzales12 - Záleský Jiří
  */
  
+
 int readInt();
 double readDouble();
 String readString();
