@@ -8,6 +8,7 @@
  *          xzales12 - Záleský Jiří
  */
 
+#include "types.h"
 #include "stringology.h"
 #include <string.h>
  
