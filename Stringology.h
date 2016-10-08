@@ -8,7 +8,7 @@
  *          xzales12 - Záleský Jiří
  */
  
-//String uz je definovany v types.h
+//String uz je definovany v hlavickovom subore "types.h"
 //#define String char*
 
 int readInt();
