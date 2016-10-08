@@ -7,12 +7,20 @@
  *          xvasko14 - Vaško Michal
  *          xzales12 - Záleský Jiří
  */
+
+#include "stringology.h"
+#include <string.h>
  
 int readInt();
 double readDouble();
 String readString();
 void print();
-int length(String s);
+
+int length(String s){
+    int x = strlen(s);
+    return x;
+}
+
 String substr(String s,int i, int n);
 int compare(String s1, String s2);
 
