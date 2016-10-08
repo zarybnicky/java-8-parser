@@ -8,7 +8,8 @@
  *          xzales12 - Záleský Jiří
  */
  
-#define String char*
+//String uz je definovany v types.h
+//#define String char*
 
 int readInt();
 double readDouble();
