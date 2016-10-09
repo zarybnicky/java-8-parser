@@ -18,17 +18,19 @@
 #include <stdlib>
 #include <limits.h>
  
-int readInt{ // Int celé nezáporné číslo (3.1)
-    String pom[11] = {0}; // Urceno dle max delky int
-	unsigned int i = 0; 
+int readInt(){ // Int celé nezáporné číslo (3.1)
+    String pom = malloc(11); // Urceno dle max delky int
+    if (pom == NULL) exit(99);
+
+    unsigned int i = 0; 
     unsigned int vysledek = 0;
 
     scanf("%s", pom);
     
-    if (pom[0] == "-") exit(7); //Chyba 7
+    if (pom[0] == '-') exit(7); //Chyba 7
 
     while (i < 11){
-        if (isdigit(pom[i])) vysledek = vysledek*10 + (pom[i] - '0') // Prepis na cislo
+        if ('0' <= pom[i] && pom[i] <= '9') vysledek = vysledek*10 + (pom[i] - '0'); // Prepis na cislo
         else exit(7); // Chyba 7
         i++;
     }
@@ -37,8 +39,8 @@ int readInt{ // Int celé nezáporné číslo (3.1)
 
 }
 
-double readDouble{ // TODO
-    unsigned int Len = MAX_LEN;
+double readDouble(){ // TODO
+    unsigned int Len = MAX_LEN, i = 0;
     double vysledek = 0;
     char c;
     short e_set = 0, dot_set = 0;
@@ -47,26 +49,26 @@ double readDouble{ // TODO
     if (Str == NULL) exit(99);
 
     while ((c = getchar()) != '\n' && c != EOF){
-        if (i = Len){
+        if (i == Len){
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len); // Zvetsi string
             if (Str == NULL) exit(99);
 
         }
 
-        if (isdigit(c) || c != "." || c != "e" || c != "E" || c != "+" || c != "-") exit(7); // Chyba 7
+        if (('0' <= c && c <= '9') || c != '.' || c != 'e' || c != 'E' || c != '+' || c != '-') exit(7); // Chyba 7
 
-        switch (c);
+        switch(c){
             case 'e':
             case 'E': 
                 if (e_set != 0) exit(7); // Chyba 7 - Vice exp za sebou, nebo exp neni cele cislo
                 if (dot_set == 0){
-                    for (unsigned int j = 0, j<i, j++){
+                    for (unsigned int j = 0; j < i; j++){
                         vysledek = vysledek*10 + (Str[j] - '0');
                     }
                 } else {
-                    for (unsigned int j = 0, j<i, j++){
-                        double pom = 0;
+                    double pom = 0;
+                    for (unsigned int j = 0; j < i; j++){
                         pom = pom*0.1 + (Str[j] - '0');
                     }
                     pom = pom*0.1; // Posledni posun
@@ -78,34 +80,35 @@ double readDouble{ // TODO
                 break;
 
             case '.':
-                if (e_set != 0 || dot_set != 0) exit(7) // Chyba 7
-                for (unsigned int j = 0, j<i, j++){
+                if (e_set != 0 || dot_set != 0) exit(7); // Chyba 7
+                for (unsigned int j = 0; j < i; j++){
                     vysledek = vysledek*10 + (Str[j] - '0');
                 }
                 i = 0;
                 dot_set = 1;
                 break;
 
-            defaul:       
-            Str[i] = c;
-            i++;
-
+            default:       
+                Str[i] = c;
+                i++;
+                break;
+        }
 
     }
 
     if (e_set == 0 || dot_set == 0){ // Jenom celé cislo
-        for (unsigned int j = 0, j<i, j++){
+        for (unsigned int j = 0; j < i; j++){
             vysledek = vysledek*10 + (Str[j] - '0');
         }
     }
     if (e_set == 1){ // zpracovani exponentu TODO
-        for (unsigned int j = 0, j<i, j++){
+        for (unsigned int j = 0; j < i; j++){
             vysledek = vysledek*10 + (Str[j] - '0');
         }
     }
     if (dot_set == 1){ //
-        for (unsigned int j = 0, j<i, j++){
-            double pom = 0;
+        double pom = 0;
+        for (unsigned int j = 0; j < i; j++){
             pom = pom*0.1 + (Str[j] - '0');
         }
         vysledek = vysledek + pom;
@@ -115,7 +118,7 @@ double readDouble{ // TODO
     return vysledek;
 }
 
-String readString{
+String readString(){
     unsigned int Len = MAX_LEN;
     char c;    
     unsigned int i = 0;
@@ -125,7 +128,7 @@ String readString{
 
 
     while ((c = getchar()) != '\n' && c != EOF){
-        if (i = Len){
+        if (i == Len){
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len);
             if (Str == NULL) exit(99);
@@ -151,22 +154,21 @@ int length(String s){
 }
 
 String substr(String s,int i, int n){
-    unsigned int sLen = strlen(s);
+    int sLen = strlen(s);
 
     if (sLen-1 > i) exit(10); // Dopsat chybu 10
     if (sLen-1 < i + n) exit(10); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
-    if (n != 0) sLEn = n+1;	// Urceni delky
+    if (n != 0) sLen = n+1;	// Urceni delky
     else sLen = sLen-i;
 
-    string pom[sLen] = {0}; 
+    String pom = malloc(sLen); 
+    if (pom == NULL) exit(99);
 
-    for (unsigned int x = 0, x < sLen-1, x++){ // Kopirovani
-        pom[x] = s[x];
-
-    }
+    strncpy(pom, s+i, n);
 
     pom[sLen-1] = '\0';
+    return pom; // Nekdy dealokovat
 
 }
 
@@ -177,13 +179,12 @@ int compare(String s1, String s2){
     if (s1len > s2len) return 1;
 	if (s1len < s2len) return -1;
 
-    for (unsigned int i = 0, i < s1len, i++){
+    for (unsigned int i = 0; i < s1len; i++){
         if (s1[i] > s2[i]) return 1;
 		if (s1[i] < s2[i]) return -1;
 
     }
 
-return 0;
+    return 0;
 
 }
-
