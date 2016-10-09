@@ -19,24 +19,16 @@
 #include <limits.h>
  
 int readInt(){ // Int celé nezáporné číslo (3.1)
-    String pom = malloc(11); // Urceno dle max delky int
-    if (pom == NULL) exit(99);
+    char c; // Urceno dle max delky int
 
-    unsigned int i = 0; 
     unsigned int vysledek = 0;
 
-    scanf("%s", pom);
-    
-    if (pom[0] == '-') exit(7); //Chyba 7
-
-    while (i < 11){
-        if ('0' <= pom[i] && pom[i] <= '9') vysledek = vysledek*10 + (pom[i] - '0'); // Prepis na cislo
+    while ((c = getchar()) != '\n' && c != EOF){
+        if ('0' <= c && c <= '9') vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
         else exit(7); // Chyba 7
-        i++;
     }
 
     return vysledek;
-
 }
 
 double readDouble(){ // TODO
