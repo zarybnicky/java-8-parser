@@ -94,3 +94,94 @@ int check_keyword(String str)
     return IDENTIFIER;
 }
 
+int Get_Token(void)
+{ 
+	int v;
+	while () {
+		switch (state) {
+		
+		 case Neutral_State :   // nacitame znak
+		 v = fgetc(input);
+		 case Start_state :
+		        if(isspace(v)) {
+				 state = NEUTRAL_STATE
+				 if(c == '\n')
+				 ++line }
+				
+				else if(isalpha(v) || v == '_' || v == '$') //pokracujeme dalej na stav IDEN
+				 state = AUT_IDEN;
+				
+				else if(isdigit(v))  //pokracujeme na stav cisla
+				 state = AUT_NUM;
+				 
+				else if(c == '+') {
+                    state = NEUTRAL_STATE;
+                    return PLUS;
+                }
+                else if(c == '-'){
+                    state = NEUTRAL_STATE;
+                    return MINUS;
+                }
+                else if(c == '*') {
+                    state = NEUTRAL_STATE;
+                    return MUL;
+                }
+                else if(c == '/')      // pokracujeme dalej kvoli moznosti komentaru
+                    state = AUT_DIV;
+                 else if(c == '<')
+                    state = AUT_LESS;  // pokracujeme kvoli moznosti mensie rovne
+                else if(c == '>')
+                    state = AUT_GREAT; // moznost vacsie rovne
+                else if(c == '=')
+                    state = AUT_EQUALS;  // moznost rovnsti
+                else if(c == '!')
+                    state = AUT_NOT_EQUALS; // moznost nerovnosti
+                else if(c == ';') {
+                    state = NEUTRAL_STATE;  //Neviem ci tu mam zahrnovat aj dvojbodku, bodkociarku, bodku atd... toto som tu dal ale neviem ci to treba
+                    return SEMICOLON;
+                }
+                else if(c == '"')    //skaceme na stav String
+                    state = AUT_STRING;
+                     
+                else if(c == EOF)
+                    return NOTHING;
+                else {
+                    state = FNEUTRAL_STATE;
+                    return ERROR;
+                }
+                   break;
+                    
+                
+           
+                    
+                
+				 
+		 
+		 
+			
+	
+
+
+
+
+
+Token getNextToken(FILE *stream);
+enum TokenType { Integer, Double, String, Type, SimpleId, CompoundId, Reserved, Symbol };
+typedef struct {
+     int lineNum;
+     int lineChar; //For error reporting
+     TokenType type;
+     union {
+          struct { int intValue };
+          struct { double doubleValue; };
+          struct { char *stringValue; };
+          struct { char *typeValue; };
+          struct { char *localId; };
+          struct { char *namespace; char *staticId; };
+          struct { char *reservedValue; };
+          struct { char *symbolValue; };
+        
+     };
+} Token;
+
+
