@@ -36,14 +36,13 @@ typedef struct {
 
 
 
-int check_keyword(String str)
+int control_res_key_word(String str)
 { 
     if(strlen(str)> LNG_KEYWORD) return IDENTIFIER;
     }
     if(str[0] == 'b') {
         if(strcmp(str, "boolean") == 0)
             return BOOLEAN;
-        return IDENTIFIER;
         if(strcmp(str, "break") == 0)
             return BREAK;
         return IDENTIFIER;
@@ -51,7 +50,6 @@ int check_keyword(String str)
     if(str[0] == 'c') {
         if(strcmp(str, "class") == 0)
             return CLASS;
-        return IDENTIFIER;
         if(strcmp(str, "continue") == 0)
             return CONTINUE;
         return IDENTIFIER;
@@ -59,7 +57,6 @@ int check_keyword(String str)
     if(str[0] == 'd') {
         if(strcmp(str, "do") == 0)
             return DO;
-        return IDENTIFIER;
         if(strcmp(str, "double") == 0)
             return DOUBLE;
         return IDENTIFIER;
@@ -67,6 +64,7 @@ int check_keyword(String str)
     if(str[0] == 'e') {
         if(strcmp(str, "else") == 0)
             return ELSE;
+        return IDENTIFIER;
     }
     if(str[0] == 'f') {
         if(strcmp(str, "false") == 0)
