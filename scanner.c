@@ -13,6 +13,27 @@
 #include "Stringology.h"
 
 
+Token getNextToken(FILE *stream);
+enum TokenType { Integer, Double, String, Type, SimpleId, CompoundId, Reserved, Symbol };
+typedef struct {
+     int lineNum;
+     int lineChar; //For error reporting
+     TokenType type;
+     union {
+          struct { int intValue };
+          struct { double doubleValue; };
+          struct { char *stringValue; };
+          struct { char *typeValue; };
+          struct { char *localId; };
+          struct { char *namespace; char *staticId; };
+          struct { char *reservedValue; };
+          struct { char *symbolValue; };
+        
+     };
+} Token;
+
+
+
 
 
 int check_keyword(String str)
@@ -150,38 +171,90 @@ int Get_Token(void)
                     return ERROR;
                 }
                    break;
+                
+        case AUT_IDEN:
+              string_end(&string,v); // zatial neimplementovana funkcia bude hadzat znaky na koniec
+              v = fgetc(input);
+               if(! (isalnum(c) || v == '_' ||v == '$' )) {
+                    state = FSM_START;
+                    return control_res_key_word(&string); // kontrola klicovych slov
+               else if (v == '.')
+                    state AUT_IDEN2;
+                }
+                break;
+        case AUT_IDEN2:
+              string_end(&string,v); //ako vyrobit nekonecny stav? NIESOM SI ISTY IDEN
+              v = fgetc(input);
+              if(! (isalnum(c) || v == '_' ||v == '$' )) {
+                    state = FSM_START;
+                    return control_res_key_word(&string);
+        case AUT_NUM:
+               string_end(&string,v); 
+               v = fgetc(input);
+               if(isdigit(v));
+                else if(v == '.')
+                    state = AUT_FLOAT1;
+                else if(v == 'E' || v == 'e')
+                    state = AUT_EX1;
+                else {
+                    state = Start_state;
+                    return NUMBER;
+                }
+                break;
+        case AUT_FLOAT1:
+                string_end(&string,v); 
+                v = fgetc(input);
+                if(isdigit(v))
+                    state = AUT_FLOAT2;
+                else {
+                    state = Start_state;
+                    return ERROR_NUMBER;
+                }
+                break;
+        case AUT_FLOAT2:
+                string_end(&string,v); 
+                v = fgetc(input);
+               if(isdigit(c));
+                else if(c == 'E' || c == 'e')
+                    state = AUT_EX1;
+                else {
+                    state = Start_state;
+                    return NUMBER;
+                }
+                break; 
+        case AUT_EX1:
+                string_end(&string,v); 
+                v = fgetc(input);
+                if(c == '+' || c == '-')
+                    state = AUT_EX2;
+                else if (isdigit(c))
+                    state = AUT_EX3;
+                else { 
+                    state = Star_state;
+                    return ERROR_NUMBER;
+                }
+                break;
+        case AUT_EX2:
+                string_end(&string,v); 
+                v = fgetc(input);
+                if(isdigit(c))
+                    state = AUT_EX3;
+                else {
+                    state = Star_state;
+                    return ERROR_NUMBER;
+                }
+                break;
+        case AUT_EX3:
+                string_end(&string,v); 
+                v = fgetc(input);
+                if(! isdigit(v)) //ak nie je cislo tak nepokracujeme ale vraciame sa na start
+                   state = Star_state;
+                    return NUMBER;
+                }
+                break;
                     
                 
            
                     
-                
-				 
-		 
-		 
-			
-	
-
-
-
-
-
-Token getNextToken(FILE *stream);
-enum TokenType { Integer, Double, String, Type, SimpleId, CompoundId, Reserved, Symbol };
-typedef struct {
-     int lineNum;
-     int lineChar; //For error reporting
-     TokenType type;
-     union {
-          struct { int intValue };
-          struct { double doubleValue; };
-          struct { char *stringValue; };
-          struct { char *typeValue; };
-          struct { char *localId; };
-          struct { char *namespace; char *staticId; };
-          struct { char *reservedValue; };
-          struct { char *symbolValue; };
-        
-     };
-} Token;
 
 
