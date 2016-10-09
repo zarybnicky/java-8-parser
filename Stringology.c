@@ -156,7 +156,7 @@ int length(String s){
 String substr(String s,int i, int n){
     int sLen = strlen(s);
 
-    if (sLen-1 > i) exit(10); // Dopsat chybu 10
+    if (sLen-1 < i) exit(10); // Dopsat chybu 10
     if (sLen-1 < i + n) exit(10); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
     if (n != 0) sLen = n+1;	// Urceni delky
