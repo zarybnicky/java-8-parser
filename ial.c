@@ -12,13 +12,14 @@
 // Merge-sort - nutno upravit dle inplementace stringu
 
 #include "ial.h"
+#include "Stringology.h"
 
 char *substr(char *s, unsigned start, unsigned length)
 {
     return "";
 }
 
-char *sort(char *s)
+String sort(String s)
 {
     unsigned len = strlen(s);
 
@@ -27,17 +28,21 @@ char *sort(char *s)
         unsigned y = 0;
         unsigned count = 0; // Pocitadlo prvku pole
         unsigned half = len / 2;
-
-        char *left = substr(s, 0, half);
-        char *right;
         unsigned top;
+
+        String left = substr(s, 0, half);
+        String right;
+
+
         if (len % 2 == 0) { // char *sudy X lichy pocet clenu
-            right = substr(s, half, half);
+
+            right = substr(s, half, 0);
             top = half;
+
         } else {
-            right = substr(s, half, half + 1);
+
+            right = substr(s, half, 0);
             top = half+1;
-
         }
 
         left = sort(left);  // Rekurzivni volani fce.
@@ -57,36 +62,13 @@ char *sort(char *s)
         while (x < half){   // Doplneni zbyvajicich znaku
             s[count] = left[x];
             count++;
+            x++;
         }
-
-
-        }
-
-        left = sort(left);  // Rekurzivni volani fce.
-        right = sort(right);
-
-        while (x < half && y < top) {  // Sort -> Pocitam u obou retezcu od 0 - top muze byt ichy nebo sudy (viz. vyse)
-            if (left[x] <= right[y]){
-                s[count] = left[x];
-                x++;
-            } else {
-                s[count] = right[y];
-                y++;
-            }   // if
-            count++;
-        }   // while
-
-        while (x < half){   // Doplneni zbyvajicich znaku
-            s[count] = left[x];
-            count++;
-        }
-
-
-        while (y < top){
+        while (y < top){   // Doplneni zbyvajicich znaku
             s[count] = right[y];
             count++;
+            y++;
         }
-
     }   // if (len != 1)
     return s;
 }   // function
