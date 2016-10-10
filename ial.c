@@ -104,6 +104,6 @@ void insert_symbol(sym_table *s_table, symbol *sym, symbol_obj *arr)
 
 symbol_obj lookup_symbol(sym_table *s_table, symbol *sym)
 {
-    
+
 }
 

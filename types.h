@@ -56,7 +56,7 @@ typedef struct {
   bool declaration;         // symbol is declared == T
   bool definition;          // symbol is defined == T
   enum symbol_obj_type type;//
-  
+
   /* TODO More or less information ??*/
 
 } global_sym_table;
