@@ -163,10 +163,12 @@ String substr(String s,int i, int n) {
         //fprintf(stderr, "Error while ???\n");
         exit(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
-    if (n != 0)
-        sLen = n + 1; // Urceni delky
-    else
-        sLen = sLen - i;
+    if (n != 0) { 
+        sLen = n+1;	// Urceni delky
+    } else {         
+        n = sLen - i;
+        sLen = n+1;
+    }
 
     String pom = malloc(sLen);
     if (pom == NULL) {
