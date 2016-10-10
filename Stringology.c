@@ -51,75 +51,111 @@ double readDouble() { // TODO
             }
         }
 
-        if (('0' <= c && c <= '9') || c != '.' || c != 'e' || c != 'E' || c != '+' || c != '-') {
+        if (('0' <= c && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
+
+            switch(c) {
+                case 'e':
+                case 'E':
+                    if (e_set != 0) { // Vice exp za sebou, nebo exp neni cele cislo
+                    fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
+                    exit(ERR_RUNTIME_INT_PARSE);
+                    }
+                if (dot_set == 0) {
+                    for (unsigned int j = 0; j < i; j++) { // Zapsani celych cisel
+                        vysledek = vysledek*10 + (Str[j] - '0');
+                    }
+                } else {
+                    double pom = 0;
+                    for (int j = strlen(Str)-1; j > -1; j--) { // Zapsani desetinnych mist
+                        pom = pom*0.1 + (Str[j] - '0');
+                    }
+                    pom = pom*0.1; // Posledni posun
+                    vysledek = vysledek + pom;
+                    dot_set = 0;
+                }
+                i = 0;
+                e_set = 1;
+                break;
+
+            case '.':
+                if (e_set != 0 || dot_set != 0) { // Kontrola pro vice tecek nebo tecky po exp
+                    fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
+                    exit(ERR_RUNTIME_INT_PARSE);
+                }
+                for (unsigned int j = 0; j < i; j++) { // Zapsani celych cisel
+                    vysledek = vysledek*10 + (Str[j] - '0');
+                }
+
+                i = 0;
+                dot_set = 1;
+                break;
+
+            default:
+                Str[i] = c; // Ulozeni znaku
+                i++;
+                Str[i] = '\0'; // Nulovani dalsiho znaku
+                break;
+
+            } // Switch end
+
+        } else {
+
             fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
             exit(ERR_RUNTIME_INT_PARSE);
         }
-
-        switch(c) {
-        case 'e':
-        case 'E':
-            if (e_set != 0) { //Vice exp za sebou, nebo exp neni cele cislo
-                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
-                exit(ERR_RUNTIME_INT_PARSE);
-            }
-            if (dot_set == 0) {
-                for (unsigned int j = 0; j < i; j++) {
-                    vysledek = vysledek*10 + (Str[j] - '0');
-                }
-            } else {
-                double pom = 0;
-                for (unsigned int j = 0; j < i; j++) {
-                    pom = pom*0.1 + (Str[j] - '0');
-                }
-                pom = pom*0.1; // Posledni posun
-                vysledek = vysledek + pom;
-                dot_set = 0;
-            }
-            i = 0;
-            e_set = 1;
-            break;
-
-        case '.':
-            if (e_set != 0 || dot_set != 0) {
-                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
-                exit(ERR_RUNTIME_INT_PARSE);
-            }
-            for (unsigned int j = 0; j < i; j++) {
-                vysledek = vysledek*10 + (Str[j] - '0');
-            }
-            i = 0;
-            dot_set = 1;
-            break;
-
-        default:
-            Str[i] = c;
-            i++;
-            break;
-        }
     }
 
-    if (e_set == 0 || dot_set == 0) { // Jenom celé cislo
+    if (e_set == 0 && dot_set == 0) { // Jenom celé cislo
+
         for (unsigned int j = 0; j < i; j++) {
             vysledek = vysledek*10 + (Str[j] - '0');
         }
     }
-    if (e_set == 1) { // zpracovani exponentu TODO
-        for (unsigned int j = 0; j < i; j++) {
-            vysledek = vysledek*10 + (Str[j] - '0');
-        }
+
+    if (e_set == 1) { // Zpracovani exponentu 
+
+        unsigned int pom = 0;
+
+        if (Str[0] != '-'){
+
+            // Kladne znamenku u exponentu
+            for (unsigned int j = 0; j < i; j++) { // Prepis na cisla
+                pom = pom*10 + (Str[j] - '0');
+            }
+
+            for (unsigned int j = 0; j < pom; j++) { // Aplikace exponentu
+                vysledek = vysledek*10;
+            }
+
+        } else {
+
+            // Zaporne znamenko u exponentu
+            for (unsigned int j = 1; j < i; j++) { // Prepis na cisla
+                pom = pom*10 + (Str[j] - '0');
+            }
+
+            for (unsigned int j = 0; j < pom; j++) { // Aplikace exponentu
+                vysledek = vysledek*0.1;
+            }
+        } // End if Str[0] != '-'
     }
-    if (dot_set == 1) {
+
+    if (dot_set == 1) { // Doplneni desetinnych mist
         double pom = 0;
-        for (unsigned int j = 0; j < i; j++) {
+
+        for (int j = strlen(Str)-1; j > -1; j--) { // Zapsani desetinnych mist
             pom = pom*0.1 + (Str[j] - '0');
         }
+
+        pom = pom*0.1; // Posledni posun
         vysledek = vysledek + pom;
     }
 
     free(Str);
+
     return vysledek;
-}
+
+} // function end
 
 String readString() {
     unsigned int Len = MAX_LEN;
