@@ -13,5 +13,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "types.h"
 
 #endif /* IFJ_INTERPRETER_H */

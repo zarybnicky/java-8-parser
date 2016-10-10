@@ -13,8 +13,9 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <stdlib>
+#include <stdlib.h>
 #include <limits.h>
+#include "types.h"
 
 int readInt();
 double readDouble();

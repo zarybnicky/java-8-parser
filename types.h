@@ -11,6 +11,17 @@
 #ifndef IFJ_TYPES_H
 #define IFJ_TYPES_H
 
+#define ERR_LEXER                 1
+#define ERR_SYNTAX                2
+#define ERR_SEM_UNDEFINED         3
+#define ERR_SEM_TYPECHECK         4
+#define ERR_SEM_MISC              6
+#define ERR_RUNTIME_INT_PARSE     7
+#define ERR_RUNTIME_UNINITIALIZED 8
+#define ERR_RUNTIME_DIV_BY_ZERO   9
+#define ERR_RUNTIME_MISC          10
+#define ERR_INTERNAL              99
+
 typedef char* String; //why?!
 
 typedef struct {
@@ -20,13 +31,5 @@ typedef struct {
 typedef struct {
   //??
 } symbol;
-
-enum symbol_obj_type { NODE_FN, NODE_VAR };
-typedef struct {
-  enum symbol_obj_type type;
-  union {
-    //??
-  };
-} symbol_obj;
 
 #endif /* IFJ_TYPES_H */

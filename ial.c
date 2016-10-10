@@ -15,31 +15,33 @@
 
 char *substr(char *s, unsigned start, unsigned length)
 {
-  return "";
+    return "";
 }
 
 char *sort(char *s)
 {
-    unsigned x = 0;
-    unsigned y = 0;
-    unsigned count = 0; // Pocitadlo prvku pole
     unsigned len = strlen(s);
-    
+
     if (len != 1) {  // Rozdeleni na mensi stringy
+        unsigned x = 0;
+        unsigned y = 0;
+        unsigned count = 0; // Pocitadlo prvku pole
         unsigned half = len / 2;
 
         char *left = substr(s, 0, half);
+        char *right;
+        unsigned top;
         if (len % 2 == 0) { // char *sudy X lichy pocet clenu
-            char *right = substr(s, half, half);
-            unsigned top = half;
+            right = substr(s, half, half);
+            top = half;
         } else {
-            char *right = substr(s, half, half + 1);
-            unsigned top = half+1;
+            right = substr(s, half, half + 1);
+            top = half+1;
         }
-        
+
         left = sort(left);  // Rekurzivni volani fce.
         right = sort(right);
-        
+
         while (x < half && y < top) {  // Sort -> Pocitam u obou retezcu od 0 - top muze byt ichy nebo sudy (viz. vyse)
             if (left[x] <= right[y]){
                 s[count] = left[x];
@@ -49,18 +51,18 @@ char *sort(char *s)
                 y++;
             }   // if
             count++;
-        }   // while  
-        
+        }   // while
+
         while (x < half){   // Doplneni zbyvajicich znaku
-            s[count] = left[x]; 
+            s[count] = left[x];
             count++;
         }
-            
+
         while (y < top){
             s[count] = right[y];
             count++;
-        }  
-        
+        }
+
     }   // if (len != 1)
     return s;
 }   // function

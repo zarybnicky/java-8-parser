@@ -12,18 +12,18 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 2) {
-    fprintf(stderr, "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
-    return 99;
-  }
-  FILE *f = fopen(argv[1], "r");
-  if (f == NULL) {
-    perror("Error while opening file");
-    return 99;
-  }
+    if (argc != 2) {
+        fprintf(stderr, "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
+        exit(ERR_INTERNAL);
+    }
+    FILE *f = fopen(argv[1], "r");
+    if (f == NULL) {
+        perror("Error while opening file");
+        exit(ERR_INTERNAL);
+    }
 
-  printf("Not implemented.");
+    printf("Not implemented.");
 
-  fclose(f);
-  return 0;
+    fclose(f);
+    return 0;
 }
