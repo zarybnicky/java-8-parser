@@ -19,10 +19,12 @@ int readInt() { // Int celé nezáporné číslo (3.1)
     unsigned vysledek = 0;
 
     while ((c = getchar()) != '\n' && c != EOF) {
-        if ('0' <= c && c <= '9')
+        if ('0' <= c && c <= '9') {
             vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
-        else
+        } else {
+            fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
             exit(ERR_RUNTIME_INT_PARSE);
+        }
     }
     return vysledek;
 }
@@ -34,25 +36,33 @@ double readDouble() { // TODO
     short e_set = 0, dot_set = 0;
 
     String Str = malloc(Len);
-    if (Str == NULL)
+    if (Str == NULL) {
+        perror("Error while allocating memory");
         exit(ERR_INTERNAL);
+    }
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len); // Zvetsi string
-            if (Str == NULL)
+            if (Str == NULL) {
+                perror("Error while reallocating memory");
                 exit(ERR_INTERNAL);
+            }
         }
 
-        if (('0' <= c && c <= '9') || c != '.' || c != 'e' || c != 'E' || c != '+' || c != '-')
+        if (('0' <= c && c <= '9') || c != '.' || c != 'e' || c != 'E' || c != '+' || c != '-') {
+            fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
             exit(ERR_RUNTIME_INT_PARSE);
+        }
 
         switch(c) {
         case 'e':
         case 'E':
-            if (e_set != 0) //Vice exp za sebou, nebo exp neni cele cislo
+            if (e_set != 0) { //Vice exp za sebou, nebo exp neni cele cislo
+                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
                 exit(ERR_RUNTIME_INT_PARSE);
+            }
             if (dot_set == 0) {
                 for (unsigned int j = 0; j < i; j++) {
                     vysledek = vysledek*10 + (Str[j] - '0');
@@ -71,8 +81,10 @@ double readDouble() { // TODO
             break;
 
         case '.':
-            if (e_set != 0 || dot_set != 0)
+            if (e_set != 0 || dot_set != 0) {
+                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
                 exit(ERR_RUNTIME_INT_PARSE);
+            }
             for (unsigned int j = 0; j < i; j++) {
                 vysledek = vysledek*10 + (Str[j] - '0');
             }
@@ -115,15 +127,19 @@ String readString() {
     unsigned int i = 0;
 
     String Str = malloc(Len);
-    if (Str == NULL)
+    if (Str == NULL) {
+        perror("Error while allocating memory");
         exit(ERR_INTERNAL);
+    }
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len);
-            if (Str == NULL)
+            if (Str == NULL) {
+                perror("Error while reallocating memory");
                 exit(ERR_INTERNAL);
+            }
         }
 
         Str[i] = c;
@@ -143,18 +159,20 @@ int length(String s) {
 String substr(String s,int i, int n) {
     int sLen = strlen(s);
 
-    if (sLen-1 < i)
-        exit(ERR_RUNTIME_MISC);
-    if (sLen-1 < i + n)
+    if (sLen - 1 < i || sLen - 1 < i + n)
+        //fprintf(stderr, "Error while ???\n");
         exit(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
     if (n != 0)
         sLen = n + 1; // Urceni delky
-    else sLen = sLen-i;
+    else
+        sLen = sLen - i;
 
     String pom = malloc(sLen);
-    if (pom == NULL)
+    if (pom == NULL) {
+        perror("Error while allocating memory");
         exit(ERR_INTERNAL);
+    }
 
     strncpy(pom, s+i, n);
 
