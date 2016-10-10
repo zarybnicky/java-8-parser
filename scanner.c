@@ -96,7 +96,7 @@ int Get_Token(void)
   while () {
     switch (state) {
 
-    case Neutral_State :   // nacitame znak
+    case NEUTRAL_STATE :   // nacitame znak
       v = fgetc(input);
     case Start_state :
       if (isspace(v)) {
@@ -150,7 +150,7 @@ int Get_Token(void)
       string_end(&string,v); // zatial neimplementovana funkcia bude hadzat znaky na koniec
       v = fgetc(input);
       if (! (isalnum(c) || v == '_' ||v == '$' )) {
-        state = FSM_START;
+        state = Start_state;
         return control_res_key_word(&string); // kontrola klicovych slov
       } else if (v == '.')
           state AUT_IDEN2;
@@ -159,7 +159,7 @@ int Get_Token(void)
       string_end(&string,v); //ako vyrobit nekonecny stav? NIESOM SI ISTY IDEN
       v = fgetc(input);
       if (! (isalnum(c) || v == '_' ||v == '$' )) {
-        state = FSM_START;
+        state = Start_state;
         return control_res_key_word(&string);
       }
     case AUT_NUM:
@@ -228,6 +228,139 @@ int Get_Token(void)
         return NUMBER;
       }
       break;
+    
+    case AUT_STRING:
+      v = fgetc(input);
+      if(v == '"') {
+        state = NEUTRAL_STATE;
+       return STRING; }
+       else if(c == '\\')
+         state = AUT_ESC; // NIESOM SI ISTY VO VSETKYCH VARIANTACH NEDOKONCENE ZATIAL
+       else
+        string_end(&string, v);
+       break;
+               
+        case AUT_ESC:
+                 v=fgetc(input);
+                 if(v = 'n'){
+				  state = AUT_STRING;
+				  string_end(&string,'\n');
+				 }
+				 } else if(v == 't') {
+                    state = AUT_STRING;
+                    string_end(&string, '\t');
+                } else if(v == '\\' || v == '"') {
+                    state = AUT_STRING;
+                    string_end(&string,v);
+                } else if(isdigit(v))
+                    state = AUT_ESCN; 
+                  else {
+					 state = Star_state;
+					 return ERROR_ESC;
+			    }
+			    break;
+	    case AUT_ESCN:   //NEDOKONCNEE
+	            v=fgetc(input);
+	            cis = v -          
+        //////////////////////////////////////
+        
+        
+        
+        case AUT_DIV:
+                v=fgetc(input);
+                if(v== '/')
+                   state = AUT_DIV2;
+                else if(v='*');
+                    state = AUT_CMTB;// posleme do coment bloku
+                   
+                else {
+					state = Star_state;
+					return DIV;
+				}
+				break;
+        
+        case AUT_DIV2:	
+                v=fgetc(input);
+                if(c == '\n')
+                    state = NEUTRAL_STATE
+                else
+                    state = AUT_CMTL;
+                break;
+                
+        case AUT_CMTL: //Coment Line
+                v=fgetc(input);
+                if(v == '\n') {
+                    state = NEUTRAL_STATE;
+                    +line;
+               }else if(v == EOF)
+                    return NOTHING;
+                break;
+        
+        case AUT_CMTB :   //Coment Block
+                v=fgetc(input); 
+                if(v == '*')
+                    state = AUT_CMTB_END;
+                else if(v == '\n')
+                    ++line;
+                else if(v == EOF)
+                    return ERROR_CMTB;
+                break;
+        case AUT_CMTB_END:
+                v=fgetc(input); 
+                if(v == '/')
+                    state = NEUTRAL_STATE;
+                else if(v='\n'){
+                    +line;
+                    state = AUT_CMTB;}
+                else
+                    state = AUT_CMTB;
+                  
+				} break;
+				
+		case AUT_EQUALS:
+                v = fgetc(input);
+                if(c == '=') {
+                    state = NEUTRAL_STATE;
+                    return EQUAL;
+                } else {
+                    state = Start_state;
+                    return ASSIGN;
+                }
+                break;
+        
+        case AUT_LESS:
+                v = fgetc(input);
+                if(v == '=') {
+                    state = NEUTRAL_STATE;
+                    return LESS_EQUAL;
+                } else {
+                    state = Start_state;
+                    return LESS;
+                }
+                break;
+                
+        case AUT_GREAT:
+                v = fgetc(input);
+                if(v == '=') {
+                    state = NEUTRAL_STATE;
+                    return GREAT_EQUAL;
+                } else {
+                    state = Start_state;
+                    return GREAT;
+                }
+                break;
+        
+        case AUT_NOT_EQUALS:
+                v = fgetc(input);
+                if(v == '=') {
+                    state = NEUTRAL_STATE;
+                    return NOT_EQUAL;
+                } else {
+                    state = Start_state;
+                    return ERROR_NOT_EQUALS;
+                }
+                break;
+        
     }
   }
 }
