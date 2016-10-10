@@ -37,6 +37,7 @@ char *sort(char *s)
         } else {
             right = substr(s, half, half + 1);
             top = half+1;
+
         }
 
         left = sort(left);  // Rekurzivni volani fce.
@@ -58,6 +59,29 @@ char *sort(char *s)
             count++;
         }
 
+
+        }
+
+        left = sort(left);  // Rekurzivni volani fce.
+        right = sort(right);
+
+        while (x < half && y < top) {  // Sort -> Pocitam u obou retezcu od 0 - top muze byt ichy nebo sudy (viz. vyse)
+            if (left[x] <= right[y]){
+                s[count] = left[x];
+                x++;
+            } else {
+                s[count] = right[y];
+                y++;
+            }   // if
+            count++;
+        }   // while
+
+        while (x < half){   // Doplneni zbyvajicich znaku
+            s[count] = left[x];
+            count++;
+        }
+
+
         while (y < top){
             s[count] = right[y];
             count++;
@@ -66,3 +90,20 @@ char *sort(char *s)
     }   // if (len != 1)
     return s;
 }   // function
+
+
+sym_table *create_symbol_table()
+{
+
+}
+
+void insert_symbol(sym_table *s_table, symbol *sym, symbol_obj *arr)
+{
+
+}
+
+symbol_obj lookup_symbol(sym_table *s_table, symbol *sym)
+{
+    
+}
+
