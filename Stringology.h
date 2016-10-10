@@ -7,9 +7,14 @@
  *          xvasko14 - Vaško Michal
  *          xzales12 - Záleský Jiří
  */
- 
-//String uz je definovany v hlavickovom subore "types.h"
-//#define String char*
+
+#ifndef IFJ_STRINGOLOGY_H
+#define IFJ_STRINGOLOGY_H
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib>
+#include <limits.h>
 
 int readInt();
 double readDouble();
@@ -17,4 +22,6 @@ String readString();
 void print();
 int length(String s);
 String substr(String s,int i, int n);
-int compare(String s1, String s2); 
+int compare(String s1, String s2);
+
+#endif /* IFJ_STRINGOLOGY_H */
