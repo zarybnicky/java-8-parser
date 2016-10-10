@@ -32,4 +32,12 @@ typedef struct {
   //??
 } symbol;
 
+enum symbol_obj_type { NODE_FN, NODE_VAR };
+typedef struct {
+  enum symbol_obj_type type;
+  union {
+    //??
+  };
+} symbol_obj;
+
 #endif /* IFJ_TYPES_H */
