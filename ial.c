@@ -91,19 +91,56 @@ char *sort(char *s)
     return s;
 }   // function
 
+/*  Symbol table implementation global, local,
+    pushing functions to global table*/
 
-sym_table *create_symbol_table()
-{
+glb_sym_table *create_symbol_table(){
+  glb_sym_table *g_table = NULL;
 
+  g_table = (glb_sym_table) malloc(sizeof(glb_sym_table));
+
+  if (g_table == NULL){
+    perror("Table allocation failed");
+    exit(ERR_INTERNAL);
+  }
+  g_table->left = NULL;
+  g_table->right = NULL;
+
+  return g_table;
 }
 
-void insert_symbol(sym_table *s_table, symbol *sym, symbol_obj *arr)
-{
+symbol *create_symbol (Content data){
+  symbol *new = malloc(sizeof(symbol));
+  if (new == NULL){
+    perror("Allocation of symbol failed");
+    exit(ERR_INTERNAL);
+  }
+  new->data = data;
+  new->ptr->left = NULL;
+  new->ptr->right = NULL;
 
+  return new;
 }
 
-symbol_obj lookup_symbol(sym_table *s_table, symbol *sym)
-{
+void insert_symbol(glb_sym_table *root, int key, Content data){
+  if(!root){
+    root = create_symbol_table();
+    symbol *sym = create_symbol(data);
+    root->;
+
+  }
+  // if key is smaller
+  if (key < root->key)
+    insert_symbol(root->left, key, sym);
+  // if key is bigger
+  else if (key > root->key)
+    insert_symbol(root->right, key, sym);
+  // if key is equal push it to right and increment key
+  else
+    insert_symbol(root->right, key + 1, sym);
+}
+
+symbol *lookup_symbol(global_sym_table *root, int key){
 
 }
 

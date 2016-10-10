@@ -21,17 +21,22 @@ int find(String s, String search);
   * Create a new symbol table
   * returns new symbol table
   */
-sym_table *create_symbol_table();
+glb_sym_table *create_symbol_table();
+
+/** Create new symbol if not enough
+  * memory exit ERR_INTERNAL returned
+  */
+symbol *create_symbol (Content);
 
 /**
   * Inserts symbol into created symbol table
   */
-void insert_symbol(sym_table *, symbol *, symbol_obj *);
+void insert_symbol(glb_sym_table *, int, symbol *);
 
 /**
   * Seach for a symbol in symbol table
   * returns symbol_obj
   */
-symbol_obj lookup_symbol(sym_table *, symbol *);
+symbol *lookup_symbol(global_sym_table *, int);
 
 #endif /* IFJ_IAL_H */

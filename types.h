@@ -30,36 +30,49 @@ typedef char* String; //why?!
 
 enum symbol_obj_type { NODE_FN, NODE_VAR };
 
+/* only 1 type of value can be assigned to 1 variable */
+typedef union {
+  int int_val;              //INTEGER val
+  double dbl_val;           //DOUBLE val
+  bool bool;                //BOOLEAN val
+  String str;               //STRING val
+  void *adr;                //VOID val
+}uniq_val;
+
+/* length removed from symbol content */
+typedef struct{
+  String sym_name;          // symbol name
+  int type;                 /*  type of symbol (boolean, double, int, void,
+                                String) */
+  uniq_val value;           //unique_value in which will be stored value
+}Content;
 
 /* Symbol defined */
-typedef struct {
-  String sym_name;  // symbol name
-  String sym_type;  // type of symbol (boolean, double, int, void, String)
-  int sym_length;   // max length of sym_type, for String based on strlen
+typedef struct ptr{
+  int key;                  // symbol contains key
+  Content data;             // symbol contains data
+  struct ptr *left, *right; // left right node of symbol
 } symbol;
 
 /* Local symbol table for functions */
 typedef struct l_sym_table{
-  String name;
-  int offset;
+  int key;
   symbol object;           // symbol with defined type,length and name
   String scope;            // scope (function parameter, global, local, static)
   enum symbol_obj_type type;
+  struct l_sym_table *left, *right;
 }local_sym_table;
 
 /* Global symbol table */
-typedef struct {
-  String name;              // ?!?
+typedef struct g_sym_table{
+  //String name;            // ?!?
   int key;                  // key for addressing in BST
   local_sym_table *f_table; // pointer to a function table
   symbol object;            // symbol with defined type,length and name
-  bool declaration;         // symbol is declared == T
-  bool definition;          // symbol is defined == T
-  enum symbol_obj_type type;//
-
+  struct g_sym_table *left, *right;
   /* TODO More or less information ??*/
 
-} global_sym_table;
+} glb_sym_table;
 
 
 /* symbol_obj ??*/
