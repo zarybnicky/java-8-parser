@@ -14,10 +14,68 @@
 #include "ial.h"
 #include "Stringology.h"
 
-char *substr(char *s, unsigned start, unsigned length)
-{
-    return "";
-}
+int *Prefixcreator(String search, int seaLen){ // Pomocna funkce pro find
+
+    int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
+    if (array == NULL){
+        perror("Error while allocating memory");
+        exit(ERR_INTERNAL);
+    }
+
+    int a = -1;
+
+    array[0] = a;
+
+    for (int i = 1; i < seaLen; i++){ // Pruchod stringem
+
+        while (a > -1 && search[a+1] != search[i]){ // Neni shoda
+            a = array[a];
+        }
+
+        if (search[a+1] == search[i]){ // Zvyseni pri shodnosti
+            a++;
+        }
+
+        array[i] = a; // Zapis hodnoty shodnych
+
+    }
+
+    return array;
+} // Funkce Prefixcreator 
+
+int find(String s, String search) {
+    
+    int sLen = strlen(s);
+    int seaLen = strlen(search);
+
+    if (seaLen == 0){
+        return 0;
+    }
+
+    int *Parray = Prefixcreator(search, seaLen); // Volani pomocne funkce (viz. vyse)
+
+    int a = -1;
+
+    for (int i = 0; i < sLen; i++){
+        
+        while (a > -1 && search[a+1] != s[i]){ // Neni shoda
+            a = Parray[a];
+        }
+
+        if (search[a+1] == s[i]){ // Zvyseni pri shodnosti
+            a++;
+        }
+
+        if (a == seaLen-1){ // Nalezeni shody
+            free(Parray);
+            return i - a;
+        }
+
+    }
+
+    free(Parray);
+    return -1;
+} // Funkce find
 
 String sort(String s)
 {
