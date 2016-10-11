@@ -12,7 +12,7 @@
 
 #include "stringology.h"
 
-#define MAX_LEN 100
+#define MAX_LEN 10
 
 int readInt() { // Int celé nezáporné číslo (3.1)
     int c; // Urceno dle max delky int
