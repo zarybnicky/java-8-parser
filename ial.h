@@ -26,17 +26,17 @@ glb_sym_table *create_symbol_table();
 /** Create new symbol if not enough
   * memory exit ERR_INTERNAL returned
   */
-symbol *create_symbol (Content);
+symbol *create_symbol (String, Content);
 
 /**
   * Inserts symbol into created symbol table
   */
-void insert_symbol(glb_sym_table *, int, symbol *);
+void insert_symbol(glb_sym_table *, String, Content);
 
 /**
   * Seach for a symbol in symbol table
   * returns symbol_obj
   */
-symbol *lookup_symbol(global_sym_table *, int);
+symbol *lookup_symbol(glb_sym_table *, String);
 
 #endif /* IFJ_IAL_H */

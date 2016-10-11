@@ -137,50 +137,59 @@ String sort(String s)
 glb_sym_table *create_symbol_table(){
   glb_sym_table *g_table = NULL;
 
-  g_table = (glb_sym_table) malloc(sizeof(glb_sym_table));
+  g_table = malloc(sizeof(glb_sym_table));
 
   if (g_table == NULL){
     perror("Table allocation failed");
     exit(ERR_INTERNAL);
   }
+  g_table->key = 0;
   g_table->left = NULL;
   g_table->right = NULL;
+  g_table->object = NULL;
+  g_table->f_table = NULL;
 
   return g_table;
 }
 
-symbol *create_symbol (Content data){
+symbol *create_symbol (String key, Content data){
   symbol *new = malloc(sizeof(symbol));
   if (new == NULL){
     perror("Allocation of symbol failed");
     exit(ERR_INTERNAL);
   }
+  strcpy(new->key, key);
   new->data = data;
-  new->ptr->left = NULL;
-  new->ptr->right = NULL;
+  new->left = NULL;
+  new->right = NULL;
 
   return new;
 }
 
-void insert_symbol(glb_sym_table *root, int key, Content data){
+void insert_symbol(glb_sym_table *root, String key, Content data){
+
   if(!root){
     root = create_symbol_table();
-    symbol *sym = create_symbol(data);
-    root->;
+    symbol *sym = create_symbol(key, data);
+    root->object = sym;
 
   }
-  // if key is smaller
-  if (key < root->key)
-    insert_symbol(root->left, key, sym);
-  // if key is bigger
-  else if (key > root->key)
-    insert_symbol(root->right, key, sym);
-  // if key is equal push it to right and increment key
   else
-    insert_symbol(root->right, key + 1, sym);
+  {
+    int cmp = strcmp(key, root->object->key);
+    // if key is smaller
+    if (cmp < 0)
+      insert_symbol(root->left, key, data);
+    // if key is bigger
+    else if (cmp > 0)
+      insert_symbol(root->right, key, data);
+    // if key is equal push it to right and increment key
+    else
+      insert_symbol(root->right, key + 1, data);
+  }
 }
 
-symbol *lookup_symbol(global_sym_table *root, int key){
-
-}
+//symbol *lookup_symbol(glb_sym_table *root, String key){
+//
+//}
 

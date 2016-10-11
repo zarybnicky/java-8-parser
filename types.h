@@ -34,7 +34,7 @@ enum symbol_obj_type { NODE_FN, NODE_VAR };
 typedef union {
   int int_val;              //INTEGER val
   double dbl_val;           //DOUBLE val
-  bool bool;                //BOOLEAN val
+  bool boolean_val;         //BOOLEAN val
   String str;               //STRING val
   void *adr;                //VOID val
 }uniq_val;
@@ -49,28 +49,28 @@ typedef struct{
 
 /* Symbol defined */
 typedef struct ptr{
-  int key;                  // symbol contains key
+  String key;                  // symbol contains key
   Content data;             // symbol contains data
   struct ptr *left, *right; // left right node of symbol
 } symbol;
 
-/* Local symbol table for functions */
+/* Local symbol table for functions constains function symbols */
 typedef struct l_sym_table{
-  int key;
-  symbol object;           // symbol with defined type,length and name
-  String scope;            // scope (function parameter, global, local, static)
+  String key;
+  symbol *object;           // symbol with defined type,length and name
   enum symbol_obj_type type;
   struct l_sym_table *left, *right;
 }local_sym_table;
 
-/* Global symbol table */
+/* Global symbol table  contains local tables and global objects */
 typedef struct g_sym_table{
-  //String name;            // ?!?
-  int key;                  // key for addressing in BST
+  String name;            // ?!?
+  String key;                  // key for addressing in BST
   local_sym_table *f_table; // pointer to a function table
-  symbol object;            // symbol with defined type,length and name
+  symbol *object;            // symbol with defined type,length and name
   struct g_sym_table *left, *right;
-  /* TODO More or less information ??*/
+  /* TODO More or less information
+      String scope;            // scope (function parameter, global, local, static)?? */
 
 } glb_sym_table;
 
