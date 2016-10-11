@@ -4,16 +4,16 @@ CFLAGS=-std=c99
 LDFLAGS :=  -L.
 
 #It should be enough to add object files here...
-LIBOBJ := interpreter.o ial.o
+LIBOBJ := main.o ial.o Stringology.o parser.o #scanner.o
 
 .ONESHELL:
 .PHONY: test clean
 
-all: interpreter
+all: main
 
-interpreter: $(LIBOBJ)
+main: $(LIBOBJ)
 
-test: interpreter
+test: main
 	bash testsuite.sh
 
 clean:

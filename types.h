@@ -28,24 +28,24 @@
 
 typedef char* String; //why?!
 
-enum symbol_obj_type { NODE_FN, NODE_VAR };
+typedef enum {
+    T_STRING,
+    T_INTEGER,
+    T_DOUBLE,
+    T_BOOLEAN,
+} ValueType;
 
-/* only 1 type of value can be assigned to 1 variable */
-typedef union {
-  int int_val;              //INTEGER val
-  double dbl_val;           //DOUBLE val
-  bool boolean_val;         //BOOLEAN val
-  String str;               //STRING val
-  void *adr;                //VOID val
-}uniq_val;
-
-/* length removed from symbol content */
 typedef struct{
   String sym_name;          // symbol name
-  int type;                 /*  type of symbol (boolean, double, int, void,
-                                String) */
-  uniq_val value;           //unique_value in which will be stored value
-}Content;
+  ValueType type;
+  union {
+      int int_val;              //INTEGER val
+      double dbl_val;           //DOUBLE val
+      bool boolean_val;         //BOOLEAN val
+      String str;               //STRING val
+      void *adr;                //VOID val
+  }
+} Content;
 
 /* Symbol defined */
 typedef struct ptr{
@@ -58,7 +58,6 @@ typedef struct ptr{
 typedef struct l_sym_table{
   String key;
   symbol *object;           // symbol with defined type,length and name
-  enum symbol_obj_type type;
   struct l_sym_table *left, *right;
 }local_sym_table;
 
@@ -69,19 +68,6 @@ typedef struct g_sym_table{
   local_sym_table *f_table; // pointer to a function table
   symbol *object;            // symbol with defined type,length and name
   struct g_sym_table *left, *right;
-  /* TODO More or less information
-      String scope;            // scope (function parameter, global, local, static)?? */
-
 } glb_sym_table;
-
-
-/* symbol_obj ??*/
-/*  typedef struct {
-    enum symbol_obj_type type;
-    union {
-      //??
-    };
-  } symbol_obj;
-  */
 
 #endif /* IFJ_TYPES_H */

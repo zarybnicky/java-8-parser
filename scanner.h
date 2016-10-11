@@ -14,9 +14,11 @@
 #include "types.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef enum {
     RESERVED,
+    SYMBOL,
     ID_SIMPLE,
     ID_COMPOUND,
     LIT_INTEGER,
@@ -45,21 +47,45 @@ typedef enum {
     RES_WHILE,
 } ReservedWord;
 
-typedef struct {
+typedef enum {
+    SYM_BRACE_OPEN,   //{
+    SYM_BRACE_CLOSE,  //}
+    SYM_BRACKET_OPEN, //[
+    SYM_BRACKET_CLOSE,//]
+    SYM_PAREN_OPEN,   //(
+    SYM_PAREN_CLOSE,  //)
+    SYM_PLUS,         //+
+    SYM_MINUS,        //-
+    SYM_STAR,         //*
+    SYM_SLASH,        ///
+    SYM_SEMI,         //;
+    SYM_COMMA,        //,
+    SYM_GREATER,      //>
+    SYM_GREATER_EQUAL,//>=
+    SYM_LESS,         //<
+    SYM_LESS_EQUAL,   //<=
+    SYM_EQUALS,       //==
+    SYM_NOT_EQUALS,   //!=
+    SYM_ASSIGN,       //=
+} SymbolType;
+
+typedef struct s_Token {
     int lineNum;
     int lineChar; //For error reporting
     TokenType type;
-    union {
-        struct { ReservedWord reserved; };           //RESREVED
-        struct { char *localId; };                   //ID_SIMPLE
-        struct { char *namespace; char *staticId; }; //ID_COMPOUND
-        struct { int intValue; };                    //LIT_INTEGER
-        struct { double doubleValue; };              //LIT_DOUBLE
-        struct { char boolValue; };                  //LIT_BOOLEAN
-        struct { char *stringValue; };               //LIT_STRING
+    struct s_Token *next; //For parsing only, not for lexing
+    union content {
+        ReservedWord reserved;
+        SymbolType symbol;
+        char *simpleId;
+        struct sCompoundId { char *namespace; char *id; } compoundId;
+        int intValue;
+        double doubleValue;
+        bool boolValue;
+        char *stringValue;
     };
 } Token;
 
-Token getNextToken(FILE *stream);
+Token *getNextToken(FILE *stream);
 
 #endif /* IFJ_SCANNER_H */
