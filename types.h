@@ -44,7 +44,7 @@ typedef struct{
       bool boolean_val;         //BOOLEAN val
       String str;               //STRING val
       void *adr;                //VOID val
-  }
+  };
 } Content;
 
 /* Symbol defined */
