@@ -112,7 +112,7 @@ double readDouble() { // TODO
         }
     }
 
-    if (e_set == 1) { // Zpracovani exponentu 
+    if (e_set == 1) { // Zpracovani exponentu
 
         unsigned int pom = 0;
 
@@ -199,9 +199,9 @@ String substr(String s,int i, int n) {
         //fprintf(stderr, "Error while ???\n");
         exit(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
-    if (n != 0) { 
+    if (n != 0) {
         sLen = n+1;	// Urceni delky
-    } else {         
+    } else {
         n = sLen - i;
         sLen = n+1;
     }
