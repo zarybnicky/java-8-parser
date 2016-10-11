@@ -12,7 +12,7 @@
 // Merge-sort - nutno upravit dle inplementace stringu
 
 #include "ial.h"
-#include "Stringology.h"
+#include "stringology.h"
 
 int *Prefixcreator(String search, int seaLen){ // Pomocna funkce pro find
 
@@ -41,10 +41,10 @@ int *Prefixcreator(String search, int seaLen){ // Pomocna funkce pro find
     }
 
     return array;
-} // Funkce Prefixcreator 
+} // Funkce Prefixcreator
 
 int find(String s, String search) {
-    
+
     int sLen = strlen(s);
     int seaLen = strlen(search);
 
@@ -57,7 +57,6 @@ int find(String s, String search) {
     int a = -1;
 
     for (int i = 0; i < sLen; i++){
-        
         while (a > -1 && search[a+1] != s[i]){ // Neni shoda
             a = Parray[a];
         }
@@ -70,7 +69,6 @@ int find(String s, String search) {
             free(Parray);
             return i - a;
         }
-
     }
 
     free(Parray);
@@ -131,12 +129,13 @@ String sort(String s)
     return s;
 }   // function
 
+
 /*  Symbol table implementation global, local,
     pushing functions to global table*/
-
 glb_sym_table *create_symbol_table(){
   glb_sym_table *g_table = NULL;
 
+  /* TODO not sure if there is necessary to malloc global table */
   g_table = malloc(sizeof(glb_sym_table));
 
   if (g_table == NULL){
@@ -152,6 +151,7 @@ glb_sym_table *create_symbol_table(){
   return g_table;
 }
 
+/* Allocation of new symbol with key and data */
 symbol *create_symbol (String key, Content data){
   symbol *new = malloc(sizeof(symbol));
   if (new == NULL){
@@ -166,6 +166,8 @@ symbol *create_symbol (String key, Content data){
   return new;
 }
 
+/*  Insert symbol with contents and key comparing root symbol key with new
+    inserted symbol */
 void insert_symbol(glb_sym_table *root, String key, Content data){
 
   if(!root){
@@ -189,7 +191,24 @@ void insert_symbol(glb_sym_table *root, String key, Content data){
   }
 }
 
-//symbol *lookup_symbol(glb_sym_table *root, String key){
-//
-//}
+symbol *lookup_symbol(glb_sym_table *root, String key){
+  if (!root){
+    return NULL;
+  }
+  int cmp = strcmp(key, root->object->key);
+  /* cmp is == 0 */
+  if (!cmp)
+    return root->object;
+  else if (cmp < 0)
+    return lookup_symbol(root->left, key);
+  else
+    return lookup_symbol(root->right, key);
 
+}
+
+/* TODO Insert function to glb_sym_table
+   Insert param/variable to local_sym_table */
+
+/*  TODO Lookup_function in glb_sym_table
+    Lookup_symbol in glb_sym_table
+    Lookup_symbol in local_sym_table */
