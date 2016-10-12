@@ -129,20 +129,21 @@ String sort(String s)
     return s;
 }   // function
 
+// Pointer to last inserted funciton
+local_function_table *last_function = NULL;
+
 
 /*  Symbol table implementation global, local,
     pushing functions to global table*/
 glb_sym_table *create_symbol_table(){
+
   glb_sym_table *g_table = NULL;
-
-  /* TODO not sure if there is necessary to malloc global table */
   g_table = malloc(sizeof(glb_sym_table));
-
-  if (g_table == NULL){
+  if ( !g_table ){
     perror("Table allocation failed");
     exit(ERR_INTERNAL);
   }
-  g_table->key = 0;
+  g_table->key = NULL;
   g_table->left = NULL;
   g_table->right = NULL;
   g_table->object = NULL;
@@ -154,7 +155,7 @@ glb_sym_table *create_symbol_table(){
 /* Allocation of new symbol with key and data */
 symbol *create_symbol (String key, Content data){
   symbol *new = malloc(sizeof(symbol));
-  if (new == NULL){
+  if ( !new ){
     perror("Allocation of symbol failed");
     exit(ERR_INTERNAL);
   }
@@ -166,19 +167,23 @@ symbol *create_symbol (String key, Content data){
   return new;
 }
 
-/*  Insert symbol with contents and key comparing root symbol key with new
-    inserted symbol */
+/** Insert symbol with its contents and key
+  * comparing root key with new key
+  */
 void insert_symbol(glb_sym_table *root, String key, Content data){
 
-  if(!root){
+  if ( !root ){
     root = create_symbol_table();
     symbol *sym = create_symbol(key, data);
+    /* key is name of object */
+    root->key = key;
+    /* isert object to root */
     root->object = sym;
 
   }
   else
   {
-    int cmp = strcmp(key, root->object->key);
+    int cmp = strcmp(key, root->key);
     // if key is smaller
     if (cmp < 0)
       insert_symbol(root->left, key, data);
@@ -187,24 +192,100 @@ void insert_symbol(glb_sym_table *root, String key, Content data){
       insert_symbol(root->right, key, data);
     // if key is equal push it to right and increment key
     else
+    /* ?!? symbol should be inserted even its key is same as the root->key */
       insert_symbol(root->right, key + 1, data);
   }
 }
 
-symbol *lookup_symbol(glb_sym_table *root, String key){
+/* TODO function dont have same data as symbol does */
+void insert_function (glb_sym_table *root, String key, Content data){
   if (!root){
+    root = create_symbol_table();
+    local_function_table *l_table;
+    /* TODO allocate function parameters */
+    l_table->params = 0;
+    l_table->vars = 0;
+    l_table->left = NULL;
+    l_table->right = NULL;
+    root->f_table = l_table;
+    /* key is name of function */
+    root->key = key;
+    /* last function is inserted one */
+    last_function = root;
+  }
+  else{
+    /* comparing key with local_table object */
+    int cmp = strcmp(key, root->key)
+    if (cmp < 0)
+      insert_function(root->left, key, data);
+    else if (cmp > 0)
+      insert_function(root->right, key, data);
+    /* key is same as r->key, which means that function is already inside BT */
+    else{
+      perror("Cannot insert function with same key");
+      exit(ERR_INTERNAL);
+    }
+  }
+
+}
+
+/**
+  *
+  *
+  */
+void insert_identifier (lcl_ident_table *root, String key){
+  if ( !root ){
+    lcl_ident_table *l_table = malloc(sizeof(lcl_ident_table));
+    if ( !l_table ){
+      perror("Allocation of local symbol table failed");
+      exit(ERR_INTERNAL);
+    }
+    l_table->key = key;
+    /* offset to recount better position in identifier BT */
+    l_table->offset = last_function->params + last_function->vars;
+    l_table->left = NULL;
+    l_table->right = NULL;
+    root = l_table;
+  }
+  else{
+    int cmp = strcmp(key, root->key);
+    if (cmp < 0)
+      insert_to_local(root->left, key);
+    else if (cmp > 0)
+      insert_to_local(root->right, key);
+    else{
+      perror("Cannot insert identifier with same key");
+      exit(ERR_INTERNAL);
+    }
+  }
+}
+
+/**
+  *
+  *
+  */
+symbol *lookup_symbol(glb_sym_table *root, String key){
+  if ( !root ){
     return NULL;
   }
   int cmp = strcmp(key, root->object->key);
-  /* cmp is == 0 */
-  if (!cmp)
-    return root->object;
-  else if (cmp < 0)
+
+  /* lookup key is different than root key */
+  if (cmp < 0)
     return lookup_symbol(root->left, key);
   else
     return lookup_symbol(root->right, key);
 
+  /* lookup key is same as root key. We finished lookup of symbol */
+  return root->object;
 }
+
+symbol *lookup_function (glb_sym_table *,String);
+symbol *lookup_in_local (local_sym_table*, String);
+
+void delete_symbol (glb_sym_table *);
+void delete_function (glb_sym_table *);
+void delete_in_local (local_sym_table *);
 
 /* TODO Insert function to glb_sym_table
    Insert param/variable to local_sym_table */

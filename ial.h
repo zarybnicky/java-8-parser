@@ -34,15 +34,15 @@ symbol *create_symbol (String, Content);
   */
 void insert_symbol (glb_sym_table *, String, Content);
 void insert_function (glb_sym_table *, String, Content);
-void insert_to_local (local_sym_table *, String, Content);
+void insert_to_local (lcl_ident_table *, String);
 
 /**
   * Seach for a symbol in symbol table
   * returns symbol
   */
 symbol *lookup_symbol(glb_sym_table *, String);
-symbol *lookup_function (glb_sym_table *,String);
-symbol *lookup_in_local (local_sym_table*, String);
+symbol *lookup_function (glb_sym_table *, String);
+symbol *lookup_in_local (lcl_ident_table *, String);
 
 /**
   * Deletes symbol/function in global table ,
@@ -50,6 +50,6 @@ symbol *lookup_in_local (local_sym_table*, String);
   */
 void delete_symbol (glb_sym_table *);
 void delete_function (glb_sym_table *);
-void delete_in_local (local_sym_table *);
+void delete_in_local (lcl_ident_table *);
 
 #endif /* IFJ_IAL_H */

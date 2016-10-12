@@ -49,24 +49,30 @@ typedef struct{
 
 /* Symbol defined */
 typedef struct ptr{
-  String key;                  // symbol contains key
-  Content data;             // symbol contains data
-  struct ptr *left, *right; // left right node of symbol
+  String key;                   // symbol contains key
+  Content data;                 // symbol contains data
+  struct ptr *left, *right;     // left right node of symbol
 } symbol;
 
 /* Local symbol table for functions constains function symbols */
 typedef struct l_sym_table{
   String key;
+  int params, vars;         // number of parameters and variables
   symbol *object;           // symbol with defined type,length and name
   struct l_sym_table *left, *right;
-}local_sym_table;
+}local_function_table;
+
+typedef struct l_iden_table{
+  String key;
+  int offset;
+  struct l_iden_table *left, *right;
+}lcl_ident_table;
 
 /* Global symbol table  contains local tables and global objects */
 typedef struct g_sym_table{
-  String name;            // ?!?
-  String key;                  // key for addressing in BST
-  local_sym_table *f_table; // pointer to a function table
-  symbol *object;            // symbol with defined type,length and name
+  String key;                   // key for addressing in BST
+  local_sym_table *f_table;     // pointer to a function table
+  symbol *object;               // symbol with defined type,length and name
   struct g_sym_table *left, *right;
 } glb_sym_table;
 
