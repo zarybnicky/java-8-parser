@@ -4,7 +4,7 @@ CFLAGS=-std=c99
 LDFLAGS :=  -L.
 
 #It should be enough to add object files here...
-LIBOBJ := main.o ial.o Stringology.o parser.o #scanner.o
+LIBOBJ := main.o ial.o Stringology.o parser.o scanner.o
 
 .ONESHELL:
 .PHONY: test clean
