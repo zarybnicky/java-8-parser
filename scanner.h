@@ -88,5 +88,7 @@ typedef struct s_Token {
 } Token;
 
 Token *getNextToken(FILE *stream);
+void printToken(Token *t);
+void freeToken(Token *t);
 
 #endif /* IFJ_SCANNER_H */

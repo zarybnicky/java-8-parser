@@ -17,6 +17,102 @@ Token *getNextToken(FILE *f) {
     return NULL;
 }
 
+void printToken(Token *t) {
+    if (t == NULL) {
+        printf("NULL\n");
+        return;
+    }
+    switch (t->type) {
+    case ID_SIMPLE:
+        printf("ID:%s\n", t->simpleId);
+        return;
+    case ID_COMPOUND:
+        printf("ID:%s.%s\n", t->compoundId.namespace, t->compoundId.id);
+        return;
+    case LIT_INTEGER:
+        printf("I:%d\n", t->intValue);
+        return;
+    case LIT_STRING:
+        printf("S:\"%s\"\n", t->stringValue);
+        return;
+    case LIT_BOOLEAN:
+        printf("B:%d\n", t->boolValue ? 1 : 0);
+        return;
+    case LIT_DOUBLE:
+        printf("D:%g\n", t->doubleValue);
+        return;
+    case RESERVED:
+        printf("R:");
+        switch (t->reserved) {
+        case RES_BOOLEAN: printf("boolean\n"); return;
+        case RES_BREAK:   printf("break\n"); return;
+        case RES_CLASS:   printf("class\n"); return;
+        case RES_CONTINUE:printf("continue\n"); return;
+        case RES_DO:      printf("do\n"); return;
+        case RES_DOUBLE:  printf("double\n"); return;
+        case RES_ELSE:    printf("else\n"); return;
+        case RES_FALSE:   printf("false\n"); return;
+        case RES_FOR:     printf("for\n"); return;
+        case RES_IF:      printf("if\n"); return;
+        case RES_INT:     printf("int\n"); return;
+        case RES_RETURN:  printf("return\n"); return;
+        case RES_STRING:  printf("String\n"); return;
+        case RES_STATIC:  printf("static\n"); return;
+        case RES_TRUE:    printf("true\n"); return;
+        case RES_VOID:    printf("void\n"); return;
+        case RES_WHILE:   printf("while\n"); return;
+        }
+    case SYMBOL:
+        printf("S:");
+        switch (t->symbol) {
+        case SYM_BRACE_OPEN:    printf("{\n"); return;
+        case SYM_BRACE_CLOSE:   printf("}\n"); return;
+        case SYM_BRACKET_OPEN:  printf("[\n"); return;
+        case SYM_BRACKET_CLOSE: printf("]\n"); return;
+        case SYM_PAREN_OPEN:    printf("(\n"); return;
+        case SYM_PAREN_CLOSE:   printf(")\n"); return;
+        case SYM_PLUS:          printf("+\n"); return;
+        case SYM_MINUS:         printf("-\n"); return;
+        case SYM_STAR:          printf("*\n"); return;
+        case SYM_SLASH:         printf("/\n"); return;
+        case SYM_SEMI:          printf(";\n"); return;
+        case SYM_COMMA:         printf(",\n"); return;
+        case SYM_LESS:          printf("<\n"); return;
+        case SYM_GREATER:       printf(">\n"); return;
+        case SYM_LESS_EQUAL:    printf("<=\n"); return;
+        case SYM_GREATER_EQUAL: printf(">=\n"); return;
+        case SYM_EQUALS:        printf("==\n"); return;
+        case SYM_NOT_EQUALS:    printf("!=\n"); return;
+        case SYM_ASSIGN:        printf("=\n"); return;
+        }
+    }
+}
+
+void freeToken(Token *t) {
+    if (t == NULL) {
+        return;
+    }
+    switch (t->type) {
+    case ID_SIMPLE:
+        free(t->simpleId);
+        break;
+    case LIT_STRING:
+        free(t->stringValue);
+        break;
+    case ID_COMPOUND:
+        free(t->compoundId.namespace);
+        free(t->compoundId.id);
+        break;
+    case RESERVED:
+    case SYMBOL:
+    case LIT_INTEGER:
+    case LIT_BOOLEAN:
+    case LIT_DOUBLE:
+        break;
+    }
+    free(t);
+}
+
 //FIXME: Temporary, just so that this file is compilable
 #define BOOLEAN 0
 #define BREAK 0
