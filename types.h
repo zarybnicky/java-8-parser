@@ -33,6 +33,7 @@ typedef enum {
     T_INTEGER,
     T_DOUBLE,
     T_BOOLEAN,
+    T_VOID,
 } ValueType;
 
 typedef struct{
@@ -68,10 +69,12 @@ typedef struct l_iden_table{
   struct l_iden_table *left, *right;
 }lcl_ident_table;
 
+typedef struct {} local_sym_table;
+
 /* Global symbol table  contains local tables and global objects */
 typedef struct g_sym_table{
   String key;                   // key for addressing in BST
-  local_sym_table *f_table;     // pointer to a function table
+  lcl_ident_table *f_table;     // pointer to a function table
   symbol *object;               // symbol with defined type,length and name
   struct g_sym_table *left, *right;
 } glb_sym_table;

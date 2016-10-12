@@ -201,7 +201,7 @@ void insert_symbol(glb_sym_table *root, String key, Content data){
 void insert_function (glb_sym_table *root, String key, Content data){
   if (!root){
     root = create_symbol_table();
-    local_function_table *l_table;
+    local_function_table *l_table = (local_function_table *) 1;
     /* TODO allocate function parameters */
     l_table->params = 0;
     l_table->vars = 0;
@@ -215,7 +215,7 @@ void insert_function (glb_sym_table *root, String key, Content data){
   }
   else{
     /* comparing key with local_table object */
-    int cmp = strcmp(key, root->key)
+      int cmp = strcmp(key, root->key);
     if (cmp < 0)
       insert_function(root->left, key, data);
     else if (cmp > 0)
@@ -250,9 +250,9 @@ void insert_identifier (lcl_ident_table *root, String key){
   else{
     int cmp = strcmp(key, root->key);
     if (cmp < 0)
-      insert_to_local(root->left, key);
+        ; //insert_to_local(root->left, key);
     else if (cmp > 0)
-      insert_to_local(root->right, key);
+        ; //insert_to_local(root->right, key);
     else{
       perror("Cannot insert identifier with same key");
       exit(ERR_INTERNAL);
@@ -281,11 +281,11 @@ symbol *lookup_symbol(glb_sym_table *root, String key){
 }
 
 symbol *lookup_function (glb_sym_table *,String);
-symbol *lookup_in_local (local_sym_table*, String);
+symbol *lookup_in_local (lcl_ident_table*, String);
 
 void delete_symbol (glb_sym_table *);
 void delete_function (glb_sym_table *);
-void delete_in_local (local_sym_table *);
+void delete_in_local (lcl_ident_table *);
 
 /* TODO Insert function to glb_sym_table
    Insert param/variable to local_sym_table */
