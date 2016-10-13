@@ -408,18 +408,30 @@ int Get_Token(void) {
                 string_end(&string, '\t');
             } else if(c == '\\' || c == '"') {
                 state = AUT_STRING;
-                string_end(&string,c);
-            } else if(isdigit(c))
-                state = AUT_ESCN;
+                string_end(&string,c) ;
+            } else if(isdigit(c)) {
+				if(c => '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
+				state = AUT_ESCN;
+				else 
+				state = ERROR_ESC;
             else {
                 state = Start_state;
                 return ERROR_ESC;
+           
             }
             break;
-	    case AUT_ESCN:   //NEDOKONCNEE
+	   
+	    case AUT_ESCN:   
             c=fgetc(input);
-            //cis = c -
-            //////////////////////////////////////
+            if(c => '0' || c <= '7' ) 
+				state = AUT_ESCN2;
+		    else 
+				state = ERROR_ESCN;
+                break;
+       
+        case AUT_ESCN2:
+            c=fgetc(input);
+            
 
 
 
