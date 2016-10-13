@@ -153,7 +153,7 @@ glb_sym_table *create_symbol_table(){
 }
 
 /* Allocation of new symbol with key and data */
-symbol *create_symbol (String key, Content data){
+symbol *create_symbol (String key, Value data){
   symbol *new = malloc(sizeof(symbol));
   if ( !new ){
     perror("Allocation of symbol failed");
@@ -170,7 +170,7 @@ symbol *create_symbol (String key, Content data){
 /** Insert symbol with its contents and key
   * comparing root key with new key
   */
-void insert_symbol(glb_sym_table *root, String key, Content data){
+void insert_symbol(glb_sym_table *root, String key, Value data){
 
   if ( !root ){
     root = create_symbol_table();
@@ -198,10 +198,10 @@ void insert_symbol(glb_sym_table *root, String key, Content data){
 }
 
 /* TODO function dont have same data as symbol does */
-void insert_function (glb_sym_table *root, String key, Content data){
+void insert_function (glb_sym_table *root, String key, Value data){
   if (!root){
     root = create_symbol_table();
-    local_function_table *l_table = (local_function_table *) 1;
+    local_function_table *l_table = (local_function_table *) 1; //FIXME
     /* TODO allocate function parameters */
     l_table->params = 0;
     l_table->vars = 0;
@@ -211,7 +211,7 @@ void insert_function (glb_sym_table *root, String key, Content data){
     /* key is name of function */
     root->key = key;
     /* last function is inserted one */
-    last_function = root;
+    last_function = (local_function_table *) root; //unsafe!
   }
   else{
     /* comparing key with local_table object */

@@ -24,7 +24,6 @@ typedef enum {
     ID_COMPOUND,
     LIT_INTEGER,
     LIT_STRING,
-    LIT_BOOLEAN,
     LIT_DOUBLE,
 } TokenType;
 
@@ -75,16 +74,15 @@ typedef struct s_Token {
     int lineChar; //For error reporting
     TokenType type;
     struct s_Token *next; //For parsing only, not for lexing
-    union content {
+    union {
         ReservedWord reserved;
         SymbolType symbol;
-        char *simpleId;
-        struct sCompoundId { char *namespace; char *id; } compoundId;
-        int intValue;
-        double doubleValue;
-        bool boolValue;
-        char *stringValue;
-    };
+        char *id; //both for ID_SIMPLE & ID_COMPOUND
+        int intVal;
+        double doubleVal;
+        bool boolVal;
+        char *stringVal;
+    } val;
 } Token;
 
 Token *getNextToken(FILE *stream);

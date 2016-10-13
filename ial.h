@@ -26,14 +26,14 @@ glb_sym_table *create_symbol_table ();
 /** Create new symbol if not enough
   * memory exit ERR_INTERNAL returned
   */
-symbol *create_symbol (String, Content);
+symbol *create_symbol (String, Value);
 
 /**
   * Inserts symbol into created symbol table
   * TODO return int value for success??
   */
-void insert_symbol (glb_sym_table *, String, Content);
-void insert_function (glb_sym_table *, String, Content);
+void insert_symbol (glb_sym_table *, String, Value);
+void insert_function (glb_sym_table *, String, Value);
 void insert_to_local (lcl_ident_table *, String);
 
 /**

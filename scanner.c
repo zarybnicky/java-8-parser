@@ -24,26 +24,21 @@ void printToken(Token *t) {
     }
     switch (t->type) {
     case ID_SIMPLE:
-        printf("ID:%s\n", t->simpleId);
-        return;
     case ID_COMPOUND:
-        printf("ID:%s.%s\n", t->compoundId.namespace, t->compoundId.id);
+        printf("ID:%s\n", t->val.id);
         return;
     case LIT_INTEGER:
-        printf("I:%d\n", t->intValue);
+        printf("I:%d\n", t->val.intVal);
         return;
     case LIT_STRING:
-        printf("S:\"%s\"\n", t->stringValue);
-        return;
-    case LIT_BOOLEAN:
-        printf("B:%d\n", t->boolValue ? 1 : 0);
+        printf("S:\"%s\"\n", t->val.stringVal);
         return;
     case LIT_DOUBLE:
-        printf("D:%g\n", t->doubleValue);
+        printf("D:%g\n", t->val.doubleVal);
         return;
     case RESERVED:
         printf("R:");
-        switch (t->reserved) {
+        switch (t->val.reserved) {
         case RES_BOOLEAN: printf("boolean\n"); return;
         case RES_BREAK:   printf("break\n"); return;
         case RES_CLASS:   printf("class\n"); return;
@@ -64,7 +59,7 @@ void printToken(Token *t) {
         }
     case SYMBOL:
         printf("S:");
-        switch (t->symbol) {
+        switch (t->val.symbol) {
         case SYM_BRACE_OPEN:    printf("{\n"); return;
         case SYM_BRACE_CLOSE:   printf("}\n"); return;
         case SYM_BRACKET_OPEN:  printf("[\n"); return;
@@ -94,19 +89,15 @@ void freeToken(Token *t) {
     }
     switch (t->type) {
     case ID_SIMPLE:
-        free(t->simpleId);
+    case ID_COMPOUND:
+        free(t->val.id);
         break;
     case LIT_STRING:
-        free(t->stringValue);
-        break;
-    case ID_COMPOUND:
-        free(t->compoundId.namespace);
-        free(t->compoundId.id);
+        free(t->val.stringVal);
         break;
     case RESERVED:
     case SYMBOL:
     case LIT_INTEGER:
-    case LIT_BOOLEAN:
     case LIT_DOUBLE:
         break;
     }

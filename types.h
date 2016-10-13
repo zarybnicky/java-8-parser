@@ -36,31 +36,126 @@ typedef enum {
     T_VOID,
 } ValueType;
 
-typedef struct{
-  String sym_name;          // symbol name
-  ValueType type;
-  union {
-      int int_val;              //INTEGER val
-      double dbl_val;           //DOUBLE val
-      bool boolean_val;         //BOOLEAN val
-      String str;               //STRING val
-      void *adr;                //VOID val
-  };
-} Content;
+typedef enum {
+    N_VALUE,
+    N_FUNCTION,
+} NodeType;
+
+typedef enum {
+    E_FUNCALL,
+    E_VALUE,
+    E_REFERENCE,
+    E_BINARY,
+} ExpressionType;
+
+typedef enum {
+    EB_EQUAL,
+    EB_NOT_EQUAL,
+    EB_LESS,
+    EB_LESS_EQUAL,
+    EB_GREATER,
+    EB_GREATER_EQUAL,
+    EB_MULTIPLY,
+    EB_DIVIDE,
+    EB_ADD,
+    EB_SUBTRACT,
+} BinaryOperation;
+
+typedef enum {
+    C_DECLARE,
+    C_DEFINE,
+    C_ASSIGN,
+    C_BLOCK,
+    C_IF,
+    C_WHILE,
+    C_EXPRESSION,
+    C_RETURN,
+} CommandType;
+
+typedef struct tValue {
+    ValueType type;
+    union {
+        int integer;
+        double dbl;
+        bool boolean;
+        char *str;
+    } data;
+} Value;
+
+typedef struct tExpression {
+    ExpressionType type;
+    struct tExpression *next; //for argument lists
+    union {
+        struct {
+            char *name;
+            int argCount;
+            struct tExpression *argHead;
+        } funcall;
+        Value *value;
+        char *reference;
+        struct {
+            BinaryOperation op;
+            struct tExpression *left;
+            struct tExpression *right;
+        } binary;
+    } data;
+} Expression;
+
+typedef struct tDeclaration {
+    ValueType type;
+    char *name;
+    struct tDeclaration *next; //for argument lists
+} Declaration;
+
+struct tCommand;
+typedef struct tBlock {
+    struct tCommand *head;
+    struct tCommand *tail;
+} Block;
+
+typedef struct tCommand {
+    CommandType type;
+    struct tCommand *next;
+    union {
+        Declaration declare;
+        struct { Declaration declaration; Expression *expr; } define;
+        struct { char *name; Expression *expr; } assign;
+        Block block;
+        struct { Expression *cond; Block thenBlock; Block elseBlock; } ifC;
+        struct { Expression *cond; Block bodyBlock; } whileC;
+        Expression *expr; //C_EXPRESSION + C_RETURN
+    } data;
+} Command;
+
+typedef struct {
+    char *name;
+    int argCount;
+    Declaration *argHead;
+    Block body;
+} Function;
+
+typedef struct {
+    char *name;
+    NodeType type;
+    union {
+        Value *value;
+        Function *function;
+    } data;
+} Node;
 
 /* Symbol defined */
 typedef struct ptr{
   String key;                   // symbol contains key
-  Content data;                 // symbol contains data
+  Value data;                 // symbol contains data
   struct ptr *left, *right;     // left right node of symbol
 } symbol;
 
 /* Local symbol table for functions constains function symbols */
-typedef struct l_sym_table{
+typedef struct l_function_table{
   String key;
   int params, vars;         // number of parameters and variables
   symbol *object;           // symbol with defined type,length and name
-  struct l_sym_table *left, *right;
+  struct l_function_table *left, *right;
 }local_function_table;
 
 typedef struct l_iden_table{
@@ -69,12 +164,15 @@ typedef struct l_iden_table{
   struct l_iden_table *left, *right;
 }lcl_ident_table;
 
-typedef struct {} local_sym_table;
+typedef struct l_sym_table {
+  String key;
+  struct l_sym_table *left, *right;
+} local_sym_table;
 
 /* Global symbol table  contains local tables and global objects */
 typedef struct g_sym_table{
   String key;                   // key for addressing in BST
-  lcl_ident_table *f_table;     // pointer to a function table
+  local_function_table *f_table;     // pointer to a function table
   symbol *object;               // symbol with defined type,length and name
   struct g_sym_table *left, *right;
 } glb_sym_table;
