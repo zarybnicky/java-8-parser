@@ -410,7 +410,7 @@ int Get_Token(void) {
                 state = AUT_STRING;
                 string_end(&string,c) ;
             } else if(isdigit(c)) {
-				if(c => '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
+				if(c >= '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
 				 state = AUT_ESCN;
 				else 
 				 state = ERROR_ESC;
@@ -424,7 +424,7 @@ int Get_Token(void) {
 	    case AUT_ESCN:   
             c=fgetc(input);  
 	        if(isdigit(c)) {
-             if(c => '0' || c <= '7' ) 
+             if(c >= '0' || c <= '7' ) 
 				state = AUT_ESCN2;
 		     else 
 				state = ERROR_ESCN;
