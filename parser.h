@@ -52,34 +52,37 @@ bool commit(Lexer *l);
     rollback(l);
 
 #define expectMore(l)                                               \
-        if (peekToken(l) == NULL) {                                 \
+    if (peekToken(l) == NULL) {                                     \
             MERROR(ERR_SYNTAX, "Unexpected end of input.\n");       \
         }
-#define expectType(l, x) do {                                       \
-        expectMore(l);                                              \
-        Token *t = peekToken(l);                                    \
-        if (t->type != (x)) {                                       \
-            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
-                   STRINGIFY(x), t->lineNum, t->lineChar);          \
-        }                                                           \
+#define expectType(l, x) do {                                           \
+        expectMore(l);                                                  \
+        Token *t = peekToken(l);                                        \
+        if (t->type != (x)) {                                           \
+            FERROR(ERR_SYNTAX,                                          \
+                   "Expected %s on line %d:%d, received '%s'.\n",       \
+                   STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
+        }                                                               \
     } while (0);
-#define expectSymbol(l, x) do {                                     \
-        expectMore(l);                                              \
-        Token *t = peekToken(l);                                    \
-        if (t->type != SYMBOL || t->val.symbol != (x)) {            \
-            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
-                   STRINGIFY(x), t->lineNum, t->lineChar);          \
-        }                                                           \
-        nextToken(l);                                               \
+#define expectSymbol(l, x) do {                                         \
+        expectMore(l);                                                  \
+        Token *t = peekToken(l);                                        \
+        if (t->type != SYMBOL || t->val.symbol != (x)) {                \
+            FERROR(ERR_SYNTAX,                                          \
+                   "Expected %s on line %d:%d, received '%s'.\n",       \
+                   STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
+        }                                                               \
+        nextToken(l);                                                   \
     } while (0);
-#define expectReserved(l, x) do {                                   \
-        expectMore(l);                                              \
-        Token *t = peekToken(l);                                    \
-        if (t->type != RESERVED || t->val.reserved != (x)) {        \
-            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
-                   STRINGIFY(x), t->lineNum, t->lineChar);          \
-        }                                                           \
-        nextToken(l);                                               \
+#define expectReserved(l, x) do {                                       \
+        expectMore(l);                                                  \
+        Token *t = peekToken(l);                                        \
+        if (t->type != RESERVED || t->val.reserved != (x)) {            \
+            FERROR(ERR_SYNTAX,                                          \
+                   "Expected %s on line %d:%d, received '%s'.\n",       \
+                   STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
+        }                                                               \
+        nextToken(l);                                                   \
     } while (0);
 #define tryType(l, x, ret) do {                                         \
         Token *t = peekToken(l);                                        \

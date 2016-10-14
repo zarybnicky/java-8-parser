@@ -158,9 +158,10 @@ bool parseLocalDefinition(Lexer *l, Block *b) {
     expectSymbol(l, SYM_ASSIGN);
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     c->data.define.expr = e;
     appendToBlock(b, c);
@@ -172,25 +173,28 @@ bool parseIf(Lexer *l, Block *b) {
     expectSymbol(l, SYM_PAREN_OPEN);
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommand(C_IF);
     c->data.ifC.cond = e;
     if (!parseCommand(l, &c->data.ifC.thenBlock)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected a command on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     appendToBlock(b, c);
     tryReserved(l, RES_ELSE, true);
     if (!parseCommand(l, &c->data.ifC.elseBlock)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected a command on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected a command on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     return true;
 }
@@ -200,19 +204,21 @@ bool parseWhile(Lexer *l, Block *b) {
     expectSymbol(l, SYM_PAREN_OPEN);
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommand(C_WHILE);
     c->data.whileC.cond = e;
     if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected a command on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
-    }
+               "Expected a command on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
+   }
     appendToBlock(b, c);
     return true;
 }
@@ -235,9 +241,10 @@ bool parseAssign(Lexer *l, Block *b) {
     c->data.assign.name = name;
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     c->data.assign.expr = e;
     appendToBlock(b, c);
@@ -266,9 +273,10 @@ bool parseReturn(Lexer *l, Block *b) {
     }
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     c->data.expr = e;
     appendToBlock(b, c);
@@ -299,9 +307,10 @@ bool parseExpression(Lexer *l, Expression **e) {
     nextToken(l);
     Expression *right = NULL;
     if (!parseExpression(l, &right)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
@@ -327,9 +336,10 @@ bool parseExpressionCmp(Lexer *l, Expression **e) {
     nextToken(l);
     Expression *right = NULL;
     if (!parseExpression(l, &right)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op =
@@ -355,9 +365,10 @@ bool parseExpressionMul(Lexer *l, Expression **e) {
     nextToken(l);
     Expression *right = NULL;
     if (!parseExpression(l, &right)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
@@ -381,9 +392,10 @@ bool parseExpressionAdd(Lexer *l, Expression **e) {
     nextToken(l);
     Expression *right = NULL;
     if (!parseExpression(l, &right)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op = t->val.symbol == SYM_PLUS ? EB_ADD : EB_SUBTRACT;
@@ -403,9 +415,10 @@ bool parseExpressionTerm(Lexer *l, Expression **e) {
 bool parseExpressionParen(Lexer *l, Expression **e) {
     trySymbol(l, SYM_PAREN_OPEN, false);
     if (!parseExpression(l, e)) {
+        Token *t = peekToken(l);
         FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected an expression on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
     expectSymbol(l, SYM_PAREN_CLOSE);
     return true;
@@ -539,8 +552,8 @@ char *parseAndQualifyId(Lexer *l) {
         return c;
     }
     FERROR(ERR_SYNTAX,
-           "Expected an identifier on line %d, char %d.\n",
-           peekToken(l)->lineNum, peekToken(l)->lineChar);
+           "Expected an identifier on line %d:%d, received '%s'.\n",
+           t->lineNum, t->lineChar, t->original);
 }
 
 ValueType parseType(Lexer *l) {
@@ -553,8 +566,8 @@ ValueType parseType(Lexer *l) {
     case RES_STRING: return T_STRING;
     default:
         FERROR(ERR_SYNTAX,
-               "Expected a type on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected a type on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
 }
 
@@ -569,7 +582,7 @@ ValueType parseReturnType(Lexer *l) {
     case RES_VOID: return T_VOID;
     default:
         FERROR(ERR_SYNTAX,
-               "Expected a return type on line %d, char %d.\n",
-               peekToken(l)->lineNum, peekToken(l)->lineChar);
+               "Expected a return type on line %d:%d, received '%s'.\n",
+               t->lineNum, t->lineChar, t->original);
     }
 }

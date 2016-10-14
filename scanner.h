@@ -70,8 +70,12 @@ typedef enum {
 } SymbolType;
 
 typedef struct s_Token {
+    //For error reporting
     int lineNum;
-    int lineChar; //For error reporting
+    int lineChar;
+    char *original; //The token as it appeared in the input stream
+
+    //For parsing
     TokenType type;
     struct s_Token *next; //For parsing only, not for lexing
     union {
