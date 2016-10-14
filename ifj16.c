@@ -19,8 +19,8 @@ SymbolTable fnTable;
 SymbolTable varTable;
 
 void freeGlobalResources() {
-    freeSymbolTable(&fnTable);
-    freeSymbolTable(&varTable);
+    freeNode(fnTable.root);
+    freeNode(varTable.root);
 }
 
 int main(int argc, char *argv[])
