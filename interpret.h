@@ -14,7 +14,6 @@
 /*---------------------------------LIBRARIES----------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
-#include "types.h"
 
 /*---------------------------------STRUCTURES---------------------------------*/
 
@@ -33,7 +32,6 @@ typedef struct{
 /*---------------------------------DEFINITIONS--------------------------------*/
 
 
-int main_func(int argc, char *argv[]);
 void InitMemory (mem_t *L);
 void DisposeMemory (mem_t *L);
 void *malloc_c (mem_t *L, size_t size);

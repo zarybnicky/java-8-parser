@@ -10,17 +10,12 @@
 
 #include "interpret.h"
 
-int main_func(int argc, char *argv[]){
-
-    return 0;
-}
-
 int Error(){
     fprintf(stderr,"And he realised, ...\n\t\t... he fucked up");
+    return 0; //?
 }
 
 void InitMemory (mem_t *L) {
-
     if(L == NULL){
         Error();
         return;
@@ -29,12 +24,10 @@ void InitMemory (mem_t *L) {
         L->Act = NULL;
         L->First = NULL;
     }
-
 }
 
 /*
 void DisposeMemory (mem_t *L) {
-
     if(L == NULL){
         Error();
         return;
@@ -50,7 +43,6 @@ void DisposeMemory (mem_t *L) {
 
     L->Act = NULL;
     L->First = NULL;
-
 }
 */
 
@@ -71,6 +63,7 @@ void *malloc_c (mem_t *L, size_t size) {
     tmp->data = malloc(size);
 
     if(tmp->data == NULL){
+        free(tmp);
         Error();
         return NULL;
     }
@@ -99,6 +92,7 @@ void *calloc_c (mem_t *L, unsigned num, size_t size) {
     tmp->data = calloc(num, size);
 
     if(tmp->data == NULL){
+        free(tmp);
         Error();
         return NULL;
     }
@@ -107,7 +101,6 @@ void *calloc_c (mem_t *L, unsigned num, size_t size) {
     L->First = tmp;
 
     return tmp;
-
 }
 
 void DeleteItem (mem_t *L, mem_elem_ptr ptr){
@@ -125,20 +118,18 @@ void DeleteItem (mem_t *L, mem_elem_ptr ptr){
             ptr = ptr->ptr){
 
 
-                if(tmp == ptr){
-                    prev->ptr = ptr->ptr;
-                    break;
-                }
+            if(tmp == ptr){
+                prev->ptr = ptr->ptr;
+                break;
+            }
 
-                prev = ptr;
+            prev = ptr;
         }
     }
 
     free(ptr->data);
     free(ptr);
     return;
-
-
 }
 
 void DisposeMemory (mem_t *L) {
@@ -157,5 +148,4 @@ void DisposeMemory (mem_t *L) {
 
     L->Act = NULL;
     L->First = NULL;
-
 }

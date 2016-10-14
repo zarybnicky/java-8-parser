@@ -212,6 +212,7 @@ int control_res_key_word(char *str)
 #define AUT_STRING 10
 #define AUT_ESC 11
 #define AUT_ESCN 12
+#define AUT_ESCN2 22
 #define AUT_DIV 13
 #define AUT_DIV2 14
 #define AUT_CMTL 15
@@ -230,6 +231,7 @@ int control_res_key_word(char *str)
 #define NUMBER 0
 #define ERROR_NUMBER 0
 #define ERROR_ESC 0
+#define ERROR_ESCN 0
 #define DIV 0
 #define ERROR_CMTB 0
 #define EQUAL 0
@@ -412,28 +414,28 @@ int Get_Token(void) {
             } else if(isdigit(c)) {
 				if(c >= '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
 				 state = AUT_ESCN;
-				else 
+				else
 				 state = ERROR_ESC;
-            else {
+            } else {
                 state = Start_state;
                 return ERROR_ESC;
-           
+
             }
             break;
-	   
-	    case AUT_ESCN:   
-            c=fgetc(input);  
+
+	    case AUT_ESCN:
+            c=fgetc(input);
 	        if(isdigit(c)) {
-             if(c >= '0' || c <= '7' ) 
+             if(c >= '0' || c <= '7' )
 				state = AUT_ESCN2;
-		     else 
+		     else
 				state = ERROR_ESCN;
             }
             break;
-       
+
         case AUT_ESCN2:
             c=fgetc(input);
-            
+
 
 
 

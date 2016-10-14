@@ -11,8 +11,8 @@
 #ifndef IFJ_SCANNER_H
 #define IFJ_SCANNER_H
 
-#include "types.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>

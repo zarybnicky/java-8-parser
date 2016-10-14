@@ -14,7 +14,7 @@
 #include "ial.h"
 #include "stringology.h"
 
-int *Prefixcreator(String search, int seaLen){ // Pomocna funkce pro find
+int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
 
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
     if (array == NULL){
@@ -43,7 +43,7 @@ int *Prefixcreator(String search, int seaLen){ // Pomocna funkce pro find
     return array;
 } // Funkce Prefixcreator
 
-int find(String s, String search) {
+int find(char *s, char *search) {
 
     int sLen = strlen(s);
     int seaLen = strlen(search);
@@ -75,7 +75,7 @@ int find(String s, String search) {
     return -1;
 } // Funkce find
 
-String sort(String s)
+char *sort(char *s)
 {
     unsigned len = strlen(s);
 
@@ -86,8 +86,8 @@ String sort(String s)
         unsigned half = len / 2;
         unsigned top;
 
-        String left = substr(s, 0, half);
-        String right;
+        char *left = substr(s, 0, half);
+        char *right;
 
 
         if (len % 2 == 0) { // char *sudy X lichy pocet clenu
@@ -130,11 +130,12 @@ String sort(String s)
 }   // function
 
 // Pointer to last inserted funciton
-local_function_table *last_function = NULL;
+//local_function_table *last_function = NULL;
 
 
 /*  Symbol table implementation global, local,
     pushing functions to global table*/
+/*
 glb_sym_table *create_symbol_table(){
 
   glb_sym_table *g_table = NULL;
@@ -151,9 +152,10 @@ glb_sym_table *create_symbol_table(){
 
   return g_table;
 }
-
+*/
 /* Allocation of new symbol with key and data */
-symbol *create_symbol (String key, Value data){
+/*
+symbol *create_symbol (char *key, Value data){
   symbol *new = malloc(sizeof(symbol));
   if ( !new ){
     perror("Allocation of symbol failed");
@@ -166,20 +168,20 @@ symbol *create_symbol (String key, Value data){
 
   return new;
 }
-
+*/
 /** Insert symbol with its contents and key
   * comparing root key with new key
   */
-void insert_symbol(glb_sym_table *root, String key, Value data){
+/*
+void insert_symbol(glb_sym_table *root, char *key, Value data){
 
   if ( !root ){
     root = create_symbol_table();
     symbol *sym = create_symbol(key, data);
-    /* key is name of object */
+    //key is name of object
     root->key = key;
-    /* isert object to root */
+    //insert object to root
     root->object = sym;
-
   }
   else
   {
@@ -192,48 +194,45 @@ void insert_symbol(glb_sym_table *root, String key, Value data){
       insert_symbol(root->right, key, data);
     // if key is equal push it to right and increment key
     else
-    /* ?!? symbol should be inserted even its key is same as the root->key */
+    // ?!? symbol should be inserted even its key is same as the root->key
       insert_symbol(root->right, key + 1, data);
   }
 }
-
+*/
 /* TODO function dont have same data as symbol does */
-void insert_function (glb_sym_table *root, String key, Value data){
+/*
+void insert_function (glb_sym_table *root, char *key, Value data){
   if (!root){
     root = create_symbol_table();
     local_function_table *l_table = (local_function_table *) 1; //FIXME
-    /* TODO allocate function parameters */
+    // TODO allocate function parameters
     l_table->params = 0;
     l_table->vars = 0;
     l_table->left = NULL;
     l_table->right = NULL;
     root->f_table = l_table;
-    /* key is name of function */
+    // key is name of function
     root->key = key;
-    /* last function is inserted one */
+    // last function is inserted one
     last_function = (local_function_table *) root; //unsafe!
   }
   else{
-    /* comparing key with local_table object */
+    // comparing key with local_table object
       int cmp = strcmp(key, root->key);
     if (cmp < 0)
       insert_function(root->left, key, data);
     else if (cmp > 0)
       insert_function(root->right, key, data);
-    /* key is same as r->key, which means that function is already inside BT */
+    //key is same as r->key, which means that function is already inside BT
     else{
       perror("Cannot insert function with same key");
       exit(ERR_INTERNAL);
     }
   }
-
 }
-
-/**
-  *
-  *
-  */
-void insert_identifier (lcl_ident_table *root, String key){
+*/
+/*
+void insert_identifier (lcl_ident_table *root, char *key){
   if ( !root ){
     lcl_ident_table *l_table = malloc(sizeof(lcl_ident_table));
     if ( !l_table ){
@@ -241,7 +240,7 @@ void insert_identifier (lcl_ident_table *root, String key){
       exit(ERR_INTERNAL);
     }
     l_table->key = key;
-    /* offset to recount better position in identifier BT */
+    //offset to recount better position in identifier BT
     l_table->offset = last_function->params + last_function->vars;
     l_table->left = NULL;
     l_table->right = NULL;
@@ -260,23 +259,19 @@ void insert_identifier (lcl_ident_table *root, String key){
   }
 }
 
-/**
-  *
-  *
-  */
-symbol *lookup_symbol(glb_sym_table *root, String key){
+symbol *lookup_symbol(glb_sym_table *root, char *key){
   if ( !root ){
     return NULL;
   }
   int cmp = strcmp(key, root->object->key);
 
-  /* lookup key is different than root key */
+  // lookup key is different than root key
   if (cmp < 0)
     return lookup_symbol(root->left, key);
   else
     return lookup_symbol(root->right, key);
 
-  /* lookup key is same as root key. We finished lookup of symbol */
+  //lookup key is same as root key. We finished lookup of symbol
   return root->object;
 }
 
@@ -286,7 +281,7 @@ symbol *lookup_in_local (lcl_ident_table*, String);
 void delete_symbol (glb_sym_table *);
 void delete_function (glb_sym_table *);
 void delete_in_local (lcl_ident_table *);
-
+*/
 /* TODO Insert function to glb_sym_table
    Insert param/variable to local_sym_table */
 

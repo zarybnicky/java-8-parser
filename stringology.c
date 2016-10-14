@@ -35,7 +35,7 @@ double readDouble() { // TODO
     int c;
     short e_set = 0, dot_set = 0;
 
-    String Str = malloc(Len);
+    char *Str = malloc(Len);
     if (Str == NULL) {
         perror("Error while allocating memory");
         exit(ERR_INTERNAL);
@@ -157,12 +157,12 @@ double readDouble() { // TODO
 
 } // function end
 
-String readString() {
+char *readString() {
     unsigned int Len = MAX_LEN;
     int c;
     unsigned int i = 0;
 
-    String Str = malloc(Len);
+    char *Str = malloc(Len);
     if (Str == NULL) {
         perror("Error while allocating memory");
         exit(ERR_INTERNAL);
@@ -188,11 +188,11 @@ String readString() {
 void print() {
 }
 
-int length(String s) {
+int length(char *s) {
     return strlen(s);
 }
 
-String substr(String s,int i, int n) {
+char *substr(char *s,int i, int n) {
     int sLen = strlen(s);
 
     if (sLen - 1 < i || sLen - 1 < i + n)
@@ -206,7 +206,7 @@ String substr(String s,int i, int n) {
         sLen = n+1;
     }
 
-    String pom = malloc(sLen);
+    char *pom = malloc(sLen);
     if (pom == NULL) {
         perror("Error while allocating memory");
         exit(ERR_INTERNAL);
@@ -218,7 +218,7 @@ String substr(String s,int i, int n) {
     return pom; // Nekdy dealokovat
 }
 
-int compare(String s1, String s2) {
+int compare(char *s1, char *s2) {
     unsigned int s1len = strlen(s1);
     unsigned int s2len = strlen(s2);
 

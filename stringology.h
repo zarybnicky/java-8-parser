@@ -11,18 +11,18 @@
 #ifndef IFJ_STRINGOLOGY_H
 #define IFJ_STRINGOLOGY_H
 
+#include "error.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "types.h"
 
 int readInt();
 double readDouble();
-String readString();
+char *readString();
 void print();
-int length(String s);
-String substr(String s,int i, int n);
-int compare(String s1, String s2);
+int length(char *s);
+char *substr(char *s, int i, int n);
+int compare(char *s1, char *s2);
 
 #endif /* IFJ_STRINGOLOGY_H */

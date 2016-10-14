@@ -11,10 +11,15 @@
 #ifndef IFJ_PARSER_H
 #define IFJ_PARSER_H
 
-#include "types.h"
-#include "scanner.h"
 #include <stdio.h>
 #include <string.h>
+#include "error.h"
+#include "ir.h"
+#include "scanner.h"
+
+#define STRINGIFY(arg)  STRINGIFY1(arg)
+#define STRINGIFY1(arg) STRINGIFY2(arg)
+#define STRINGIFY2(arg) #arg
 
 typedef struct {
     FILE *file;
@@ -45,11 +50,6 @@ bool commit(Lexer *l);
         return true;                            \
     }                                           \
     rollback(l);
-
-
-#define STRINGIFY(arg)  STRINGIFY1(arg)
-#define STRINGIFY1(arg) STRINGIFY2(arg)
-#define STRINGIFY2(arg) #arg
 
 #define expectMore(l)                                               \
         if (peekToken(l) == NULL) {                                 \
@@ -125,7 +125,7 @@ bool commit(Lexer *l);
     (peekToken(l) != NULL && peekToken(l)->type == SYMBOL && peekToken(l)->val.symbol == (x))
 #define isReserved(l, x) \
     (peekToken(l) != NULL && peekToken(l)->type == RESERVED && peekToken(l)->val.reserved == (x))
-#define nextToken(l)  if (peekToken(l) != NULL) (l)->current = (l)->current->next;
+#define nextToken(l) if (peekToken(l) != NULL) (l)->current = (l)->current->next
 
 Token *peekToken(Lexer *l);
 
@@ -165,28 +165,5 @@ char *parseSimpleId(Lexer *l);
 char *parseAndQualifyId(Lexer *l);
 ValueType parseType(Lexer *l);
 ValueType parseReturnType(Lexer *l);
-
-void appendToBlock(Block *, Command *);
-void freeBlock(Block);
-
-Value *createValue(ValueType);
-void freeValue(Value *);
-void printValue(Value *);
-
-Expression *createExpression(ExpressionType);
-void freeExpression(Expression *);
-void printExpression(Expression *);
-
-Declaration *createDeclaration(ValueType, char *);
-void freeDeclaration(Declaration *);
-void printDeclaration(Declaration *);
-
-Command *createCommand(CommandType);
-void freeCommand(Command *);
-void printCommand(Command *);
-
-Function *createFunction(char *, int, Declaration *);
-void freeFunction(Function *);
-void printFunction(Function *);
 
 #endif /* IFJ_PARSER_H */

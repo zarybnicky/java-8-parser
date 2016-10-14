@@ -8,25 +8,12 @@
  *          xzales12 - Záleský Jiří
  */
 
-#ifndef IFJ_TYPES_H
-#define IFJ_TYPES_H
+#ifndef IFJ_IR_H
+#define IFJ_IR_H
 
-#include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-
-#define ERR_LEXER                 1
-#define ERR_SYNTAX                2
-#define ERR_SEM_UNDEFINED         3
-#define ERR_SEM_TYPECHECK         4
-#define ERR_SEM_MISC              6
-#define ERR_RUNTIME_INT_PARSE     7
-#define ERR_RUNTIME_UNINITIALIZED 8
-#define ERR_RUNTIME_DIV_BY_ZERO   9
-#define ERR_RUNTIME_MISC          10
-#define ERR_INTERNAL              99
-
-typedef char* String; //why?!
+#include <stdlib.h>
+#include <stdio.h>
 
 typedef enum {
     T_STRING,
@@ -135,7 +122,7 @@ typedef struct {
 } Function;
 
 typedef struct tNode {
-    char *name;
+    char *symbol;
     NodeType type;
     union {
         Value *value;
@@ -148,38 +135,43 @@ typedef struct {
     Node *root;
 } SymbolTable;
 
-/* Symbol defined */
-typedef struct ptr{
-  String key;                   // symbol contains key
-  Value data;                 // symbol contains data
-  struct ptr *left, *right;     // left right node of symbol
-} symbol;
+Value *createValue(ValueType);
+void freeValue(Value *);
+void printValue(Value *);
 
-/* Local symbol table for functions constains function symbols */
-typedef struct l_function_table{
-  String key;
-  int params, vars;         // number of parameters and variables
-  symbol *object;           // symbol with defined type,length and name
-  struct l_function_table *left, *right;
-}local_function_table;
+Expression *createExpression(ExpressionType);
+void freeExpression(Expression *);
+void printExpression(Expression *);
 
-typedef struct l_iden_table{
-  String key;
-  int offset;
-  struct l_iden_table *left, *right;
-}lcl_ident_table;
+Declaration *createDeclaration(ValueType, char *);
+void freeDeclaration(Declaration *);
+void printDeclaration(Declaration *);
 
-typedef struct l_sym_table {
-  String key;
-  struct l_sym_table *left, *right;
-} local_sym_table;
+void appendToBlock(Block *, Command *);
+void freeBlock(Block);
+void printBlock(Block *);
 
-/* Global symbol table  contains local tables and global objects */
-typedef struct g_sym_table{
-  String key;                   // key for addressing in BST
-  local_function_table *f_table;     // pointer to a function table
-  symbol *object;               // symbol with defined type,length and name
-  struct g_sym_table *left, *right;
-} glb_sym_table;
+Command *createCommand(CommandType);
+void freeCommand(Command *);
+void printCommand(Command *);
 
-#endif /* IFJ_TYPES_H */
+Function *createFunction(char *, int, Declaration *);
+void freeFunction(Function *);
+void printFunction(Function *);
+
+Node *createFunctionNode(char *, Function *);
+Node *createValueNode(char *, Value *);
+void freeNode(Node *);
+void printNode(Node *);
+
+SymbolTable *createSymbolTable();
+void freeSymbolTable(SymbolTable *);
+void printSymbolTable(SymbolTable *);
+
+void printValueType(ValueType);
+void printNodeType(NodeType);
+void printExpressionType(ExpressionType);
+void printBinaryOperation(BinaryOperation);
+void printCommandType(CommandType);
+
+#endif /* IFJ_IR_H */

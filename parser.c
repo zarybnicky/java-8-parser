@@ -288,7 +288,8 @@ bool parseExpression(Lexer *l, Expression **e) {
         return false;
     }
     Token *t = peekToken(l);
-    if (t->type != SYMBOL && (t->val.symbol != SYM_EQUALS || t->val.symbol != SYM_NOT_EQUALS)) {
+    if (t->type != SYMBOL && (t->val.symbol != SYM_EQUALS ||
+                              t->val.symbol != SYM_NOT_EQUALS)) {
         *e = left;
         return true;
     }
@@ -300,7 +301,8 @@ bool parseExpression(Lexer *l, Expression **e) {
         exit(ERR_SYNTAX);
     }
     *e = createExpression(E_BINARY);
-    (*e)->data.binary.op = t->val.symbol == SYM_EQUALS ? EB_EQUAL : EB_NOT_EQUAL;
+    (*e)->data.binary.op
+        = t->val.symbol == SYM_EQUALS ? EB_EQUAL : EB_NOT_EQUAL;
     (*e)->data.binary.left = left;
     (*e)->data.binary.right = right;
     return true;
@@ -342,7 +344,8 @@ bool parseExpressionMul(Lexer *l, Expression **e) {
         return false;
     }
     Token *t = peekToken(l);
-    if (t->type != SYMBOL && (t->val.symbol != SYM_STAR || t->val.symbol != SYM_SLASH)) {
+    if (t->type != SYMBOL && (t->val.symbol != SYM_STAR ||
+                              t->val.symbol != SYM_SLASH)) {
         *e = left;
         return true;
     }
@@ -354,7 +357,8 @@ bool parseExpressionMul(Lexer *l, Expression **e) {
         exit(ERR_SYNTAX);
     }
     *e = createExpression(E_BINARY);
-    (*e)->data.binary.op = t->val.symbol == SYM_STAR ? EB_MULTIPLY : EB_DIVIDE;
+    (*e)->data.binary.op
+        = t->val.symbol == SYM_STAR ? EB_MULTIPLY : EB_DIVIDE;
     (*e)->data.binary.left = left;
     (*e)->data.binary.right = right;
     return true;
@@ -366,7 +370,8 @@ bool parseExpressionAdd(Lexer *l, Expression **e) {
         return false;
     }
     Token *t = peekToken(l);
-    if (t->type != SYMBOL && (t->val.symbol != SYM_PLUS || t->val.symbol != SYM_MINUS)) {
+    if (t->type != SYMBOL && (t->val.symbol != SYM_PLUS ||
+                              t->val.symbol != SYM_MINUS)) {
         *e = left;
         return true;
     }
@@ -551,6 +556,7 @@ ValueType parseType(Lexer *l) {
         fprintf(stderr, "Expected a type on line %d, char %d.\n",
                 t->lineNum, t->lineChar);
         exit(ERR_SYNTAX);
+        return T_VOID;;
     }
 }
 
@@ -567,143 +573,6 @@ ValueType parseReturnType(Lexer *l) {
         fprintf(stderr, "Expected a return type on line %d, char %d.\n",
                 t->lineNum, t->lineChar);
         exit(ERR_SYNTAX);
+        return T_VOID;;
     }
 }
-
-void appendToBlock(Block *b, Command *c) {
-    c->next = NULL;
-    if (b->head == NULL) {
-        b->head = b->tail = c;
-    } else {
-        b->tail->next = c;
-        b->tail = c;
-    }
-}
-
-void freeBlock(Block b) {
-    freeCommand(b.head);
-}
-
-/* VALUE */
-Value *createValue(ValueType type) {
-    Value *v = malloc(sizeof(Value));
-    v->type = type;
-    return v;
-}
-void freeValue(Value *v) {
-    if (v->type == T_STRING) {
-        free(v->data.str);
-    }
-    free(v);
-}
-void printValue(Value *);
-
-/* EXPRESSION */
-Expression *createExpression(ExpressionType type) {
-    Expression *e = malloc(sizeof(Expression));
-    e->type = type;
-    return e;
-}
-void freeExpression(Expression *e) {
-    Expression *f;
-    while (e != NULL) {
-        f = e->next;
-        switch (e->type) {
-        case E_FUNCALL:
-            free(e->data.funcall.name);
-            freeExpression(e->data.funcall.argHead);
-            break;
-        case E_VALUE:
-            freeValue(e->data.value);
-            break;
-        case E_REFERENCE:
-            free(e->data.reference);
-            break;
-        case E_BINARY:
-            freeExpression(e->data.binary.left);
-            freeExpression(e->data.binary.right);
-            break;
-        }
-        free(e);
-        e = f;
-    }
-}
-void printExpression(Expression *);
-
-/* DECLARATION */
-Declaration *createDeclaration(ValueType type, char *name) {
-    Declaration *d = malloc(sizeof(Declaration));
-    d->type = type;
-    d->name = name;
-    return d;
-}
-void freeDeclaration(Declaration *d) {
-    Declaration *e;
-    while (d != NULL) {
-        e = d->next;
-        free(d->name);
-        free(d);
-        d = e;
-    }
-}
-void printDeclaration(Declaration *d);
-
-/* COMMAND */
-Command *createCommand(CommandType type) {
-    Command *c = malloc(sizeof(Command));
-    c->type = type;
-    return c;
-}
-void freeCommand(Command *c) {
-    Command *d;
-    while (c != NULL) {
-        d = c->next;
-        switch (c->type) {
-        case C_DECLARE:
-            free(c->data.declare.name);
-            break;
-        case C_DEFINE:
-            free(c->data.define.declaration.name);
-            freeExpression(c->data.define.expr);
-            break;
-        case C_ASSIGN:
-            free(c->data.assign.name);
-        freeExpression(c->data.assign.expr);
-        break;
-        case C_BLOCK:
-            freeCommand(c->data.block.head);
-            break;
-        case C_IF:
-            freeExpression(c->data.ifC.cond);
-            freeBlock(c->data.ifC.thenBlock);
-            freeBlock(c->data.ifC.elseBlock);
-        case C_WHILE:
-            freeExpression(c->data.whileC.cond);
-            freeBlock(c->data.whileC.bodyBlock);
-            break;
-        case C_EXPRESSION:
-        case C_RETURN:
-            freeExpression(c->data.expr);
-            break;
-        }
-        free(c);
-        c = d;
-    }
-}
-void printCommand(Command *c);
-
-/* FUNCTION */
-Function *createFunction(char *name, int argCount, Declaration *argHead) {
-    Function *f = malloc(sizeof(Function));
-    f->name = name;
-    f->argCount = argCount;
-    f->argHead = argHead;
-    return f;
-}
-void freeFunction(Function *f) {
-    free(f->name);
-    freeDeclaration(f->argHead);
-    freeCommand(f->body.head);
-    free(f);
-}
-void printFunction(Function *);
