@@ -15,62 +15,46 @@
 #include "stringology.h"
 
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
-
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
-    if (array == NULL){
-        perror("Error while allocating memory");
-        exit(ERR_INTERNAL);
-    }
+    CHECK_ALLOC(array);
 
     int a = -1;
-
     array[0] = a;
 
     for (int i = 1; i < seaLen; i++){ // Pruchod stringem
-
         while (a > -1 && search[a+1] != search[i]){ // Neni shoda
             a = array[a];
         }
-
         if (search[a+1] == search[i]){ // Zvyseni pri shodnosti
             a++;
         }
-
         array[i] = a; // Zapis hodnoty shodnych
-
     }
-
     return array;
 } // Funkce Prefixcreator
 
 int find(char *s, char *search) {
-
     int sLen = strlen(s);
     int seaLen = strlen(search);
-
-    if (seaLen == 0){
+    if (seaLen == 0) {
         return 0;
     }
 
     int *Parray = Prefixcreator(search, seaLen); // Volani pomocne funkce (viz. vyse)
-
     int a = -1;
 
     for (int i = 0; i < sLen; i++){
         while (a > -1 && search[a+1] != s[i]){ // Neni shoda
             a = Parray[a];
         }
-
         if (search[a+1] == s[i]){ // Zvyseni pri shodnosti
             a++;
         }
-
         if (a == seaLen-1){ // Nalezeni shody
             free(Parray);
             return i - a;
         }
     }
-
     free(Parray);
     return -1;
 } // Funkce find
@@ -91,12 +75,9 @@ char *sort(char *s)
 
 
         if (len % 2 == 0) { // char *sudy X lichy pocet clenu
-
             right = substr(s, half, 0);
             top = half;
-
         } else {
-
             right = substr(s, half, 0);
             top = half+1;
         }
@@ -140,10 +121,7 @@ glb_sym_table *create_symbol_table(){
 
   glb_sym_table *g_table = NULL;
   g_table = malloc(sizeof(glb_sym_table));
-  if ( !g_table ){
-    perror("Table allocation failed");
-    exit(ERR_INTERNAL);
-  }
+  CHECK_ALLOC(g_table);
   g_table->key = NULL;
   g_table->left = NULL;
   g_table->right = NULL;
@@ -157,10 +135,7 @@ glb_sym_table *create_symbol_table(){
 /*
 symbol *create_symbol (char *key, Value data){
   symbol *new = malloc(sizeof(symbol));
-  if ( !new ){
-    perror("Allocation of symbol failed");
-    exit(ERR_INTERNAL);
-  }
+  CHECK_ALLOC(new);
   strcpy(new->key, key);
   new->data = data;
   new->left = NULL;
@@ -225,8 +200,7 @@ void insert_function (glb_sym_table *root, char *key, Value data){
       insert_function(root->right, key, data);
     //key is same as r->key, which means that function is already inside BT
     else{
-      perror("Cannot insert function with same key");
-      exit(ERR_INTERNAL);
+      FERROR(ERR_INTERNAL, "Cannot redefine a function.");
     }
   }
 }
@@ -235,10 +209,7 @@ void insert_function (glb_sym_table *root, char *key, Value data){
 void insert_identifier (lcl_ident_table *root, char *key){
   if ( !root ){
     lcl_ident_table *l_table = malloc(sizeof(lcl_ident_table));
-    if ( !l_table ){
-      perror("Allocation of local symbol table failed");
-      exit(ERR_INTERNAL);
-    }
+    CHECK_ALLOC(l_table);
     l_table->key = key;
     //offset to recount better position in identifier BT
     l_table->offset = last_function->params + last_function->vars;
@@ -253,8 +224,7 @@ void insert_identifier (lcl_ident_table *root, char *key){
     else if (cmp > 0)
         ; //insert_to_local(root->right, key);
     else{
-      perror("Cannot insert identifier with same key");
-      exit(ERR_INTERNAL);
+      FERROR(ERR_INTERNAL, "Cannot insert identifier with same key");
     }
   }
 }

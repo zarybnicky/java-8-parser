@@ -10,20 +10,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "error.h"
 #include "ir.h"
 #include "scanner.h"
 #include "parser.h"
 
+SymbolTable fnTable;
+SymbolTable varTable;
+
+void freeGlobalResources() {
+    freeSymbolTable(&fnTable);
+    freeSymbolTable(&varTable);
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        fprintf(stderr, "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
-        exit(ERR_INTERNAL);
+        FERROR(ERR_INTERNAL,
+               "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
     }
     FILE *f = fopen(argv[1], "r");
     if (f == NULL) {
-        perror("Error while opening file");
-        exit(ERR_INTERNAL);
+        PERROR("Error while opening file");
     }
 
     printf("Not implemented.");

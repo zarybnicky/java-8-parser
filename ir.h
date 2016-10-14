@@ -12,8 +12,6 @@
 #define IFJ_IR_H
 
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 typedef enum {
     T_STRING,

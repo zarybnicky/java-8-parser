@@ -53,25 +53,22 @@ bool commit(Lexer *l);
 
 #define expectMore(l)                                               \
         if (peekToken(l) == NULL) {                                 \
-            fprintf(stderr, "Unexpected end of input.\n");          \
-            exit(ERR_SYNTAX);                                       \
+            MERROR(ERR_SYNTAX, "Unexpected end of input.\n");       \
         }
 #define expectType(l, x) do {                                       \
         expectMore(l);                                              \
         Token *t = peekToken(l);                                    \
         if (t->type != (x)) {                                       \
-            fprintf(stderr, "Expected %s on line %d, char %d.\n",   \
-                    STRINGIFY(x), t->lineNum, t->lineChar);         \
-            exit(ERR_SYNTAX);                                       \
+            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
+                   STRINGIFY(x), t->lineNum, t->lineChar);          \
         }                                                           \
     } while (0);
 #define expectSymbol(l, x) do {                                     \
         expectMore(l);                                              \
         Token *t = peekToken(l);                                    \
         if (t->type != SYMBOL || t->val.symbol != (x)) {            \
-            fprintf(stderr, "Expected %s on line %d, char %d.\n",   \
-                    STRINGIFY(x), t->lineNum, t->lineChar);         \
-            exit(ERR_SYNTAX);                                       \
+            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
+                   STRINGIFY(x), t->lineNum, t->lineChar);          \
         }                                                           \
         nextToken(l);                                               \
     } while (0);
@@ -79,9 +76,8 @@ bool commit(Lexer *l);
         expectMore(l);                                              \
         Token *t = peekToken(l);                                    \
         if (t->type != RESERVED || t->val.reserved != (x)) {        \
-            fprintf(stderr, "Expected %s on line %d, char %d.\n",   \
-                    STRINGIFY(x), t->lineNum, t->lineChar);         \
-            exit(ERR_SYNTAX);                                       \
+            FERROR(ERR_SYNTAX, "Expected %s on line %d, char %d.\n",\
+                   STRINGIFY(x), t->lineNum, t->lineChar);          \
         }                                                           \
         nextToken(l);                                               \
     } while (0);

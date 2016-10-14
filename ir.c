@@ -9,10 +9,14 @@
  */
 
 #include "ir.h"
+#include "error.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 /* VALUE */
 Value *createValue(ValueType type) {
     Value *v = malloc(sizeof(Value));
+    CHECK_ALLOC(v);
     v->type = type;
     return v;
 }
@@ -43,6 +47,7 @@ void printValue(Value *v) {
 /* EXPRESSION */
 Expression *createExpression(ExpressionType type) {
     Expression *e = malloc(sizeof(Expression));
+    CHECK_ALLOC(e);
     e->type = type;
     e->next = NULL;
     return e;
@@ -106,8 +111,10 @@ void printExpression(Expression *e) {
 /* DECLARATION */
 Declaration *createDeclaration(ValueType type, char *name) {
     Declaration *d = malloc(sizeof(Declaration));
+    CHECK_ALLOC(d);
     d->type = type;
     d->name = name;
+    d->next = NULL;
     return d;
 }
 void freeDeclaration(Declaration *d) {
@@ -157,7 +164,9 @@ void printBlock(Block *b) {
 /* COMMAND */
 Command *createCommand(CommandType type) {
     Command *c = malloc(sizeof(Command));
+    CHECK_ALLOC(c);
     c->type = type;
+    c->next = NULL;
     return c;
 }
 void freeCommand(Command *c) {
@@ -243,6 +252,7 @@ void printCommand(Command *c) {
 /* FUNCTION */
 Function *createFunction(char *name, int argCount, Declaration *argHead) {
     Function *f = malloc(sizeof(Function));
+    CHECK_ALLOC(f);
     f->name = name;
     f->argCount = argCount;
     f->argHead = argHead;
@@ -271,6 +281,7 @@ void printFunction(Function *f) {
 /* NODE */
 Node *createFunctionNode(char *symbol, Function *f) {
     Node *n = malloc(sizeof(Node));
+    CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_FUNCTION;
     n->data.function = f;
@@ -280,6 +291,7 @@ Node *createFunctionNode(char *symbol, Function *f) {
 }
 Node *createValueNode(char *symbol, Value *v) {
     Node *n = malloc(sizeof(Node));
+    CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_VALUE;
     n->data.value = v;
@@ -315,6 +327,7 @@ void printNode(Node *n)  {
 /* SYMBOL TABLE */
 SymbolTable *createSymbolTable()  {
     SymbolTable *t = malloc(sizeof(SymbolTable));
+    CHECK_ALLOC(t);
     t->root = NULL;
     return t;
 }

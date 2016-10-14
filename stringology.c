@@ -36,19 +36,13 @@ double readDouble() { // TODO
     short e_set = 0, dot_set = 0;
 
     char *Str = malloc(Len);
-    if (Str == NULL) {
-        perror("Error while allocating memory");
-        exit(ERR_INTERNAL);
-    }
+    CHECK_ALLOC(Str);
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len); // Zvetsi string
-            if (Str == NULL) {
-                perror("Error while reallocating memory");
-                exit(ERR_INTERNAL);
-            }
+            CHECK_ALLOC(Str);
         }
 
         if (('0' <= c && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
@@ -163,19 +157,13 @@ char *readString() {
     unsigned int i = 0;
 
     char *Str = malloc(Len);
-    if (Str == NULL) {
-        perror("Error while allocating memory");
-        exit(ERR_INTERNAL);
-    }
+    CHECK_ALLOC(Str);
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
             Str = realloc(Str, Len);
-            if (Str == NULL) {
-                perror("Error while reallocating memory");
-                exit(ERR_INTERNAL);
-            }
+            CHECK_ALLOC(Str);
         }
 
         Str[i] = c;
@@ -207,10 +195,7 @@ char *substr(char *s,int i, int n) {
     }
 
     char *pom = malloc(sLen);
-    if (pom == NULL) {
-        perror("Error while allocating memory");
-        exit(ERR_INTERNAL);
-    }
+    CHECK_ALLOC(pom);
 
     strncpy(pom, s+i, n);
 
