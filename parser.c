@@ -79,12 +79,12 @@ void parseClass(Lexer *l) {
 
 bool parseClassBody(Lexer *l) {
     bracket_(l, parseFunction);
-    bracket_(l, parseStaticVar);
-    bracket_(l, parseStaticVarInit);
+    bracket_(l, parseStaticDeclaration);
+    bracket_(l, parseStaticDefinition);
     return false;
 }
 
-bool parseStaticVar(Lexer *l) {
+bool parseStaticDeclaration(Lexer *l) {
     tryReserved(l, RES_STATIC, false);
     ValueType type = parseType(l);
     char *name = parseSimpleId(l);
@@ -93,7 +93,7 @@ bool parseStaticVar(Lexer *l) {
     return true;
 }
 
-bool parseStaticVarInit(Lexer *l) {
+bool parseStaticDefinition(Lexer *l) {
     tryReserved(l, RES_STATIC, false);
     ValueType type = parseType(l);
     char *name = parseSimpleId(l);
@@ -126,15 +126,15 @@ bool parseFunction(Lexer *l) {
 }
 
 bool parseFunctionBody(Lexer *l, Block *b) {
-    bracket(l, parseVarDeclaration, b);
-    bracket(l, parseVarDefinition, b);
+    bracket(l, parseLocalDeclaration, b);
+    bracket(l, parseLocalDefinition, b);
     bracket(l, parseIf, b);
     bracket(l, parseWhile, b);
     bracket(l, parseCommand, b);
     return false;
 }
 
-bool parseVarDeclaration(Lexer *l, Block *b) {
+bool parseLocalDeclaration(Lexer *l, Block *b) {
     Command *c = createCommand(C_DECLARE);
     Declaration *d = &c->data.declare;
     if (!parseDeclaration(l, &d)) {
@@ -145,7 +145,7 @@ bool parseVarDeclaration(Lexer *l, Block *b) {
     return true;
 }
 
-bool parseVarDefinition(Lexer *l, Block *b) {
+bool parseLocalDefinition(Lexer *l, Block *b) {
     Command *c = createCommand(C_DECLARE);
     Declaration *d = &c->data.declare;
     parseDeclaration(l, &d);

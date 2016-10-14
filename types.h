@@ -134,14 +134,19 @@ typedef struct {
     Block body;
 } Function;
 
-typedef struct {
+typedef struct tNode {
     char *name;
     NodeType type;
     union {
         Value *value;
         Function *function;
     } data;
+    struct tNode *left, *right;
 } Node;
+
+typedef struct {
+    Node *root;
+} SymbolTable;
 
 /* Symbol defined */
 typedef struct ptr{

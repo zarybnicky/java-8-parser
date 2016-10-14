@@ -131,13 +131,13 @@ Token *peekToken(Lexer *l);
 
 void parseClass(Lexer *l);
 bool parseClassBody(Lexer *l);
-bool parseStaticVar(Lexer *l);
-bool parseStaticVarInit(Lexer *l);
+bool parseStaticDeclaration(Lexer *l);
+bool parseStaticDefinition(Lexer *l);
 bool parseFunction(Lexer *l);
 bool parseFunctionBody(Lexer *l, Block *f);
 
-bool parseVarDeclaration(Lexer *l, Block *b);
-bool parseVarDefinition(Lexer *l, Block *b);
+bool parseLocalDeclaration(Lexer *l, Block *b);
+bool parseLocalDefinition(Lexer *l, Block *b);
 bool parseIf(Lexer *l, Block *b);
 bool parseWhile(Lexer *l, Block *b);
 bool parseCommand(Lexer *l, Block *b);
