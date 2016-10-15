@@ -113,7 +113,6 @@ bool commit(Lexer *l);
               t->val.reserved == RES_STRING)) {                         \
             return ret;                                                 \
         }                                                               \
-        nextToken(l);                                                   \
     } while (0);
 
 #define hasMore(l) \

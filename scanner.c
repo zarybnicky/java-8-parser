@@ -12,11 +12,65 @@
 // Zatial som si len vypisal klcuove slova alebo rezervovane slova ktore funkcia kontroluje
 #include "scanner.h"
 
+/* Not in POSIX... */
+char *strdup_(const char *s) {
+    char *dup = malloc(strlen(s) + 1);
+    CHECK_ALLOC(dup);
+    strcpy(dup, s);
+    return dup;
+}
+
 Token *getNextToken(FILE *f) {
     (void) f;                  //FIXME
     return NULL;
 }
 
+Token *createToken(TokenType type, void *value, char *original) {
+    Token *t = malloc(sizeof(Token));
+    t->lineNum = t->lineChar = 0;
+    t->original = strdup_(original);
+    t->next = NULL;
+    t->type = type;
+    t->val.id = value;
+    return t;
+}
+Token *chainTokens(Token *first, ...) {
+    va_list args;
+    va_start(args, first);
+
+    Token *current = first, *next;
+    while ((next = va_arg(args, Token *)) != NULL) {
+        current->next = next;
+        current = next;
+    }
+    current->next = NULL;
+
+    va_end(args);
+    return first;
+}
+void freeToken(Token *t) {
+    if (t == NULL) {
+        return;
+    }
+    if (t->original != NULL) {
+        free(t->original);
+    }
+    switch (t->type) {
+    case ID_SIMPLE:
+    case ID_COMPOUND:
+        free(t->val.id);
+        break;
+    case LIT_STRING:
+        free(t->val.stringVal);
+        break;
+    case RESERVED:
+    case SYMBOL:
+    case LIT_INTEGER:
+    case LIT_DOUBLE:
+        break;
+    }
+    free(t);
+}
 void printToken(Token *t) {
     if (t == NULL) {
         printf("NULL\n");
@@ -81,27 +135,6 @@ void printToken(Token *t) {
         case SYM_ASSIGN:        printf("=\n"); return;
         }
     }
-}
-
-void freeToken(Token *t) {
-    if (t == NULL) {
-        return;
-    }
-    switch (t->type) {
-    case ID_SIMPLE:
-    case ID_COMPOUND:
-        free(t->val.id);
-        break;
-    case LIT_STRING:
-        free(t->val.stringVal);
-        break;
-    case RESERVED:
-    case SYMBOL:
-    case LIT_INTEGER:
-    case LIT_DOUBLE:
-        break;
-    }
-    free(t);
 }
 
 //FIXME: Temporary, just so that this file is compilable
@@ -229,7 +262,6 @@ int control_res_key_word(char *str)
 #define MUL 0
 #define SEMICOLON 0
 #define NOTHING 0
-#define ERROR 0
 #define NUMBER 0
 #define ERROR_NUMBER 0
 #define ERROR_ESC 0
@@ -308,7 +340,7 @@ int Get_Token(void) {
                 return NOTHING;
             else {
                 state = NEUTRAL_STATE;
-                return ERROR;
+                return ERROR_ESC;
             }
             break;
 
@@ -420,11 +452,11 @@ int Get_Token(void) {
 				if(c >= '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
 				    num = num * 64 + (c - '0');
 				    state = AUT_ESCN; }
-				
+
                 else if (c == '0') {
 				    num = num * 64 + (c - '0');
 				    state = AUT_ESC_ZERO; }
-				
+
                 else {
 				    state = Start_state;
                     return ERROR_ESC; }
@@ -434,33 +466,33 @@ int Get_Token(void) {
                     return ERROR_ESC;
             }
             break;
-	    
+
         case AUT_ESC_ZERO:
-	        c=fgetc(input); 
+	        c=fgetc(input);
 	        if(isdigit(c)) {
 			  if (c == '0'){
 				num = num * 8 + (c - '0'); // ak dva nuly
-				state = AUT_ESC_ZERO2; 
+				state = AUT_ESC_ZERO2;
               }
 			  else if (c > '0' || c <= '7' ) {
 				num = num * 8 + (c - '0');
-				state = AUT_ESCN; 
+				state = AUT_ESCN;
               }
 			  else {
 				state = Start_state;
-                return ERROR_ESC_ZERO; 
+                return ERROR_ESC_ZERO;
               }
             }
 			else {
 				state = Start_state;
-				return ERROR_ESC_ZERO; 
+				return ERROR_ESC_ZERO;
 			}
 			break;
-	        
-	   
-	    case AUT_ESCN: 
-	        c=fgetc(input);  
-	        if(isdigit(c)) { 
+
+
+	    case AUT_ESCN:
+	        c=fgetc(input);
+	        if(isdigit(c)) {
               if(c > '0' || c <= '7' ) {
                 num = num * 8 + (c - '0');
 				state = AUT_ESCN2;
@@ -477,9 +509,9 @@ int Get_Token(void) {
 			    return ERROR_ESCN;
             }
 		    break;
-		
+
          case AUT_ESC_ZERO2:
-		    c=fgetc(input); 
+		    c=fgetc(input);
 		    if(isdigit(c)) {
 			   if (c == '0') {
 			     state = Start_state;
@@ -500,19 +532,19 @@ int Get_Token(void) {
 			   return ERROR_ESC_ZERO2;
              }
 			 break;
-			   
-		
-        
-        
+
+
+
+
         case AUT_ESCN2:
             c=fgetc(input);
-            if(isdigit(c)) { 
+            if(isdigit(c)) {
 			  if(c >= '0' || c <= '7' ) {
 			    num = num * 1 + (c - '0');
 			    string_end(&string,num);
-			    state = AUT_STRING; 
+			    state = AUT_STRING;
               }
-			  else { 
+			  else {
 			    state = Start_state;
 			    return ERROR_ESCN2;
               }
@@ -521,7 +553,7 @@ int Get_Token(void) {
 			    state = Start_state;
 			    return ERROR_ESCN2;
              }
-            
+
 		     break;
 
 

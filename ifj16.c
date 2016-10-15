@@ -12,11 +12,9 @@
 #include <stdlib.h>
 #include "error.h"
 #include "ir.h"
-#include "scanner.h"
-#include "parser.h"
 
-SymbolTable fnTable;
-SymbolTable varTable;
+SymbolTable fnTable = { .root = NULL };
+SymbolTable varTable = { .root = NULL };
 
 void freeGlobalResources() {
     freeNode(fnTable.root);
@@ -34,7 +32,7 @@ int main(int argc, char *argv[])
         PERROR("Error while opening file");
     }
 
-    printf("Not implemented.");
+    printf("Not implemented.\n");
 
     fclose(f);
     return 0;

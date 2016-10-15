@@ -117,6 +117,7 @@ typedef struct tCommand {
 
 typedef struct {
     char *name;
+    ValueType returnType;
     int argCount;
     Declaration *argHead;
     Block body;
@@ -156,7 +157,7 @@ Command *createCommand(CommandType);
 void freeCommand(Command *);
 void printCommand(Command *);
 
-Function *createFunction(char *, int, Declaration *);
+Function *createFunction(char *, ValueType, int, Declaration *);
 void freeFunction(Function *);
 void printFunction(Function *);
 

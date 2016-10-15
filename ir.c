@@ -79,7 +79,7 @@ void printExpression(Expression *e) {
         return;
     }
     do {
-        printf("Expression("), printExpressionType(e->type), printf(",");
+        printf("Expression("), printExpressionType(e->type), printf(", ");
         switch (e->type) {
         case E_FUNCALL:
             printf("%s, %d:", e->data.funcall.name, e->data.funcall.argCount);
@@ -93,7 +93,9 @@ void printExpression(Expression *e) {
             break;
         case E_BINARY:
             printBinaryOperation(e->data.binary.op);
+            printf(", ");
             printExpression(e->data.binary.left);
+            printf(", ");
             printExpression(e->data.binary.right);
             break;
         }
@@ -131,7 +133,7 @@ void printDeclaration(Declaration *d) {
     printf("Declaration(");
     do {
         printValueType(d->type);
-        printf("%s", d->name);
+        printf(" %s", d->name);
         if (d->next != NULL) {
             printf(", ");
         }
@@ -153,9 +155,9 @@ void freeBlock(Block b) {
     freeCommand(b.head);
 }
 void printBlock(Block *b) {
-    printf("Block {\n");
+    printf("<block>\n");
     printCommand(b->head);
-    printf("} Block");
+    printf("</block>");
 }
 
 /* COMMAND */
@@ -247,10 +249,11 @@ void printCommand(Command *c) {
 }
 
 /* FUNCTION */
-Function *createFunction(char *name, int argCount, Declaration *argHead) {
+Function *createFunction(char *name, ValueType type, int argCount, Declaration *argHead) {
     Function *f = malloc(sizeof(Function));
     CHECK_ALLOC(f);
     f->name = name;
+    f->returnType = type;
     f->argCount = argCount;
     f->argHead = argHead;
     return f;
@@ -268,11 +271,13 @@ void printFunction(Function *f) {
         printf("Function(NULL)\n");
         return;
     }
-    printf("Function(%s, %d:", f->name, f->argCount);
+    printf("Function(%s, ", f->name);
+    printValueType(f->returnType);
+    printf(", %d:", f->argCount);
     printDeclaration(f->argHead);
-    putchar('\n');
+    printf(", ");
     printBlock(&f->body);
-    printf("\n)\n");
+    printf(")\n");
 }
 
 /* NODE */

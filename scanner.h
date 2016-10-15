@@ -14,8 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "error.h"
 
 typedef enum {
     RESERVED,
@@ -89,8 +91,11 @@ typedef struct s_Token {
     } val;
 } Token;
 
+char *strdup_(const char *);
 Token *getNextToken(FILE *stream);
-void printToken(Token *t);
+Token *createToken(TokenType, void *, char *);
+Token *chainTokens(Token *, ...);
 void freeToken(Token *t);
+void printToken(Token *t);
 
 #endif /* IFJ_SCANNER_H */
