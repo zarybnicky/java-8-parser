@@ -11,6 +11,7 @@
 // Dopsat chybu 10
 
 #include "stringology.h"
+#include "ir.h"
 
 #define MAX_LEN 10
 
@@ -171,9 +172,6 @@ char *readString() {
     }
 
     return Str; // Potreba casem uvolnit
-}
-
-void print() {
 }
 
 int length(char *s) {

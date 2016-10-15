@@ -279,7 +279,6 @@ void table_insert(SymbolTable *tree, Node *object){
       else
         PERROR("Cannot insert same Node into table");
     }
-    Node *new;
     /* object not contain function create new Value node */
     Node *new;
     if ( !object->data.function )
