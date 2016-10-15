@@ -211,9 +211,9 @@ int control_res_key_word(char *str)
 #define AUT_EX3 9
 #define AUT_STRING 10
 #define AUT_ESC 11
-#define AUT_ESC_ZERO
+#define AUT_ESC_ZERO 33
 #define AUT_ESCN 12
-#define AUT_ESCN_ZERO2
+#define AUT_ESC_ZERO2 44
 #define AUT_ESCN2 22
 #define AUT_DIV 13
 #define AUT_DIV2 14
@@ -235,7 +235,7 @@ int control_res_key_word(char *str)
 #define ERROR_ESC 0
 #define ERROR_ESC_ZERO 0
 #define ERROR_ESCN 0
-#define ERROR_ESCN_ZERO2 0
+#define ERROR_ESC_ZERO2 0
 #define ERROR_ESCN2 0
 #define DIV 0
 #define ERROR_CMTB 0
@@ -466,7 +466,7 @@ int Get_Token(void) {
 				state = AUT_ESCN2;
               }
 			  else if (c == '0')
-			    state = AUT_ESCN_ZERO2; // predchadzam moznosti 3 nul
+			    state = AUT_ESC_ZERO2; // predchadzam moznosti 3 nul
               else {
                 state = Start_state;
 				return ERROR_ESCN;
@@ -478,12 +478,12 @@ int Get_Token(void) {
             }
 		    break;
 		
-         case AUT_ESCN_ZERO2:
+         case AUT_ESC_ZERO2:
 		    c=fgetc(input); 
 		    if(isdigit(c)) {
 			   if (c == '0') {
 			     state = Start_state;
-			     return ERROR_ESCN_ZERO2;
+			     return ERROR_ESC_ZERO2;
                } // 3 nuly cize error
 			   else if (c > '0' || c <= '7'){
 				 num = num * 1 + (c - '0');
@@ -492,12 +492,12 @@ int Get_Token(void) {
                }
 			   else {
 	            state = Start_state;
-			    return ERROR_ESCN_ZERO2;
+			    return ERROR_ESC_ZERO2;
                }
 			 }
 	         else {
 	           state = Start_state;
-			   return ERROR_ESCN_ZERO2;
+			   return ERROR_ESC_ZERO2;
              }
 			 break;
 			   
