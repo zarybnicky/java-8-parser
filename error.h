@@ -39,34 +39,50 @@ typedef enum {
 
 extern void freeGlobalResources();
 
-#define ERROR(ret)                                  \
-    fprintf(stderr, "Aborting at %s:%d in %s...\n", \
-            __FILE__, __LINE__, __func__);          \
-    fprintf(stderr, EXPLAIN_ERR(ret));              \
-    exit(ret);
+#define ERROR(ret) do {                                 \
+        fprintf(stderr, "Aborting at %s:%d in %s...\n", \
+                __FILE__, __LINE__, __func__);          \
+        fprintf(stderr, EXPLAIN_ERR(ret));              \
+        exit(ret);                                      \
+    } while (0);
 
-#define MERROR(ret, fmt)                            \
-    fprintf(stderr, "Aborting at %s:%d in %s...\n", \
-            __FILE__, __LINE__, __func__);          \
-    fprintf(stderr, fmt);                           \
-    exit(ret);
+#define MERROR(ret, fmt) do {                           \
+        fprintf(stderr, "Aborting at %s:%d in %s...\n", \
+                __FILE__, __LINE__, __func__);          \
+        fprintf(stderr, fmt);                           \
+        exit(ret);                                      \
+    } while (0);
 
-#define FERROR(ret, fmt, ...)                       \
-    fprintf(stderr, "Aborting at %s:%d in %s...\n", \
-            __FILE__, __LINE__, __func__);          \
-    fprintf(stderr, fmt, ## __VA_ARGS__);           \
-    exit(ret);
+#define FERROR(ret, fmt, ...) do {                      \
+        fprintf(stderr, "Aborting at %s:%d in %s...\n", \
+                __FILE__, __LINE__, __func__);          \
+        fprintf(stderr, fmt, ## __VA_ARGS__);           \
+        exit(ret);                                      \
+    } while (0);
 
-#define PERROR(msg)                                 \
-    fprintf(stderr, "Aborting at %s:%d in %s...\n", \
-            __FILE__, __LINE__, __func__);          \
-    perror(msg);                                    \
-    exit(ERR_INTERNAL);
+#define PERROR(msg) do {                                     \
+        fprintf(stderr, "Aborting at %s:%d in %s...\n",      \
+                __FILE__, __LINE__, __func__);               \
+        perror(msg);                                         \
+        exit(ERR_INTERNAL);                                  \
+    } while (0);
+
+#define PERROR_(msg, ...) do {                               \
+        fprintf(stderr, "Aborting at %s:%d in %s...\n",      \
+                __FILE__, __LINE__, __func__);               \
+        perror(msg);                                         \
+        __VA_ARGS__;                                         \
+        exit(ERR_INTERNAL);                                  \
+    } while (0);
 
 #define CHECK_ALLOC(x)                              \
-    if ((x) == NULL) { PERROR("Error while allocating memory"); }
+    if ((x) == NULL) {                              \
+        PERROR("Error while allocating memory");    \
+    }
 
-extern int error(ErrorType);
-extern int errorM(ErrorType, char *, ...);
+#define CHECK_ALLOC_(x, ...)                                    \
+    if ((x) == NULL) {                                          \
+        PERROR_("Error while allocating memory", __VA_ARGS__);  \
+    }
 
 #endif /* IFJ_ERROR_H */

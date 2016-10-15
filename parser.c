@@ -34,7 +34,7 @@ Lexer *createLexer(FILE *f) {
     l->stackSize = 20;
     l->stackPtr = 0;
     l->stack = malloc(l->stackSize * sizeof(Token *));
-    CHECK_ALLOC(l->stack);
+    CHECK_ALLOC_(l->stack, free(l));
     l->lastClassName = NULL;
     return l;
 }
@@ -57,12 +57,12 @@ bool rollback(Lexer *l) {
 bool commit(Lexer *l) {
     if (l->stackPtr > 0) {
         --l->stackPtr;
-    } else {
-        while (l->start != l->current) {
-            Token *t = l->start;
-            l->start = t->next;
-            freeToken(t);
-        }
+        return true;
+    }
+    while (l->start != l->current) {
+        Token *t = l->start;
+        l->start = t->next;
+        freeToken(t);
     }
     return true;
 }

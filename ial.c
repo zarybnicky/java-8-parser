@@ -275,11 +275,11 @@ void table_insert(SymbolTable *tree, Node *object){
       last = next;
       int compare = strcmp(object->symbol, next->symbol);
       if (compare < 0)
-        next = next->left;
+          next = next->left;
       else if (compare > 0)
-        next = next->right;
+          next = next->right;
       else
-        ERROR(ERR_RUNTIME_MISC);
+          MERROR(ERR_INTERNAL, "Cannot insert same Node into table");
     }
     /* object not contain function create new Value node */
     if ( !object->data.function )

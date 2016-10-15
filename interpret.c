@@ -10,119 +10,54 @@
 
 #include "interpret.h"
 
-int Error(){
-    fprintf(stderr,"And he realised, ...\n\t\t... he fucked up");
-    return 0; //?
-}
-
-void InitMemory (mem_t *L) {
-    if(L == NULL){
-        Error();
-        return;
+void InitMemory(mem_t *L) {
+    if (L == NULL) {
+        ERROR(ERR_INTERNAL);
     }
-    else{
-        L->Act = NULL;
-        L->First = NULL;
-    }
-}
-
-/*
-void DisposeMemory (mem_t *L) {
-    if(L == NULL){
-        Error();
-        return;
-    }
-
-    while(L->Act != NULL && L->First != NULL){
-        free(L->First->data);
-        mem_elem_ptr buf = L->First->ptr;
-        free(L->First);
-        L->Act = buf;
-        L->First = buf;
-    }
-
     L->Act = NULL;
     L->First = NULL;
 }
-*/
 
-void *malloc_c (mem_t *L, size_t size) {
-
-    if(L == NULL){
-        Error();
-        return NULL;
+void *malloc_c(mem_t *L, size_t size){
+    if (L == NULL) {
+        ERROR(ERR_INTERNAL);
     }
-
     mem_elem_ptr tmp = malloc(sizeof(struct mem_elem));
-
-    if(tmp == NULL){
-        Error();
-        return NULL;
-    }
-
+    CHECK_ALLOC(tmp);
     tmp->data = malloc(size);
-
-    if(tmp->data == NULL){
-        free(tmp);
-        Error();
-        return NULL;
-    }
+    CHECK_ALLOC_(tmp->data, free(tmp));
 
     tmp->ptr = L->First;
     L->First = tmp;
-
     return tmp;
-
 }
 
-void *calloc_c (mem_t *L, unsigned num, size_t size) {
-
-    if(L == NULL){
-        Error();
-        return NULL;
+void *calloc_c(mem_t *L, unsigned num, size_t size){
+    if (L == NULL) {
+        ERROR(ERR_INTERNAL);
     }
-
     mem_elem_ptr tmp = malloc(sizeof(struct mem_elem));
-
-    if(tmp == NULL){
-        Error();
-        return NULL;
-    }
-
+    CHECK_ALLOC(tmp);
     tmp->data = calloc(num, size);
-
-    if(tmp->data == NULL){
-        free(tmp);
-        Error();
-        return NULL;
-    }
+    CHECK_ALLOC_(tmp->data, free(tmp));
 
     tmp->ptr = L->First;
     L->First = tmp;
-
     return tmp;
 }
 
-void DeleteItem (mem_t *L, mem_elem_ptr ptr){
-
-    if(ptr == NULL || L == NULL){
-        fprintf(stderr, "%s\n", "NOPENOPENOPE");
+void DeleteItem(mem_t *L, mem_elem_ptr ptr) {
+    if (ptr == NULL || L == NULL) {
+        ERROR(ERR_INTERNAL);
     }
-
-    if(ptr == L->First){
+    if (ptr == L->First) {
         L->First = L->First->ptr;
-    }
-    else{
-        for(mem_elem_ptr tmp = L->First, prev = NULL ;
-            tmp != ptr;
-            ptr = ptr->ptr){
-
-
-            if(tmp == ptr){
+    } else {
+        for (mem_elem_ptr tmp = L->First, prev = NULL; tmp != ptr; ptr = ptr->ptr) {
+            if (tmp == ptr) {
                 prev->ptr = ptr->ptr;
                 break;
             }
-
             prev = ptr;
         }
     }
@@ -132,13 +67,11 @@ void DeleteItem (mem_t *L, mem_elem_ptr ptr){
     return;
 }
 
-void DisposeMemory (mem_t *L) {
-    if(L == NULL){
-        Error();
-        return;
+void DisposeMemory(mem_t *L) {
+    if (L == NULL) {
+        ERROR(ERR_INTERNAL);
     }
-
-    while(L->Act != NULL && L->First != NULL){
+    while (L->Act != NULL && L->First != NULL) {
         mem_elem_ptr buf = L->First->ptr;
         free(L->First->data);
         free(L->First);

@@ -19,12 +19,10 @@ int readInt() { // Int celé nezáporné číslo (3.1)
     unsigned vysledek = 0;
 
     while ((c = getchar()) != '\n' && c != EOF) {
-        if ('0' <= c && c <= '9') {
-            vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
-        } else {
-            fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
-            exit(ERR_RUNTIME_INT_PARSE);
+        if (c < '0' && '9' < c) {
+            FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing an integer, unexpected character: %c\n", c);
         }
+        vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
     }
     return vysledek;
 }
@@ -40,94 +38,77 @@ double readDouble() { // TODO
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
-            Len = Len + MAX_LEN;
+            Len += MAX_LEN;
             Str = realloc(Str, Len); // Zvetsi string
             CHECK_ALLOC(Str);
         }
 
-        if (('0' <= c && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
+        if ((c < '0' || '9' < c) && c != '.' && c != 'e' && c != 'E' && c != '+' && c != '-') {
+            FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+        }
 
-            switch(c) {
-                case 'e':
-                case 'E':
-                    if (e_set != 0) { // Vice exp za sebou, nebo exp neni cele cislo
-                    fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
-                    exit(ERR_RUNTIME_INT_PARSE);
-                    }
-                if (dot_set == 0) {
-                    for (unsigned int j = 0; j < i; j++) { // Zapsani celych cisel
-                        vysledek = vysledek*10 + (Str[j] - '0');
-                    }
-                } else {
-                    double pom = 0;
-                    for (int j = strlen(Str)-1; j > -1; j--) { // Zapsani desetinnych mist
-                        pom = pom*0.1 + (Str[j] - '0');
-                    }
-                    pom = pom*0.1; // Posledni posun
-                    vysledek = vysledek + pom;
-                    dot_set = 0;
-                }
-                i = 0;
-                e_set = 1;
-                break;
-
-            case '.':
-                if (e_set != 0 || dot_set != 0) { // Kontrola pro vice tecek nebo tecky po exp
-                    fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
-                    exit(ERR_RUNTIME_INT_PARSE);
-                }
-                for (unsigned int j = 0; j < i; j++) { // Zapsani celych cisel
+        switch(c) {
+        case 'e':
+        case 'E':
+            if (e_set != 0) { // Vice exp za sebou, nebo exp neni cele cislo
+                FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+            }
+            if (dot_set == 0) {
+                for (unsigned j = 0; j < i; j++) { // Zapsani celych cisel
                     vysledek = vysledek*10 + (Str[j] - '0');
                 }
+            } else {
+                double pom = 0;
+                for (int j = strlen(Str)-1; j > -1; j--) { // Zapsani desetinnych mist
+                    pom = pom*0.1 + (Str[j] - '0');
+                }
+                pom = pom*0.1; // Posledni posun
+                vysledek = vysledek + pom;
+                dot_set = 0;
+            }
+            i = 0;
+            e_set = 1;
+            break;
 
-                i = 0;
-                dot_set = 1;
-                break;
+        case '.':
+            if (e_set != 0 || dot_set != 0) { // Kontrola pro vice tecek nebo tecky po exp
+                FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+            }
+            for (unsigned j = 0; j < i; j++) { // Zapsani celych cisel
+                vysledek = vysledek*10 + (Str[j] - '0');
+            }
+            i = 0;
+            dot_set = 1;
+            break;
 
-            default:
-                Str[i] = c; // Ulozeni znaku
-                i++;
-                Str[i] = '\0'; // Nulovani dalsiho znaku
-                break;
-
-            } // Switch end
-
-        } else {
-
-            fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
-            exit(ERR_RUNTIME_INT_PARSE);
-        }
+        default:
+            Str[i++] = c; // Ulozeni znaku
+            Str[i] = '\0'; // Nulovani dalsiho znaku
+            break;
+        } // Switch end
     }
 
     if (e_set == 0 && dot_set == 0) { // Jenom celé cislo
-
-        for (unsigned int j = 0; j < i; j++) {
+        for (unsigned j = 0; j < i; j++) {
             vysledek = vysledek*10 + (Str[j] - '0');
         }
     }
-
     if (e_set == 1) { // Zpracovani exponentu
-
         unsigned int pom = 0;
 
         if (Str[0] != '-'){
-
             // Kladne znamenku u exponentu
             for (unsigned int j = 0; j < i; j++) { // Prepis na cisla
                 pom = pom*10 + (Str[j] - '0');
             }
-
             for (unsigned int j = 0; j < pom; j++) { // Aplikace exponentu
                 vysledek = vysledek*10;
             }
-
         } else {
-
             // Zaporne znamenko u exponentu
             for (unsigned int j = 1; j < i; j++) { // Prepis na cisla
                 pom = pom*10 + (Str[j] - '0');
             }
-
             for (unsigned int j = 0; j < pom; j++) { // Aplikace exponentu
                 vysledek = vysledek*0.1;
             }
@@ -146,9 +127,7 @@ double readDouble() { // TODO
     }
 
     free(Str);
-
     return vysledek;
-
 } // function end
 
 char *readString() {
@@ -181,8 +160,7 @@ char *substr(char *s,int i, int n) {
     int sLen = strlen(s);
 
     if (sLen - 1 < i || sLen - 1 < i + n)
-        //fprintf(stderr, "Error while ???\n");
-        exit(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
+        ERROR(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
 
     if (n != 0) {
         sLen = n+1;	// Urceni delky
@@ -225,21 +203,16 @@ void print(Value *term){
         case T_STRING:
             printf("%s",term->data.str);
             break;
-
         case T_BOOLEAN:
             printf("%s",term->data.boolean ? "true" : "false");
             break;
-
         case T_DOUBLE:
             printf("%g",term->data.dbl);
             break;
-
         case T_INTEGER:
             printf("%d",term->data.integer);
             break;
-
         default:
             break;
-
     }
 }
