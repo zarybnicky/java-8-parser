@@ -218,7 +218,7 @@ int compare(char *s1, char *s2) {
     return 0;
 }
 
-void print(Value term){ // Pri printf SIGSEV, ale pri pridani printf pred a za printf s vypisem tak funguje TODO
+void print(Value term){
 
     switch(term.type){
 
@@ -235,7 +235,7 @@ void print(Value term){ // Pri printf SIGSEV, ale pri pridani printf pred a za p
             break;
 
         case T_INTEGER:
-            printf("%s",term.data.str);
+            printf("%d",term.data.integer);
             break;
 
         default:
