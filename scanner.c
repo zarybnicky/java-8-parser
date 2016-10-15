@@ -344,6 +344,10 @@ int Get_Token(void) {
                     state = NEUTRAL_STATE;
                     return BRACKET_CLOSE;
                 }
+           else if(c == ',') {
+                    state = NEUTRAL_STATE;
+                    return COMMA;
+                }
             else if (c == '/')      // pokracujeme dalej kvoli moznosti komentaru
                 state = AUT_DIV;
             else if (c == '<')
