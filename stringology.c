@@ -218,24 +218,24 @@ int compare(char *s1, char *s2) {
     return 0;
 }
 
-void print(Value term){
+void print(Value *term){
 
-    switch(term.type){
+    switch(term->type){
 
         case T_STRING:
-            printf("%s",term.data.str);
+            printf("%s",term->data.str);
             break;
 
         case T_BOOLEAN:
-            printf("%s",term.data.boolean ? "true" : "false");
+            printf("%s",term->data.boolean ? "true" : "false");
             break;
 
         case T_DOUBLE:
-            printf("%g",term.data.dbl);
+            printf("%g",term->data.dbl);
             break;
 
         case T_INTEGER:
-            printf("%d",term.data.integer);
+            printf("%d",term->data.integer);
             break;
 
         default:
