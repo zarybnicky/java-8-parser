@@ -12,43 +12,25 @@
 #define IFJ_IAL_H
 
 #include "error.h"
+#include "ir.h"
 
+int *Prefixcreator(char *, int );
 char *sort(char *);
-int find(char *haystack, char *needle);
+int find(char *, char *);
+
 
 /**
-  * Create a new symbol table
-  * returns new symbol table
+  * Inserts Node into created AVL table
   */
-//glb_sym_table *create_symbol_table();
-
-/** Create new symbol if not enough
-  * memory exit ERR_INTERNAL returned
-  */
-//symbol *create_symbol(String, Value);
+void table_insert(SymbolTable *, Node *);
 
 /**
-  * Inserts symbol into created symbol table
-  * TODO return int value for success??
+  * Seach for a Node in AVL table
+  * returns pointer to Node
   */
-//void insert_symbol (glb_sym_table *, String, Value);
-//void insert_function (glb_sym_table *, String, Value);
-//void insert_to_local (lcl_ident_table *, String);
+Node * table_lookup(SymbolTable *,Node *);
 
-/**
-  * Seach for a symbol in symbol table
-  * returns symbol
-  */
-//symbol *lookup_symbol(glb_sym_table *, String);
-//symbol *lookup_function (glb_sym_table *, String);
-//symbol *lookup_in_local (lcl_ident_table *, String);
 
-/**
-  * Deletes symbol/function in global table ,
-  * Variables or parameters in local table
-  */
-//void delete_symbol (glb_sym_table *);
-//void delete_function (glb_sym_table *);
-//void delete_in_local (lcl_ident_table *);
+
 
 #endif /* IFJ_IAL_H */

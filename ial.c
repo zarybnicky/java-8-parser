@@ -13,6 +13,7 @@
 
 #include "ial.h"
 #include "stringology.h"
+#include "error.h"
 
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
@@ -110,151 +111,59 @@ char *sort(char *s)
     return s;
 }   // function
 
-// Pointer to last inserted funciton
-//local_function_table *last_function = NULL;
 
+void table_insert(SymbolTable *tree, Node *object){
+  Node *next = NULL;
+  Node *last= NULL;
 
-/*  Symbol table implementation global, local,
-    pushing functions to global table*/
-/*
-glb_sym_table *create_symbol_table(){
-
-  glb_sym_table *g_table = NULL;
-  g_table = malloc(sizeof(glb_sym_table));
-  CHECK_ALLOC(g_table);
-  g_table->key = NULL;
-  g_table->left = NULL;
-  g_table->right = NULL;
-  g_table->object = NULL;
-  g_table->f_table = NULL;
-
-  return g_table;
-}
-*/
-/* Allocation of new symbol with key and data */
-/*
-symbol *create_symbol (char *key, Value data){
-  symbol *new = malloc(sizeof(symbol));
-  CHECK_ALLOC(new);
-  strcpy(new->key, key);
-  new->data = data;
-  new->left = NULL;
-  new->right = NULL;
-
-  return new;
-}
-*/
-/** Insert symbol with its contents and key
-  * comparing root key with new key
-  */
-/*
-void insert_symbol(glb_sym_table *root, char *key, Value data){
-
-  if ( !root ){
-    root = create_symbol_table();
-    symbol *sym = create_symbol(key, data);
-    //key is name of object
-    root->key = key;
-    //insert object to root
-    root->object = sym;
+  /* root does not exist */
+  if (!tree->root){
+    tree = createSymbolTable();
+    tree->root = object;
   }
-  else
-  {
-    int cmp = strcmp(key, root->key);
-    // if key is smaller
-    if (cmp < 0)
-      insert_symbol(root->left, key, data);
-    // if key is bigger
-    else if (cmp > 0)
-      insert_symbol(root->right, key, data);
-    // if key is equal push it to right and increment key
+  /* root exists. Put it on next node */
+  else{
+    next = tree->root;
+
+    while(next){
+      last = next;
+      int compare = strcmp(object->symbol, next->symbol);
+      if (compare < 0)
+        next = next->left;
+      else if (compare > 0)
+        next = next->right;
+      else
+        PERROR("Cannot insert same Node into table");
+    }
+
+    /* object not contain function create new Value node */
+    if ( !object->data.function )
+      Node new = createValueNode(object->symbol, object->data.value);
     else
-    // ?!? symbol should be inserted even its key is same as the root->key
-      insert_symbol(root->right, key + 1, data);
+      Node new = createFunctionNode(object->symbol, object->data.function);
+
+    int compare = strcmp(new->symbol, last->symbol);
+    if (compare < 0)
+      last->left = new;
+    if (compare > 0)
+      last->right = new;
   }
-}
-*/
-/* TODO function dont have same data as symbol does */
-/*
-void insert_function (glb_sym_table *root, char *key, Value data){
-  if (!root){
-    root = create_symbol_table();
-    local_function_table *l_table = (local_function_table *) 1; //FIXME
-    // TODO allocate function parameters
-    l_table->params = 0;
-    l_table->vars = 0;
-    l_table->left = NULL;
-    l_table->right = NULL;
-    root->f_table = l_table;
-    // key is name of function
-    root->key = key;
-    // last function is inserted one
-    last_function = (local_function_table *) root; //unsafe!
-  }
-  else{
-    // comparing key with local_table object
-      int cmp = strcmp(key, root->key);
-    if (cmp < 0)
-      insert_function(root->left, key, data);
-    else if (cmp > 0)
-      insert_function(root->right, key, data);
-    //key is same as r->key, which means that function is already inside BT
-    else{
-      FERROR(ERR_INTERNAL, "Cannot redefine a function.");
-    }
-  }
-}
-*/
-/*
-void insert_identifier (lcl_ident_table *root, char *key){
-  if ( !root ){
-    lcl_ident_table *l_table = malloc(sizeof(lcl_ident_table));
-    CHECK_ALLOC(l_table);
-    l_table->key = key;
-    //offset to recount better position in identifier BT
-    l_table->offset = last_function->params + last_function->vars;
-    l_table->left = NULL;
-    l_table->right = NULL;
-    root = l_table;
-  }
-  else{
-    int cmp = strcmp(key, root->key);
-    if (cmp < 0)
-        ; //insert_to_local(root->left, key);
-    else if (cmp > 0)
-        ; //insert_to_local(root->right, key);
-    else{
-      FERROR(ERR_INTERNAL, "Cannot insert identifier with same key");
-    }
-  }
+  //TODO balance tree
 }
 
-symbol *lookup_symbol(glb_sym_table *root, char *key){
-  if ( !root ){
-    return NULL;
+Node *table_lookup(SymbolTable *tree, Node *object){
+  Node *current = tree->root;
+  int compare = strcmp (current->symbol, object->symbol);
+
+  /* loop ends at end or when comapre is eq 0 */
+  while( current && compare ){
+    /* comparison between 2 keys is bigger go right */
+    if (compare > 0)
+      current = current->right;
+    /* comparison is less go left */
+    else
+      current = current->left;
   }
-  int cmp = strcmp(key, root->object->key);
-
-  // lookup key is different than root key
-  if (cmp < 0)
-    return lookup_symbol(root->left, key);
-  else
-    return lookup_symbol(root->right, key);
-
-  //lookup key is same as root key. We finished lookup of symbol
-  return root->object;
+  /* returns NULL or looked object */
+  return current;
 }
-
-symbol *lookup_function (glb_sym_table *,String);
-symbol *lookup_in_local (lcl_ident_table*, String);
-
-void delete_symbol (glb_sym_table *);
-void delete_function (glb_sym_table *);
-void delete_in_local (lcl_ident_table *);
-*/
-/* TODO Insert function to glb_sym_table
-   Insert param/variable to local_sym_table */
-
-/*  TODO Lookup_function in glb_sym_table
-    Lookup_symbol in glb_sym_table
-    Lookup_symbol in local_sym_table */
