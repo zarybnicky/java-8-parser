@@ -9,9 +9,6 @@
  */
 
 #include "ir.h"
-#include "error.h"
-#include <stdlib.h>
-#include <stdio.h>
 
 /* VALUE */
 Value *createValue(ValueType type) {

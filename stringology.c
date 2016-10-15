@@ -11,7 +11,6 @@
 // Dopsat chybu 10
 
 #include "stringology.h"
-#include "ir.h"
 
 #define MAX_LEN 10
 
@@ -239,7 +238,7 @@ void print(Value term){ // Pri printf SIGSEV, ale pri pridani printf pred a za p
             printf("%s",term.data.str);
             break;
 
-        default: 
+        default:
             break;
 
     }

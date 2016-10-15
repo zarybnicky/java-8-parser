@@ -11,11 +11,12 @@
 #ifndef IFJ_STRINGOLOGY_H
 #define IFJ_STRINGOLOGY_H
 
-#include "error.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include "error.h"
+#include "ir.h"
 
 int readInt();
 double readDouble();

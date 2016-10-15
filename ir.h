@@ -12,6 +12,9 @@
 #define IFJ_IR_H
 
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "error.h"
 
 typedef enum {
     T_STRING,
