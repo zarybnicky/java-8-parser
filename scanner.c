@@ -412,28 +412,28 @@ int Get_Token(void) {
                 string_end(&string,c);
             } else if(isdigit(c)) {
 				if(c >= '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
-				num = num * 64 + (c - '0')
+				num = num * 64 + (c - '0');
 				state = AUT_ESCN;
 				else if (c == '0')
-				num = num * 64 + (c - '0')
+				num = num * 64 + (c - '0');
 				state = AUT_ESC_ZERO;
 				else 
 				state = Start_state;
-                return ERROR_ESC;
+                return ERROR_ESC; }
             else {
                 state = Start_state;
                 return ERROR_ESC;
             }
             break;
 	    
-	    case AUT_ESC_ZERO
+        case AUT_ESC_ZERO:
 	        c=fgetc(input); 
 	        if(isdigit(c)) {
 			  if (c == '0'){
-				num = num * 8 + (c - '0') // ak dva nuly
+				num = num * 8 + (c - '0'); // ak dva nuly
 				state = AUT_ESC_ZERO2; }
 			  else if (c > '0' || c <= '7' ) {
-				num = num * 8 + (c - '0')
+				num = num * 8 + (c - '0');
 				state = AUT_ESCN; }
 			  else
 				state = Start_state;
@@ -450,7 +450,7 @@ int Get_Token(void) {
 	        c=fgetc(input);  
 	        if(isdigit(c)) { 
               if(c > '0' || c <= '7' ) 
-                num = num * 8 + (c - '0')
+                num = num * 8 + (c - '0');
 				state = AUT_ESCN2;
 			  else if (c == '0')
 			    state = AUT_ESCN_ZERO2; // predchadzam moznosti 3 nul
@@ -463,16 +463,16 @@ int Get_Token(void) {
 			    return ERROR_ESCN;
 		    break;
 		
-		case AUT_ESCN_ZERO2;
+         case AUT_ESCN_ZERO2:
 		    c=fgetc(input); 
 		    if(isdigit(c)) {
-			   if (c == '0')
+			   if (c == '0') {
 			     state = Start_state;
-			     return ERROR_ESCN_ZERO2; // 3 nuly cize error
-			   else if (c > '0' || c <= '7' ) {
+			     return ERROR_ESCN_ZERO2;} // 3 nuly cize error
+			   else if (c > '0' || c <= '7') 
 				 num = num * 1 + (c - '0');
 				 string_end(&string,num);
-				 state = AUT_STRING:}
+				 state = AUT_STRING;
 			   else 
 	            state = Start_state;
 			    return ERROR_ESCN_ZERO2;
@@ -481,7 +481,7 @@ int Get_Token(void) {
 	           state = Start_state;
 			   return ERROR_ESCN_ZERO2;
 			 
-			 break
+			 break;
 			   
 		
         
@@ -492,7 +492,7 @@ int Get_Token(void) {
 			  if(c >= '0' || c <= '7' ) {
 			    num = num * 1 + (c - '0');
 			    string_end(&string,num);
-			    state = AUT_STRING:}
+			    state = AUT_STRING; }
 			  else 
 			    state = Start_state;
 			    return ERROR_ESCN2;
