@@ -399,7 +399,6 @@ int Get_Token(void) {
             else
                 string_end(&string, c);
             break;
-
         case AUT_ESC:
             c=fgetc(input);
             if(c == 'n'){
@@ -410,33 +409,98 @@ int Get_Token(void) {
                 string_end(&string, '\t');
             } else if(c == '\\' || c == '"') {
                 state = AUT_STRING;
-                string_end(&string,c) ;
+                string_end(&string,c);
             } else if(isdigit(c)) {
 				if(c >= '0' || c <= '3' ) // cislo moze byt iba v tomto rozmedzi
-				 state = AUT_ESCN;
-				else
-				 state = ERROR_ESC;
-            } else {
+				num = num * 64 + (c - '0')
+				state = AUT_ESCN;
+				else if (c == '0')
+				num = num * 64 + (c - '0')
+				state = AUT_ESC_ZERO;
+				else 
+				state = Start_state;
+                return ERROR_ESC;
+            else {
                 state = Start_state;
                 return ERROR_ESC;
-
             }
             break;
-
-	    case AUT_ESCN:
-            c=fgetc(input);
+	    
+	    case AUT_ESC_ZERO
+	        c=fgetc(input); 
 	        if(isdigit(c)) {
-             if(c >= '0' || c <= '7' )
-				state = AUT_ESCN2;
-		     else
-				state = ERROR_ESCN;
+			  if (c == '0'){
+				num = num * 8 + (c - '0') // ak dva nuly
+				state = AUT_ESC_ZERO2; }
+			  else if (c > '0' || c <= '7' ) {
+				num = num * 8 + (c - '0')
+				state = AUT_ESCN; }
+			  else
+				state = Start_state;
+                return ERROR_ESC;
             }
-            break;
-
+			else {
+				state = Start_state;
+				return ERROR_ESC_ZERO; 
+			}
+			break;
+	        
+	   
+	    case AUT_ESCN: 
+	        c=fgetc(input);  
+	        if(isdigit(c)) { 
+              if(c > '0' || c <= '7' ) 
+                num = num * 8 + (c - '0')
+				state = AUT_ESCN2;
+			  else if (c == '0')
+			    state = AUT_ESCN_ZERO2; // predchadzam moznosti 3 nul
+              else 
+                state = Start_state;
+				return ERROR_ESCN;
+			}
+			else
+			    state = Start_state;
+			    return ERROR_ESCN;
+		    break;
+		
+		case AUT_ESCN_ZERO2;
+		    c=fgetc(input); 
+		    if(isdigit(c)) {
+			   if (c == '0')
+			     state = Start_state;
+			     return ERROR_ESCN_ZERO2; // 3 nuly cize error
+			   else if (c > '0' || c <= '7' ) {
+				 num = num * 1 + (c - '0');
+				 string_end(&string,num);
+				 state = AUT_STRING:}
+			   else 
+	            state = Start_state;
+			    return ERROR_ESCN_ZERO2;
+			 }
+	         else 
+	           state = Start_state;
+			   return ERROR_ESCN_ZERO2;
+			 
+			 break
+			   
+		
+        
+        
         case AUT_ESCN2:
             c=fgetc(input);
-
-
+            if(isdigit(c)) { 
+			  if(c >= '0' || c <= '7' ) {
+			    num = num * 1 + (c - '0');
+			    string_end(&string,num);
+			    state = AUT_STRING:}
+			  else 
+			    state = Start_state;
+			    return ERROR_ESCN2;
+		     }
+		     else
+			    state = Start_state;
+			    return ERROR_ESCN2;
+		     break;
 
 
         case AUT_DIV:
