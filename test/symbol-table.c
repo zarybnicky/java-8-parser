@@ -12,8 +12,7 @@ int main(){
   new_node = createValueNode (name,new_val);
   printNode(new_node);
 
-  //SymbolTable *new_table = createSymbolTable();
-  SymbolTable *new_table = NULL;
+  SymbolTable *new_table = createSymbolTable();
   Node *lookup = NULL;
   table_insert (&new_table, new_node);
   //Will cause errror// table_insert (new_table, new_node);

@@ -261,9 +261,8 @@ void table_insert(SymbolTable *tree, Node *object){
   Node *next = NULL;
   Node *last= NULL;
 
-  //TODO if alloc there have to be 2 pointers to return
   if (!tree)
-    tree = createSymbolTable();
+    ERROR(ERR_RUNTIME_UNINITIALIZED);
   /* root does not exist */
   if (!tree->root){
     tree->root = object;
@@ -280,7 +279,7 @@ void table_insert(SymbolTable *tree, Node *object){
       else if (compare > 0)
         next = next->right;
       else
-        PERROR("Cannot insert same Node into table");
+        ERROR(ERR_RUNTIME_MISC);
     }
     /* object not contain function create new Value node */
     if ( !object->data.function )
