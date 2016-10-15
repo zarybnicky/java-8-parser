@@ -43,6 +43,7 @@ extern void freeGlobalResources();
         fprintf(stderr, "Aborting at %s:%d in %s...\n", \
                 __FILE__, __LINE__, __func__);          \
         fprintf(stderr, EXPLAIN_ERR(ret));              \
+        freeGlobalResources();                          \
         exit(ret);                                      \
     } while (0);
 
@@ -50,6 +51,7 @@ extern void freeGlobalResources();
         fprintf(stderr, "Aborting at %s:%d in %s...\n", \
                 __FILE__, __LINE__, __func__);          \
         fprintf(stderr, fmt);                           \
+        freeGlobalResources();                          \
         exit(ret);                                      \
     } while (0);
 
@@ -57,6 +59,7 @@ extern void freeGlobalResources();
         fprintf(stderr, "Aborting at %s:%d in %s...\n", \
                 __FILE__, __LINE__, __func__);          \
         fprintf(stderr, fmt, ## __VA_ARGS__);           \
+        freeGlobalResources();                          \
         exit(ret);                                      \
     } while (0);
 
@@ -64,6 +67,7 @@ extern void freeGlobalResources();
         fprintf(stderr, "Aborting at %s:%d in %s...\n",      \
                 __FILE__, __LINE__, __func__);               \
         perror(msg);                                         \
+        freeGlobalResources();                               \
         exit(ERR_INTERNAL);                                  \
     } while (0);
 
@@ -72,6 +76,7 @@ extern void freeGlobalResources();
                 __FILE__, __LINE__, __func__);               \
         perror(msg);                                         \
         __VA_ARGS__;                                         \
+        freeGlobalResources();                               \
         exit(ERR_INTERNAL);                                  \
     } while (0);
 
