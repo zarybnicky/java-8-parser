@@ -11,6 +11,7 @@
 #ifndef IFJ_IAL_H
 #define IFJ_IAL_H
 
+#include "stringology.h"
 #include "error.h"
 #include "ir.h"
 

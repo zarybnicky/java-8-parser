@@ -12,8 +12,6 @@
 // Merge-sort - nutno upravit dle inplementace stringu
 
 #include "ial.h"
-#include "stringology.h"
-#include "error.h"
 
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
@@ -137,10 +135,11 @@ void table_insert(SymbolTable *tree, Node *object){
     }
 
     /* object not contain function create new Value node */
+    Node *new;
     if ( !object->data.function )
-      Node new = createValueNode(object->symbol, object->data.value);
+      new = createValueNode(object->symbol, object->data.value);
     else
-      Node new = createFunctionNode(object->symbol, object->data.function);
+      new = createFunctionNode(object->symbol, object->data.function);
 
     int compare = strcmp(new->symbol, last->symbol);
     if (compare < 0)
