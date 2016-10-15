@@ -256,18 +256,21 @@ void table_balance (SymbolTable *tree){
   * tree key. If 2 same keys PERROR occurs, at of funtion is called balance
   * function
   */
-void table_insert(SymbolTable *tree, Node *object){
+void table_insert(SymbolTable **tree, Node *object){
+  Node *new = NULL;
   Node *next = NULL;
   Node *last= NULL;
 
+  //TODO if alloc there have to be 2 pointers to return
+  if (!(*tree))
+    *tree = createSymbolTable();
   /* root does not exist */
-  if (!tree->root){
-    tree = createSymbolTable();
-    tree->root = object;
+  if (!(*tree)->root){
+    (*tree)->root = object;
   }
   /* root exists. Put it on next node */
   else{
-    next = tree->root;
+    next = (*tree)->root;
 
     while(next){
       last = next;
@@ -280,7 +283,6 @@ void table_insert(SymbolTable *tree, Node *object){
         PERROR("Cannot insert same Node into table");
     }
     /* object not contain function create new Value node */
-    Node *new;
     if ( !object->data.function )
       new = createValueNode(object->symbol, object->data.value);
     else
@@ -293,7 +295,7 @@ void table_insert(SymbolTable *tree, Node *object){
       last->right = new;
   }
   /* balance tree after insertion */
-  table_balance(tree);
+  table_balance(*tree);
 }
 
 Node *table_lookup(SymbolTable *tree, Node *object){

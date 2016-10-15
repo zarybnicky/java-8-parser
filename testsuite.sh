@@ -10,5 +10,6 @@ assert_raises "./ifj16 test/1_unknown_char.java" 1
 #assert_raises "./ifj16 test/8_undefined_variable.java" 8
 #assert_raises "./ifj16 test/9_division_by_zero.java" 9
 assert_raises "./ifj16" 99
+assert_raises "./ifj16 test/symbol-table.c" 0
 
 assert_end

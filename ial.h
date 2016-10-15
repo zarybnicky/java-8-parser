@@ -49,7 +49,7 @@ void table_balance( SymbolTable * );
 /**
   * Inserts Node into created AVL table
   */
-void table_insert( SymbolTable *, Node * );
+void table_insert( SymbolTable **, Node * );
 
 /**
   * Seach for a Node in AVL table

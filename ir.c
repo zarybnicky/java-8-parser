@@ -310,6 +310,7 @@ void freeNode(Node *n) {
 void printNode(Node *n)  {
     if (n == NULL) {
         printf("Node(NULL)");
+        return; // ADD
     }
     printf("Node(");
     printf("%s, ", n->symbol);
