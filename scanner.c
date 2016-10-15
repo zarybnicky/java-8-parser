@@ -211,7 +211,9 @@ int control_res_key_word(char *str)
 #define AUT_EX3 9
 #define AUT_STRING 10
 #define AUT_ESC 11
+#define AUT_ESC_ZERO
 #define AUT_ESCN 12
+#define AUT_ESCN_ZERO2
 #define AUT_ESCN2 22
 #define AUT_DIV 13
 #define AUT_DIV2 14
@@ -231,7 +233,10 @@ int control_res_key_word(char *str)
 #define NUMBER 0
 #define ERROR_NUMBER 0
 #define ERROR_ESC 0
+#define ERROR_ESC_ZERO 0
 #define ERROR_ESCN 0
+#define ERROR_ESCN_ZERO2 0
+#define ERROR_ESCN2 0
 #define DIV 0
 #define ERROR_CMTB 0
 #define EQUAL 0
@@ -443,7 +448,7 @@ int Get_Token(void) {
               }
 			  else {
 				state = Start_state;
-                return ERROR_ESC; 
+                return ERROR_ESC_ZERO; 
               }
             }
 			else {
