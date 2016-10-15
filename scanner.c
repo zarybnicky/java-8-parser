@@ -320,6 +320,30 @@ int Get_Token(void) {
                 state = NEUTRAL_STATE;
                 return MUL;
             }
+            else if(c == '{') {
+                    state = NEUTRAL_STATE;
+                    return BRACE_OPEN;
+                }
+            else if(c == '}') {
+                    state = NEUTRAL_STATE;
+                    return BRACE_CLOSE;
+                }
+             else if(c == '(') {
+                    state = NEUTRAL_STATE;
+                    return PAREN_OPEN;
+                }
+            else if(c == ')') {
+                    state = NEUTRAL_STATE;
+                    return PAREN_CLOSE;
+                }
+            else if(c == '[') {
+                    state = NEUTRAL_STATE;
+                    return BRACKET_OPEN;
+                }
+            else if(c == ']') {
+                    state = NEUTRAL_STATE;
+                    return BRACKET_CLOSE;
+                }
             else if (c == '/')      // pokracujeme dalej kvoli moznosti komentaru
                 state = AUT_DIV;
             else if (c == '<')
