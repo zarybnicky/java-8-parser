@@ -220,3 +220,29 @@ int compare(char *s1, char *s2) {
     }
     return 0;
 }
+
+void print(Value term){ // Pri printf SIGSEV, ale pri pridani printf pred a za printf s vypisem tak funguje TODO
+
+    switch(term.type){
+
+        case T_STRING:
+            printf("%s",term.data.str);
+            break;
+
+        case T_BOOLEAN:
+            printf("%s",term.data.boolean ? "true" : "false");
+            break;
+
+        case T_DOUBLE:
+            printf("%g",term.data.dbl);
+            break;
+
+        case T_INTEGER:
+            printf("%s",term.data.str);
+            break;
+
+        default: 
+            break;
+
+    }
+}
