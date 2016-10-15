@@ -110,6 +110,152 @@ char *sort(char *s)
 }   // function
 
 
+/* Right left rotation of object */
+Node *table_rotate_right_left (Node *object){
+  Node *current = object;
+  Node *right = current->right;
+  Node *right_left = right->left;
+
+  /* current right rotate to right left */
+  current->right = right_left->left;
+  /* right right left assign to right left right */
+  right->left = right_left->right;
+
+  /* new rotated right_left Node assign and return*/
+  right_left->left = current;
+  right_left->right = right;
+
+  return right_left;
+}
+
+/* Left right rotation of object */
+Node *table_rotate_left_right (Node *object){
+  Node *current = object;
+  Node *left = current->left;
+  Node *left_right = left->right;
+
+  /* current left assign to left right right */
+  current->left = left_right->right;
+  /* left right assign to left right left */
+  left->right = left_right->left;
+
+  /* new rotated left_right Node assign and return*/
+  left_right->left = left;
+  left_right->right = current;
+
+  return left_right;
+}
+
+/* left left rotation of object */
+Node *table_rotate_left_left (Node *object){
+  Node *current = object;
+  Node *left = current->left;
+
+  /* change left with left right */
+  current->left = left->right;
+  left->right = current;
+
+  return left;
+}
+
+/* right right rotation of object */
+Node *table_rotate_right_right (Node *object){
+  Node *current = object;
+  Node *right = current->right;
+
+  /* change right with right left */
+  current->right = right->left;
+  right->left = current;
+
+  return right;
+}
+
+/* END OF ROTATION */
+/* Compute geight of an AVL node recursively */
+int table_node_height(Node * object){
+  if (!object)
+    return 0;
+  int height_left = table_node_height(object->left);
+  int height_right = table_node_height(object->right);
+
+  /*  returns increment of height right if it is bigger else increment of
+      height left*/
+  return (height_right > height_left) ? ++height_right : ++height_left;
+}
+
+/* Balance factor of an AVL node */
+int table_balance_factor (Node * object){
+  int balance_factor = 0;
+
+  /* left height is positive */
+  if (object->left)
+    balance_factor += table_node_height(object->left);
+  /* right height is negative */
+  if (object->right)
+    balance_factor -= table_node_height(object->right);
+  return balance_factor;
+}
+
+/**
+  * Balance table based on factor of height.
+  * Calling rotation function(s) to decrease height of tree
+  */
+Node *table_balance_node(Node *object){
+  Node *new_root = NULL;
+
+  if (object->left)
+    object->left = table_balance_node (object->left);
+  if (object->right)
+    object->right = table_balance_node (object->right);
+
+  int factor = table_balance_factor (object);
+
+  if (factor >= 2){
+    /*  factor is bigger or eq 2 which means that is Left heavy tree
+        rotate leftright when factor of left is maximaly 1 right */
+    if (table_balance_factor( object->left ) <= -1)
+      new_root = table_rotate_left_right (object);
+
+    /* heavier right balance rotate left left */
+    else
+      new_root = table_rotate_left_left (object);
+  }
+  else if (factor <= -2){
+    /*  factor is lesser or eq 2 which means is Right heavy tree
+        rotate rightleft when factor of right is minimaly 1 left */
+    if (table_balance_factor( object->right ) >= 1)
+      new_root = table_rotate_right_left(object);
+
+    /* heavier right balance rotate right right */
+    else
+      new_root = table_rotate_right_right(object);
+  }
+  /* balance is maximaly 1 left 1 right or 0 (balanced node) */
+  else
+    new_root = object;
+  return new_root;
+}
+
+/**
+  * balance AVL tree if it is not balanced
+  * when tree is balanced nothing changed
+  */
+void table_balance (SymbolTable *tree){
+  Node *new_root = NULL;
+
+  /* make new root from tree->root if it is not balanced */
+  new_root = table_balance_node(tree->root);
+
+  /* new root is not same as current, change root to new balanced root */
+  if (new_root != tree->root)
+    tree->root = new_root;
+}
+
+/**
+  * insert object to table, insertion is made by comparing object key with
+  * tree key. If 2 same keys PERROR occurs, at of funtion is called balance
+  * function
+  */
 void table_insert(SymbolTable *tree, Node *object){
   Node *next = NULL;
   Node *last= NULL;
@@ -133,7 +279,7 @@ void table_insert(SymbolTable *tree, Node *object){
       else
         PERROR("Cannot insert same Node into table");
     }
-
+    Node *new;
     /* object not contain function create new Value node */
     Node *new;
     if ( !object->data.function )
@@ -147,7 +293,8 @@ void table_insert(SymbolTable *tree, Node *object){
     if (compare > 0)
       last->right = new;
   }
-  //TODO balance tree
+  /* balance tree after insertion */
+  table_balance(tree);
 }
 
 Node *table_lookup(SymbolTable *tree, Node *object){
