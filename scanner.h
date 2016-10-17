@@ -58,6 +58,8 @@ typedef enum {
     SYM_PAREN_CLOSE,  //)
     SYM_PLUS,         //+
     SYM_MINUS,        //-
+    SYM_UNARY_PLUS,   //++
+    SYM_UNARY_MINUS,  //--
     SYM_STAR,         //*
     SYM_SLASH,        ///
     SYM_SEMI,         //;
@@ -69,6 +71,9 @@ typedef enum {
     SYM_EQUALS,       //==
     SYM_NOT_EQUALS,   //!=
     SYM_ASSIGN,       //=
+    SYM_NOT,          //!
+    SYM_AND,          //&&
+    SYM_OR,           //||
 } SymbolType;
 
 typedef struct s_Token {
