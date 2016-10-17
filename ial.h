@@ -57,5 +57,6 @@ void table_insert( SymbolTable *, Node * );
   */
 Node *table_lookup( SymbolTable *,Node * );
 
+void table_iterate(void (*fn)(Node *));
 
 #endif /* IFJ_IAL_H */

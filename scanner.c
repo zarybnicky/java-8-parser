@@ -279,6 +279,13 @@ int control_res_key_word(char *str)
 #define GREAT 0
 #define NOT_EQUAL 0
 #define ERROR_NOT_EQUALS 0
+#define BRACE_OPEN 0
+#define BRACE_CLOSE 0
+#define PAREN_OPEN 0
+#define PAREN_CLOSE 0
+#define COMMA 0
+#define BRACKET_OPEN 0
+#define BRACKET_CLOSE 0
 
 //FIXME
 void string_end(char **c, char v) {
