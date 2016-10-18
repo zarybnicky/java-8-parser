@@ -62,6 +62,7 @@ typedef enum {
 
 typedef struct tValue {
     ValueType type;
+    bool undefined;
     union {
         int integer;
         double dbl;
@@ -170,10 +171,10 @@ SymbolTable *createSymbolTable();
 void freeSymbolTable(SymbolTable *);
 void printSymbolTable(SymbolTable *);
 
-void printValueType(ValueType);
-void printNodeType(NodeType);
-void printExpressionType(ExpressionType);
-void printBinaryOperation(BinaryOperation);
-void printCommandType(CommandType);
+char *showValueType(ValueType);
+char *showNodeType(NodeType);
+char *showExpressionType(ExpressionType);
+char *showBinaryOperation(BinaryOperation);
+char *showCommandType(CommandType);
 
 #endif /* IFJ_IR_H */

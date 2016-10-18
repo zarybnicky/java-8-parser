@@ -16,6 +16,8 @@
 #include "error.h"
 #include "ir.h"
 #include "scanner.h"
+#include "ial.h"
+#include "interpret.h"
 
 #define STRINGIFY(arg)  STRINGIFY1(arg)
 #define STRINGIFY1(arg) STRINGIFY2(arg)
@@ -28,10 +30,12 @@ typedef struct {
     unsigned stackSize;
     unsigned stackPtr;
     Token **stack;
+    Interpret *interpret;
     char *lastClassName;
 } Lexer;
 
-Lexer *createLexer(FILE *);
+Lexer *createLexer(FILE *f, Interpret *i);
+void freeLexer(Lexer *l);
 bool try(Lexer *l);
 bool rollback(Lexer *l);
 bool commit(Lexer *l);
@@ -160,6 +164,7 @@ Declaration *parseArgListDecl(Lexer *l, int *argCount);
 Expression *parseArgListCall(Lexer *l, int *argCount);
 
 char *parseSimpleId(Lexer *l);
+char *parseAndQualifySimpleId(Lexer *l);
 char *parseAndQualifyId(Lexer *l);
 ValueType parseType(Lexer *l);
 ValueType parseReturnType(Lexer *l);

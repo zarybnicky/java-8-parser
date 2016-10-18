@@ -26,7 +26,7 @@ Token *getToken(Lexer *l) {
     return t;
 }
 
-Lexer *createLexer(FILE *f) {
+Lexer *createLexer(FILE *f, Interpret *i) {
     Lexer *l = malloc(sizeof(Lexer));
     CHECK_ALLOC(l);
     l->file = f;
@@ -35,8 +35,20 @@ Lexer *createLexer(FILE *f) {
     l->stackPtr = 0;
     l->stack = malloc(l->stackSize * sizeof(Token *));
     CHECK_ALLOC_(l->stack, free(l));
+    l->interpret = i;
     l->lastClassName = NULL;
     return l;
+}
+void freeLexer(Lexer *l) {
+    if (l != NULL) {
+        Token *t;
+        while (l->start != NULL) {
+            t = l->start->next;
+            free(l->start);
+            l->start = t;
+        }
+        free(l->stack);
+    }
 }
 
 bool try(Lexer *l) {
@@ -73,7 +85,6 @@ void parseClass(Lexer *l) {
     expectSymbol(l, SYM_BRACE_OPEN);
 
     l->lastClassName = name;
-    printf("Found a class %s\n", name);
     while (parseClassBody(l))
         ;
     expectSymbol(l, SYM_BRACE_CLOSE);
@@ -90,16 +101,19 @@ bool parseClassBody(Lexer *l) {
 bool parseStaticDeclaration(Lexer *l) {
     tryReserved(l, RES_STATIC, false);
     ValueType type = parseType(l);
-    char *name = parseSimpleId(l);
+    char *name = parseAndQualifySimpleId(l);
     trySymbol(l, SYM_SEMI, (free(name), false));
-    printf("Found an uninitialized variable %s of type %d\n", name, type);
+
+    Value *v = createValue(type);
+    v->undefined = true;
+    table_insert(&l->interpret->symTable, createValueNode(name, v));
     return true;
 }
 
 bool parseStaticDefinition(Lexer *l) {
     tryReserved(l, RES_STATIC, false);
     ValueType type = parseType(l);
-    char *name = parseSimpleId(l);
+    char *name = parseAndQualifySimpleId(l);
     trySymbol(l, SYM_ASSIGN, (free(name), false));
     Expression *e = NULL;
     if (!parseExpression(l, &e)) {
@@ -108,14 +122,22 @@ bool parseStaticDefinition(Lexer *l) {
                "Expected an expression on line %d:%d, received '%s'.\n",
                t->lineNum, t->lineChar, t->original);
     }
-    printf("Found an initialized variable %s of type %d\n", name, type);
+
+    Value *v = evalStaticExpression(e);
+    if (v->type != type) {
+        free(v), free(e);
+        FERROR(ERR_SEM_TYPECHECK,
+               "Type error: variable has type %s but assigned expression has evaluated to %s\n",
+               showValueType(type), showValueType(type));
+    }
+    table_insert(&l->interpret->symTable, createValueNode(name, v));
     return true;
 }
 
 bool parseFunction(Lexer *l) {
     tryReserved(l, RES_STATIC, false);
     ValueType type = parseReturnType(l);
-    char *name = parseSimpleId(l);
+    char *name = parseAndQualifySimpleId(l);
     trySymbol(l, SYM_PAREN_OPEN, (free(name), false));
 
     int argCount = 0;
@@ -128,9 +150,7 @@ bool parseFunction(Lexer *l) {
         ;
     expectSymbol(l, SYM_BRACE_CLOSE);
 
-    printFunction(f);
-    freeFunction(f); //FIXME: register function instead
-
+    table_insert(&l->interpret->symTable, createFunctionNode(name, f));
     return true;
 }
 
@@ -558,7 +578,10 @@ char *parseSimpleId(Lexer *l) {
     expectType(l, ID_SIMPLE);
     return strdup_(getToken(l)->val.id);
 }
-
+char *parseAndQualifySimpleId(Lexer *l) {
+    expectType(l, ID_SIMPLE);
+    return parseAndQualifyId(l);
+}
 char *parseAndQualifyId(Lexer *l) {
     Token *t = peekToken(l);
     if (t->type == ID_COMPOUND) {
@@ -573,6 +596,7 @@ char *parseAndQualifyId(Lexer *l) {
         c[classLength] = '.';
         strcpy(c + classLength + 1, t->val.id);
         c[classLength + 1 + idLength] = '\0';
+        nextToken(l);
         return c;
     }
     FERROR(ERR_SYNTAX,

@@ -12,13 +12,13 @@
 #include <stdlib.h>
 #include "error.h"
 #include "ir.h"
+#include "parser.h"
 
-SymbolTable fnTable = { .root = NULL };
-SymbolTable varTable = { .root = NULL };
-
+Lexer *l;
+Interpret *i;
 void freeGlobalResources() {
-    freeNode(fnTable.root);
-    freeNode(varTable.root);
+    freeLexer(l);
+    freeInterpret(i);
 }
 
 int main(int argc, char *argv[])
@@ -32,8 +32,14 @@ int main(int argc, char *argv[])
         PERROR("Error while opening file");
     }
 
-    printf("Not implemented.\n");
+    i = createInterpret();
 
+    l = createLexer(f, i);
+    while (hasMore(l)) {
+        parseClass(l);
+    }
     fclose(f);
+
+    evalMain(i);
     return 0;
 }

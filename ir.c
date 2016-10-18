@@ -15,6 +15,7 @@ Value *createValue(ValueType type) {
     Value *v = malloc(sizeof(Value));
     CHECK_ALLOC(v);
     v->type = type;
+    v->undefined = false;
     return v;
 }
 void freeValue(Value *v) {
@@ -79,7 +80,7 @@ void printExpression(Expression *e) {
         return;
     }
     do {
-        printf("Expression("), printExpressionType(e->type), printf(", ");
+        printf("Expression(%s, ", showExpressionType(e->type));
         switch (e->type) {
         case E_FUNCALL:
             printf("%s, %d:", e->data.funcall.name, e->data.funcall.argCount);
@@ -92,8 +93,7 @@ void printExpression(Expression *e) {
             printValue(e->data.value);
             break;
         case E_BINARY:
-            printBinaryOperation(e->data.binary.op);
-            printf(", ");
+            printf("%s, ", showBinaryOperation(e->data.binary.op));
             printExpression(e->data.binary.left);
             printf(", ");
             printExpression(e->data.binary.right);
@@ -132,8 +132,7 @@ void printDeclaration(Declaration *d) {
     }
     printf("Declaration(");
     do {
-        printValueType(d->type);
-        printf(" %s", d->name);
+        printf("%s %s", showValueType(d->type), d->name);
         if (d->next != NULL) {
             printf(", ");
         }
@@ -213,7 +212,7 @@ void printCommand(Command *c) {
         return;
     }
     while (c != NULL) {
-        printf("Command("), printCommandType(c->type), printf(", ");
+        printf("Command(%s, ", showCommandType(c->type));
         switch (c->type) {
         case C_DECLARE:
             printDeclaration(&c->data.declare);
@@ -271,9 +270,8 @@ void printFunction(Function *f) {
         printf("Function(NULL)\n");
         return;
     }
-    printf("Function(%s, ", f->name);
-    printValueType(f->returnType);
-    printf(", %d:", f->argCount);
+    printf("Function(%s, %s, ", f->name, showValueType(f->returnType));
+    printf("%d:", f->argCount);
     printDeclaration(f->argHead);
     printf(", ");
     printBlock(&f->body);
@@ -317,10 +315,7 @@ void printNode(Node *n)  {
         printf("Node(NULL)");
         return; // ADD
     }
-    printf("Node(");
-    printf("%s, ", n->symbol);
-    printNodeType(n->type);
-    printf(", ");
+    printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
     printNode(n->left);
     printf(", ");
     printNode(n->right);
@@ -349,52 +344,57 @@ void printSymbolTable(SymbolTable *t) {
 }
 
 /* ENUMS */
-void printValueType(ValueType x) {
+char *showValueType(ValueType x) {
     switch (x) {
-    case T_STRING:  printf("String"); break;
-    case T_INTEGER: printf("Integer"); break;
-    case T_DOUBLE:  printf("Double"); break;
-    case T_BOOLEAN: printf("Boolean"); break;
-    case T_VOID:    printf("Void"); break;
+    case T_STRING:  return "String";
+    case T_INTEGER: return "Integer";
+    case T_DOUBLE:  return "Double";
+    case T_BOOLEAN: return "Boolean";
+    case T_VOID:    return "Void";
     }
+    return "Unknown ValueType"; //Just to pacify the compiler...
 }
-void printNodeType(NodeType x) {
+char *showNodeType(NodeType x) {
     switch (x) {
-    case N_VALUE:    printf("Value"); break;
-    case N_FUNCTION: printf("Function"); break;
+    case N_VALUE:    return "Value";
+    case N_FUNCTION: return "Function";
     }
+    return "Unknown NodeType"; //Just to pacify the compiler...
 }
-void printExpressionType(ExpressionType x) {
+char *showExpressionType(ExpressionType x) {
     switch (x) {
-    case E_FUNCALL:   printf("Funcall"); break;
-    case E_VALUE:     printf("Value"); break;
-    case E_REFERENCE: printf("Reference"); break;
-    case E_BINARY:    printf("Binary"); break;
+    case E_FUNCALL:   return "Funcall";
+    case E_VALUE:     return "Value";
+    case E_REFERENCE: return "Reference";
+    case E_BINARY:    return "Binary";
     }
+    return "Unknown ExpressionType"; //Just to pacify the compiler...
 }
-void printBinaryOperation(BinaryOperation x) {
+char *showBinaryOperation(BinaryOperation x) {
     switch (x) {
-    case EB_EQUAL:         printf("Equal"); break;
-    case EB_NOT_EQUAL:     printf("Not equal"); break;
-    case EB_LESS:          printf("Less"); break;
-    case EB_LESS_EQUAL:    printf("Less or equal"); break;
-    case EB_GREATER:       printf("Greater"); break;
-    case EB_GREATER_EQUAL: printf("Greater or equal"); break;
-    case EB_MULTIPLY:      printf("Multiply"); break;
-    case EB_DIVIDE:        printf("Divide"); break;
-    case EB_ADD:           printf("Add"); break;
-    case EB_SUBTRACT:      printf("Subtract"); break;
+    case EB_EQUAL:         return "Equal";
+    case EB_NOT_EQUAL:     return "Not equal";
+    case EB_LESS:          return "Less";
+    case EB_LESS_EQUAL:    return "Less or equal";
+    case EB_GREATER:       return "Greater";
+    case EB_GREATER_EQUAL: return "Greater or equal";
+    case EB_MULTIPLY:      return "Multiply";
+    case EB_DIVIDE:        return "Divide";
+    case EB_ADD:           return "Add";
+    case EB_SUBTRACT:      return "Subtract";
     }
+    return "Unknown BinaryOperation"; //Just to pacify the compiler...
 }
-void printCommandType(CommandType x) {
+char *showCommandType(CommandType x) {
     switch (x) {
-    case C_DECLARE:    printf("Declare"); break;
-    case C_DEFINE:     printf("Define"); break;
-    case C_ASSIGN:     printf("Assign"); break;
-    case C_BLOCK:      printf("Block"); break;
-    case C_IF:         printf("If"); break;
-    case C_WHILE:      printf("While"); break;
-    case C_EXPRESSION: printf("Expression"); break;
-    case C_RETURN:     printf("Return"); break;
+    case C_DECLARE:    return "Declare";
+    case C_DEFINE:     return "Define";
+    case C_ASSIGN:     return "Assign";
+    case C_BLOCK:      return "Block";
+    case C_IF:         return "If";
+    case C_WHILE:      return "While";
+    case C_EXPRESSION: return "Expression";
+    case C_RETURN:     return "Return";
     }
+    return "Unknown CommandType"; //Just to pacify the compiler...
 }

@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "error.h"
+#include "ir.h"
+#include "ial.h"
 
 /*---------------------------------STRUCTURES---------------------------------*/
 
@@ -29,6 +31,9 @@ typedef struct{
     mem_elem_ptr Last;
 } mem_t;
 
+typedef struct {
+    SymbolTable symTable;
+} Interpret;
 
 /*---------------------------------DEFINITIONS--------------------------------*/
 
@@ -39,5 +44,15 @@ void *malloc_c (mem_t *L, size_t size);
 void *calloc_c (mem_t *L, unsigned num, size_t size);
 void DeleteItem (mem_t *L, mem_elem_ptr ptr);
 void DisposeMemory (mem_t *L);
+
+Interpret *createInterpret();
+void freeInterpret(Interpret *);
+
+void evalMain(Interpret *);
+
+//Static variables can be initialiezd using an expression as well, though I
+//suppose these expressions shouldn't contain any references to variables?
+Value *evalStaticExpression(Expression *);
+Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right);
 
 #endif
