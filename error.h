@@ -25,7 +25,7 @@ typedef enum {
 } ErrorType;
 
 #define EXPLAIN_ERR(type)                                               \
-    "Unspecified error %s",                                             \
+    "Unspecified error %s\n",                                           \
     (type == ERR_LEXER ? "during lexical analysis" :                    \
      type == ERR_SYNTAX ? "during syntactic analysis" :                 \
      type == ERR_SEM_UNDEFINED ? "while checking for undefined variables" : \
@@ -50,7 +50,7 @@ extern void freeGlobalResources();
 #define MERROR(ret, fmt) do {                           \
         fprintf(stderr, "Aborting at %s:%d in %s...\n", \
                 __FILE__, __LINE__, __func__);          \
-        fprintf(stderr, fmt);                           \
+        fprintf(stderr, fmt "\n");                      \
         freeGlobalResources();                          \
         exit(ret);                                      \
     } while (0);
@@ -58,7 +58,7 @@ extern void freeGlobalResources();
 #define FERROR(ret, fmt, ...) do {                      \
         fprintf(stderr, "Aborting at %s:%d in %s...\n", \
                 __FILE__, __LINE__, __func__);          \
-        fprintf(stderr, fmt, ## __VA_ARGS__);           \
+        fprintf(stderr, fmt "\n", ## __VA_ARGS__);      \
         freeGlobalResources();                          \
         exit(ret);                                      \
     } while (0);
