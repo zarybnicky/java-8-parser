@@ -307,3 +307,74 @@ Node *table_lookup(SymbolTable *tree, char *symbol){
   /* returns NULL or looked object */
   return current;
 }
+
+Node *createFunctionNode(char *symbol, Function *f) {
+    Node *n = malloc(sizeof(Node));
+    CHECK_ALLOC(n);
+    n->symbol = symbol;
+    n->type = N_FUNCTION;
+    n->data.function = f;
+    n->left = NULL;
+    n->right = NULL;
+    return n;
+}
+Node *createValueNode(char *symbol, Value *v) {
+    Node *n = malloc(sizeof(Node));
+    CHECK_ALLOC(n);
+    n->symbol = symbol;
+    n->type = N_VALUE;
+    n->data.value = v;
+    n->left = NULL;
+    n->right = NULL;
+    return n;
+}
+void freeNode(Node *n) {
+    if (n != NULL) {
+        if (n->type == N_VALUE)
+            free(n->data.value);
+        else
+            free(n->data.function);
+        freeNode(n->left);
+        freeNode(n->right);
+        free(n);
+    }
+}
+void printNode(Node *n)  {
+    if (n == NULL) {
+        printf("Node(NULL)");
+        return; // ADD
+    }
+    printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
+    printNode(n->left);
+    printf(", ");
+    printNode(n->right);
+    printf(")\n");
+}
+char *showNodeType(NodeType x) {
+    switch (x) {
+    case N_VALUE:    return "Value";
+    case N_FUNCTION: return "Function";
+    }
+    return "Unknown NodeType"; //Just to pacify the compiler...
+}
+
+/* SYMBOL TABLE */
+SymbolTable *createSymbolTable()  {
+    SymbolTable *t = malloc(sizeof(SymbolTable));
+    CHECK_ALLOC(t);
+    t->root = NULL;
+    return t;
+}
+void freeSymbolTable(SymbolTable *t)  {
+    if (t != NULL) {
+        freeNode(t->root);
+        free(t);
+    }
+}
+void printSymbolTable(SymbolTable *t) {
+    if (t != NULL) {
+        printf("SymbolTable(");
+        printNode(t->root);
+        printf(")\n");
+    }
+}

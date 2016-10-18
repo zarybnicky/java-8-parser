@@ -15,6 +15,35 @@
 #include "error.h"
 #include "ir.h"
 
+typedef enum {
+    N_VALUE,
+    N_FUNCTION,
+} NodeType;
+
+typedef struct tNode {
+    char *symbol;
+    NodeType type;
+    union {
+        Value *value;
+        Function *function;
+    } data;
+    struct tNode *left, *right;
+} Node;
+
+typedef struct {
+    Node *root;
+} SymbolTable;
+
+Node *createFunctionNode(char *, Function *);
+Node *createValueNode(char *, Value *);
+void freeNode(Node *);
+void printNode(Node *);
+char *showNodeType(NodeType);
+
+SymbolTable *createSymbolTable();
+void freeSymbolTable(SymbolTable *);
+void printSymbolTable(SymbolTable *);
+
 int *Prefixcreator( char *, int );
 char *sort( char * );
 int find( char *, char * );

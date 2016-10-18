@@ -25,11 +25,6 @@ typedef enum {
 } ValueType;
 
 typedef enum {
-    N_VALUE,
-    N_FUNCTION,
-} NodeType;
-
-typedef enum {
     E_FUNCALL,
     E_VALUE,
     E_REFERENCE,
@@ -124,20 +119,6 @@ typedef struct {
     Block body;
 } Function;
 
-typedef struct tNode {
-    char *symbol;
-    NodeType type;
-    union {
-        Value *value;
-        Function *function;
-    } data;
-    struct tNode *left, *right;
-} Node;
-
-typedef struct {
-    Node *root;
-} SymbolTable;
-
 Value *createValue(ValueType);
 void freeValue(Value *);
 void printValue(Value *);
@@ -162,17 +143,7 @@ Function *createFunction(char *, ValueType, int, Declaration *);
 void freeFunction(Function *);
 void printFunction(Function *);
 
-Node *createFunctionNode(char *, Function *);
-Node *createValueNode(char *, Value *);
-void freeNode(Node *);
-void printNode(Node *);
-
-SymbolTable *createSymbolTable();
-void freeSymbolTable(SymbolTable *);
-void printSymbolTable(SymbolTable *);
-
 char *showValueType(ValueType);
-char *showNodeType(NodeType);
 char *showExpressionType(ExpressionType);
 char *showBinaryOperation(BinaryOperation);
 char *showCommandType(CommandType);
