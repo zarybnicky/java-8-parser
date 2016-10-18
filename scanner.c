@@ -122,6 +122,8 @@ void printToken(Token *t) {
         case SYM_PAREN_CLOSE:   printf(")\n"); return;
         case SYM_PLUS:          printf("+\n"); return;
         case SYM_MINUS:         printf("-\n"); return;
+        case SYM_UNARY_PLUS:    printf("++\n"); return;
+        case SYM_UNARY_MINUS:   printf("--\n"); return;
         case SYM_STAR:          printf("*\n"); return;
         case SYM_SLASH:         printf("/\n"); return;
         case SYM_SEMI:          printf(";\n"); return;
@@ -133,6 +135,9 @@ void printToken(Token *t) {
         case SYM_EQUALS:        printf("==\n"); return;
         case SYM_NOT_EQUALS:    printf("!=\n"); return;
         case SYM_ASSIGN:        printf("=\n"); return;
+        case SYM_NOT:           printf("!\n"); return;
+        case SYM_AND:           printf("&&\n"); return;
+        case SYM_OR:            printf("||\n"); return;
         }
     }
 }
