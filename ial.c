@@ -257,21 +257,20 @@ void table_balance (SymbolTable *tree){
   * function
   */
 void table_insert(SymbolTable *tree, Node *object){
-  Node *new = NULL;
   Node *next = NULL;
-  Node *last= NULL;
+  Node *last = NULL;
 
-  if (!tree)
+  if (tree == NULL)
     ERROR(ERR_RUNTIME_UNINITIALIZED);
   /* root does not exist */
-  if (!tree->root){
+  if (tree->root == NULL){
     tree->root = object;
+    return;
   }
   /* root exists. Put it on next node */
-  else{
-    next = tree->root;
+  next = tree->root;
 
-    while(next){
+  while(next != NULL){
       last = next;
       int compare = strcmp(object->symbol, next->symbol);
       if (compare < 0)
@@ -279,27 +278,22 @@ void table_insert(SymbolTable *tree, Node *object){
       else if (compare > 0)
           next = next->right;
       else
-          MERROR(ERR_INTERNAL, "Cannot insert same Node into table");
-    }
-    /* object not contain function create new Value node */
-    if ( !object->data.function )
-      new = createValueNode(object->symbol, object->data.value);
-    else
-      new = createFunctionNode(object->symbol, object->data.function);
-
-    int compare = strcmp(new->symbol, last->symbol);
-    if (compare < 0)
-      last->left = new;
-    if (compare > 0)
-      last->right = new;
+          FERROR(ERR_SEM_UNDEFINED, "Cannot redefine object %s", object->symbol);
   }
+
+  int compare = strcmp(object->symbol, last->symbol);
+  if (compare < 0)
+      last->left = object;
+  if (compare > 0)
+      last->right = object;
+
   /* balance tree after insertion */
   table_balance(tree);
 }
 
-Node *table_lookup(SymbolTable *tree, Node *object){
+Node *table_lookup(SymbolTable *tree, char *symbol){
   Node *current = tree->root;
-  int compare = strcmp (current->symbol, object->symbol);
+  int compare = strcmp (current->symbol, symbol);
 
   /* loop ends at end or when comapre is eq 0 */
   while( current && compare ){

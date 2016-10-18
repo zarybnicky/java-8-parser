@@ -55,7 +55,7 @@ void table_insert( SymbolTable *, Node * );
   * Seach for a Node in AVL table
   * returns pointer to Node
   */
-Node *table_lookup( SymbolTable *,Node * );
+Node *table_lookup(SymbolTable *, char *);
 
 void table_iterate(void (*fn)(Node *));
 
