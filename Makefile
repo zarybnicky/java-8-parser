@@ -18,3 +18,6 @@ clean:
 ifj16: ifj16.o $(LIBOBJ)
 
 test/parser: test/parser.o $(LIBOBJ)
+
+dist: $(wildcard *.c) $(wildcard *.h) Makefile
+	tar cv $^ > gzip > xzaryb00.tgz
