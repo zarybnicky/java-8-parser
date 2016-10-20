@@ -292,11 +292,10 @@ void table_insert(SymbolTable *tree, Node *object){
 }
 
 Node *table_lookup(SymbolTable *tree, char *symbol){
-<<<<<<< f859be4d48f2939f75c2fb64f7304ec44cfbc351
-=======
+
   if (tree->root == NULL)
     return NULL;
->>>>>>> Implemented table iterate, pre order
+
   Node *current = tree->root;
   int compare = strcmp (current->symbol, symbol);
 
@@ -383,8 +382,6 @@ void printSymbolTable(SymbolTable *t) {
         printf(")\n");
     }
 }
-<<<<<<< f859be4d48f2939f75c2fb64f7304ec44cfbc351
-=======
 
 /* iterate over BS tree */
 void pre_order(Node *object){
@@ -401,4 +398,4 @@ void table_iterate(SymbolTable *tree, void (*fn)(Node *object)){
     return;
   fn (tree->root);
 }
->>>>>>> Implemented table iterate, pre order
+
