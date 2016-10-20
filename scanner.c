@@ -12,6 +12,7 @@
 // Zatial som si len vypisal klcuove slova alebo rezervovane slova ktore funkcia kontroluje
 #include "scanner.h"
 
+
 /* Not in POSIX... */
 char *strdup_(const char *s) {
     char *dup = malloc(strlen(s) + 1);
@@ -21,11 +22,18 @@ char *strdup_(const char *s) {
 }
 
 Token *getNextToken(FILE *f) {
-     int c;
+    int c;
     Token *t = NULL;
     c =Get_Token(f);
     char * str;
     printf("%d/n",c);
+    
+    //string_end(&str,c);
+    //printf("%s" , str);
+    
+   // t=createToken(c, NULL, str);
+    
+                      //FIXME
     return t;
 }
 
@@ -75,6 +83,8 @@ void freeToken(Token *t) {
     }
     free(t);
 }
+
+
 void printToken(Token *t) {
     if (t == NULL) {
         printf("NULL\n");
@@ -146,6 +156,7 @@ void printToken(Token *t) {
     }
 }
 
+//FIXME: Temporary, just so that this file is compilable
 enum{
  NEUTRAL_STATE, 
  Start_state,
@@ -209,76 +220,77 @@ int control_res_key_word(char *str)
 {
     if (str[0] == 'b') {
         if (strcmp(str, "boolean") == 0)
-            return BOOLEAN;
+            return RES_BOOLEAN;
         if (strcmp(str, "break") == 0)
-            return BREAK;
+            return RES_BREAK;
         return IDEN;
     }
     if (str[0] == 'c') {
         if (strcmp(str, "class") == 0)
-            return CLASS;
+            return RES_CLASS;
         if (strcmp(str, "continue") == 0)
-            return CONTINUE;
+            return RES_CONTINUE;
         return IDEN;
     }
     if (str[0] == 'd') {
         if (strcmp(str, "do") == 0)
-            return DO;
+            return RES_DO;
         if (strcmp(str, "double") == 0)
-            return DOUBLE;
+            return RES_DOUBLE;
         return IDEN;
     }
     if (str[0] == 'e') {
         if (strcmp(str, "else") == 0)
-            return ELSE;
+            return RES_ELSE;
         return IDEN;
     }
     if (str[0] == 'f') {
         if (strcmp(str, "false") == 0)
-            return FALSE;
+            return RES_FALSE;
         if (strcmp(str, "for") == 0)
-            return FOR;
+            return RES_FOR;
         return IDEN;
     }
     if (str[0] == 'i') {
         if (strcmp(str, "if") == 0)
-            return IF;
+            return RES_IF;
         if (strcmp(str, "int") == 0)
-            return INT;
+            return RES_INT;
         return IDEN;
     }
     if (str[0] == 'r') {
         if (strcmp(str, "return") == 0)
-            return RETURN;
+            return RES_RETURN;
         return IDEN;
     }
     if (str[0] == 'S') {
         if (strcmp(str, "String") == 0)
-            return STRING;
+            return RES_STRING;
         return IDEN;
     }
     if (str[0] == 's') {
         if (strcmp(str, "static") == 0)
-            return STATIC;
+            return RES_STATIC;
         return IDEN;
     }
     if (str[0] == 't') {
         if (strcmp(str, "true") == 0)
-            return TRUE;
+            return RES_TRUE;
         return IDEN;
     }
     if (str[0] == 'v') {
         if (strcmp(str, "void") == 0)
-            return VOID;
+            return RES_VOID;
         return IDEN;
     }
     if (str[0] == 'w') {
         if (strcmp(str, "while") == 0)
-            return WHILE;
+            return RES_WHILE;
         return IDEN;
     }
     return IDEN;
 }
+
 
 
 void alloc_string_length(int ** array){
@@ -314,7 +326,6 @@ int Get_Token(FILE *input) {
     int num = 0;
 	int *array_length;
 	alloc_string_length(&array_length);
-    
     while (true) {
         switch (state) {
 
@@ -705,3 +716,10 @@ int Get_Token(FILE *input) {
         }
     }
 }
+
+
+
+
+
+
+
