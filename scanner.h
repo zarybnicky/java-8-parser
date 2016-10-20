@@ -102,8 +102,8 @@ typedef struct s_Token {
 
 char *strdup_(const char *);
 Token *getNextToken(FILE *stream);
-int Get_Token(FILE *);
-void string_end(char **,char,int *);
+int Get_Token(FILE *, char **);
+void string_end(char **string, char c, int *stringLength, int *stringAlloc);
 Token *createToken(TokenType, void *, char *);
 Token *chainTokens(Token *, ...);
 void freeToken(Token *t);
