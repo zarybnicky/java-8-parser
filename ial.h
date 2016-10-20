@@ -86,6 +86,7 @@ void table_insert( SymbolTable *, Node * );
   */
 Node *table_lookup(SymbolTable *, char *);
 
-void table_iterate(void (*fn)(Node *));
+void pre_order(Node *);
+void table_iterate(SymbolTable *tree, void (*fn)(Node *));
 
 #endif /* IFJ_IAL_H */
