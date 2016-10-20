@@ -21,8 +21,12 @@ char *strdup_(const char *s) {
 }
 
 Token *getNextToken(FILE *f) {
-    (void) f;                  //FIXME
-    return NULL;
+     int c;
+    Token *t = NULL;
+    c =Get_Token(f);
+    char * str;
+    printf("%d/n",c);
+    return t;
 }
 
 Token *createToken(TokenType type, void *value, char *original) {
@@ -142,25 +146,64 @@ void printToken(Token *t) {
     }
 }
 
-//FIXME: Temporary, just so that this file is compilable
-#define BOOLEAN 0
-#define BREAK 0
-#define IDEN 0
-#define CLASS 0
-#define CONTINUE 0
-#define DO 0
-#define DOUBLE 0
-#define ELSE 0
-#define FALSE 0
-#define FOR 0
-#define IF 0
-#define INT 0
-#define RETURN 0
-#define STRING 0
-#define STATIC 0
-#define TRUE 0
-#define VOID 0
-#define WHILE 0
+enum{
+ NEUTRAL_STATE, 
+ Start_state,
+ IDEN, 
+ AUT_IDEN, 
+ AUT_IDEN2, 
+ AUT_NUM, 
+ AUT_FLOAT1 ,
+ AUT_FLOAT2, 
+ AUT_EX1, 
+ AUT_EX2, 
+ AUT_EX3,
+ STRING,
+ AUT_STRING,
+ AUT_ESC, 
+ AUT_ESC_ZERO, 
+ AUT_ESCN,
+ AUT_ESC_ZERO2, 
+ AUT_ESCN2, 
+ AUT_DIV, 
+ AUT_DIV2, 
+ AUT_CMTL, 
+ AUT_CMTB, 
+ AUT_CMTB_END, 
+ AUT_EQUALS, 
+ AUT_LESS, 
+ AUT_GREAT, 
+ AUT_NOT_EQUALS, 
+ PLUS, 
+ MINUS,
+ MUL, 
+ SEMICOLON, 
+ NOTHING, 
+ NUMBER, 
+ ERROR_NUMBER, 
+ ERROR_ESC,
+ ERROR_ESC_ZERO, 
+ ERROR_ESCN,
+ ERROR_ESC_ZERO2, 
+ ERROR_ESCN2, 
+ DIV,
+ ERROR_CMTB, 
+ EQUAL, 
+ ASSIGN, 
+ LESS_EQUAL, 
+ LESS, 
+ GREAT_EQUAL, 
+ GREAT, 
+ NOT_EQUAL, 
+ ERROR_NOT_EQUALS, 
+ BRACE_OPEN ,
+ BRACE_CLOSE, 
+ PAREN_OPEN, 
+ PAREN_CLOSE, 
+ COMMA ,
+ BRACKET_OPEN, 
+ BRACKET_CLOSE, 
+}AUTSTATES;
 
 int control_res_key_word(char *str)
 {
@@ -237,72 +280,41 @@ int control_res_key_word(char *str)
     return IDEN;
 }
 
-#define NEUTRAL_STATE 0
-#define Start_state 1
-#define AUT_IDEN 2
-#define AUT_IDEN2 3
-#define AUT_NUM 4
-#define AUT_FLOAT1 5
-#define AUT_FLOAT2 6
-#define AUT_EX1 7
-#define AUT_EX2 8
-#define AUT_EX3 9
-#define AUT_STRING 10
-#define AUT_ESC 11
-#define AUT_ESC_ZERO 33
-#define AUT_ESCN 12
-#define AUT_ESC_ZERO2 44
-#define AUT_ESCN2 22
-#define AUT_DIV 13
-#define AUT_DIV2 14
-#define AUT_CMTL 15
-#define AUT_CMTB 16
-#define AUT_CMTB_END 17
-#define AUT_EQUALS 18
-#define AUT_LESS 19
-#define AUT_GREAT 20
-#define AUT_NOT_EQUALS 21
-#define PLUS 0
-#define MINUS 0
-#define MUL 0
-#define SEMICOLON 0
-#define NOTHING 0
-#define NUMBER 0
-#define ERROR_NUMBER 0
-#define ERROR_ESC 0
-#define ERROR_ESC_ZERO 0
-#define ERROR_ESCN 0
-#define ERROR_ESC_ZERO2 0
-#define ERROR_ESCN2 0
-#define DIV 0
-#define ERROR_CMTB 0
-#define EQUAL 0
-#define ASSIGN 0
-#define LESS_EQUAL 0
-#define LESS 0
-#define GREAT_EQUAL 0
-#define GREAT 0
-#define NOT_EQUAL 0
-#define ERROR_NOT_EQUALS 0
-#define BRACE_OPEN 0
-#define BRACE_CLOSE 0
-#define PAREN_OPEN 0
-#define PAREN_CLOSE 0
-#define COMMA 0
-#define BRACKET_OPEN 0
-#define BRACKET_CLOSE 0
 
+void alloc_string_length(int ** array){
+*array=malloc(2*sizeof(int));
+CHECK_ALLOC(*array);
+(*array)[0]=0;
+(*array)[1]=ALLOC_BLOCK;
+}
 //FIXME
-void string_end(char **c, char v) {
-    (void) c;
-    (void) v;
+void string_end(char **string, char c, int *array_length) {
+    char *tmp;
+    
+    if(&string == NULL) {
+		*string = malloc(array_length[1]);
+		CHECK_ALLOC(*string);
+}
+    else if(array_length[0] == array_length[1]) { 
+        tmp = realloc(*string, array_length[1] << 1);
+        CHECK_ALLOC(tmp);
+        string = &tmp;
+        array_length[1]<<= 1;  
+    }
+    *string[array_length[0]] = c;
+    array_length[1]++;
+	
+    
 }
 
-int Get_Token(void) {
-    FILE *input = NULL;
+int Get_Token(FILE *input) {
+    
     int c, state, line = 0;
     char *string;
     int num = 0;
+	int *array_length;
+	alloc_string_length(&array_length);
+    
     while (true) {
         switch (state) {
 
@@ -385,7 +397,7 @@ int Get_Token(void) {
             break;
 
         case AUT_IDEN:
-            string_end(&string,c); // zatial neimplementovana funkcia bude hadzat znaky na koniec
+            string_end(&string,c,array_length); // zatial neimplementovana funkcia bude hadzat znaky na koniec
             c = fgetc(input);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
                 state = Start_state;
@@ -394,14 +406,14 @@ int Get_Token(void) {
                 state = AUT_IDEN2;
             break;
         case AUT_IDEN2:
-            string_end(&string,c); //ako vyrobit nekonecny stav? NIESOM SI ISTY IDEN
+            string_end(&string,c,array_length); //ako vyrobit nekonecny stav? NIESOM SI ISTY IDEN
             c = fgetc(input);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
                 state = Start_state;
                 return control_res_key_word(string);
             }
         case AUT_NUM:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (isdigit(c))
                 ;
@@ -415,7 +427,7 @@ int Get_Token(void) {
             }
             break;
         case AUT_FLOAT1:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (isdigit(c))
                 state = AUT_FLOAT2;
@@ -425,7 +437,7 @@ int Get_Token(void) {
             }
             break;
         case AUT_FLOAT2:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (isdigit(c))
                 ;
@@ -437,7 +449,7 @@ int Get_Token(void) {
             }
             break;
         case AUT_EX1:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (c == '+' || c == '-')
                 state = AUT_EX2;
@@ -449,7 +461,7 @@ int Get_Token(void) {
             }
             break;
         case AUT_EX2:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (isdigit(c))
                 state = AUT_EX3;
@@ -459,7 +471,7 @@ int Get_Token(void) {
             }
             break;
         case AUT_EX3:
-            string_end(&string,c);
+            string_end(&string,c,array_length);
             c = fgetc(input);
             if (! isdigit(c)) { //ak nie je cislo tak nepokracujeme ale vraciame sa na start
                 state = Start_state;
@@ -475,19 +487,19 @@ int Get_Token(void) {
             else if(c == '\\')
                 state = AUT_ESC; // NIESOM SI ISTY VO VSETKYCH VARIANTACH NEDOKONCENE ZATIAL
             else
-                string_end(&string, c);
+                string_end(&string, c,array_length);
             break;
         case AUT_ESC:
             c=fgetc(input);
             if(c == 'n'){
                 state = AUT_STRING;
-                string_end(&string,'\n');
+                string_end(&string,'\n',array_length);
             } else if(c == 't') {
                 state = AUT_STRING;
-                string_end(&string, '\t');
+                string_end(&string, '\t',array_length);
             } else if(c == '\\' || c == '"') {
                 state = AUT_STRING;
-                string_end(&string,c);
+                string_end(&string,c,array_length);
             } else if(isdigit(c)) {
 				if(c >= '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
 				    num = num * 64 + (c - '0');
@@ -559,7 +571,7 @@ int Get_Token(void) {
                } // 3 nuly cize error
 			   else if (c > '0' || c <= '7'){
 				 num = num * 1 + (c - '0');
-				 string_end(&string,num);
+				 string_end(&string,num,array_length);
 				 state = AUT_STRING;
                }
 			   else {
@@ -581,7 +593,7 @@ int Get_Token(void) {
             if(isdigit(c)) {
 			  if(c >= '0' || c <= '7' ) {
 			    num = num * 1 + (c - '0');
-			    string_end(&string,num);
+			    string_end(&string,num,array_length);
 			    state = AUT_STRING;
               }
 			  else {
