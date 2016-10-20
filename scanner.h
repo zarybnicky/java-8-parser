@@ -20,8 +20,8 @@
 #include "error.h"
 #include "ir.h"
 
-#define ALLOCK_BLOCK 2
-int alloc_length = ALLOCK_BLOCK;
+#define ALLOC_BLOCK 2
+//int alloc_length = ALLOC_BLOCK;
 
 typedef enum {
     RESERVED,
@@ -103,11 +103,10 @@ typedef struct s_Token {
 char *strdup_(const char *);
 Token *getNextToken(FILE *stream);
 int Get_Token(FILE *);
-void string_end(char **,char);
+void string_end(char **,char,int *);
 Token *createToken(TokenType, void *, char *);
 Token *chainTokens(Token *, ...);
 void freeToken(Token *t);
 void printToken(Token *t);
-
 
 #endif /* IFJ_SCANNER_H */
