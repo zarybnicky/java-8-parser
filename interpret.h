@@ -12,38 +12,63 @@
 #define INTERPRET_H
 
 /*---------------------------------LIBRARIES----------------------------------*/
+
+// System libraries
 #include <stdio.h>
 #include <stdlib.h>
+#include <semaphore.h>
+
+// Local libraries
 #include "error.h"
+<<<<<<< HEAD
+#include "int_memory_management.h"
+=======
 #include "ir.h"
 #include "ial.h"
+>>>>>>> refs/remotes/origin/master
 
 /*---------------------------------STRUCTURES---------------------------------*/
 
-typedef struct mem_elem {
-    struct mem_elem *ptr;
-    void* data;
-} *mem_elem_ptr;
+// typedef int *something;
 
-typedef struct{
-    mem_elem_ptr Act;
-    mem_elem_ptr First;
-    mem_elem_ptr Last;
-} mem_t;
+/*---------------------------------VARIABLES----------------------------------*/
 
+sem_t sem_interpret;
+
+/*----------------------------------MACROS------------------------------------*/
+
+// HALT
+
+#define HALT 0
+
+
+//  Math operations
+
+#define INS_ADD 1
+#define INS_SUB 2
+#define INS_MUL 3
+#define INS_DIV 4
+#define INS_MOD 5
+
+
+//  Logical operations
+
+<<<<<<< HEAD
+#define INS_NOT 10
+#define INS_AND 11
+#define INS_OR  12
+#define INS_XOR 13
+=======
 typedef struct {
     SymbolTable symTable;
 } Interpret;
+>>>>>>> refs/remotes/origin/master
 
-/*---------------------------------DEFINITIONS--------------------------------*/
 
+/*--------------------------------DEFINITIONS---------------------------------*/
 
-void InitMemory (mem_t *L);
-void DisposeMemory (mem_t *L);
-void *malloc_c (mem_t *L, size_t size);
-void *calloc_c (mem_t *L, unsigned num, size_t size);
-void DeleteItem (mem_t *L, mem_elem_ptr ptr);
-void DisposeMemory (mem_t *L);
+int int_initialize(void);
+int int_looper(int *instruction);
 
 Interpret *createInterpret();
 void freeInterpret(Interpret *);
