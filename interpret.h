@@ -20,12 +20,9 @@
 
 // Local libraries
 #include "error.h"
-<<<<<<< HEAD
 #include "int_memory_management.h"
-=======
 #include "ir.h"
 #include "ial.h"
->>>>>>> refs/remotes/origin/master
 
 /*---------------------------------STRUCTURES---------------------------------*/
 
@@ -41,28 +38,9 @@ sem_t sem_interpret;
 
 #define HALT 0
 
-
-//  Math operations
-
-#define INS_ADD 1
-#define INS_SUB 2
-#define INS_MUL 3
-#define INS_DIV 4
-#define INS_MOD 5
-
-
-//  Logical operations
-
-<<<<<<< HEAD
-#define INS_NOT 10
-#define INS_AND 11
-#define INS_OR  12
-#define INS_XOR 13
-=======
 typedef struct {
     SymbolTable symTable;
 } Interpret;
->>>>>>> refs/remotes/origin/master
 
 
 /*--------------------------------DEFINITIONS---------------------------------*/

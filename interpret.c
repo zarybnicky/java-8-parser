@@ -13,25 +13,13 @@
 #include "interpret.h"
 
 
-
-int int_initialize(void){
-    return sem_init(&sem_interpret, 0,1);
-}
-
-int int_looper(int *instruction){
-    while(*instruction != HALT){
-        ;
-    }
-    printf("%s\n", "O Hi Mark!");
-    return 0;
-}
-
 Interpret *createInterpret() {
     Interpret *i = malloc(sizeof(Interpret));
     CHECK_ALLOC(i);
     i->symTable.root = NULL;
     return i;
 }
+
 void freeInterpret(Interpret *i) {
     if (i == NULL)
         return;
@@ -40,6 +28,10 @@ void freeInterpret(Interpret *i) {
     free(i);
 }
 
+/**
+ *
+ *
+ */
 void evalMain(Interpret *i) {
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
     if (mainFn == NULL || mainFn->type != N_FUNCTION) {
@@ -48,37 +40,104 @@ void evalMain(Interpret *i) {
     printf("Not implemented\n");
 }
 
+/**
+ *
+ *
+ */
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
+
+    (void*) left;
+    (void*) right;
+
     switch (op) {
-    case EB_EQUAL:
-    case EB_NOT_EQUAL:
-    case EB_LESS:
-    case EB_LESS_EQUAL:
-    case EB_GREATER:
-    case EB_GREATER_EQUAL:
-    case EB_MULTIPLY:
-    case EB_DIVIDE:
-    case EB_ADD:
-    case EB_SUBTRACT:
-        (void) right;
-        return left; //FIXME!!!
+        case EB_EQUAL:
+            // return left->data == right->data;
+
+        case EB_NOT_EQUAL:
+            // return left->data != right->data;
+
+        case EB_LESS:
+            // return left->data < right->data;
+
+        case EB_LESS_EQUAL:
+            // return left->data <= right->data;
+
+        case EB_GREATER:
+            // return left->data > right->data;
+
+        case EB_GREATER_EQUAL:
+            // return left->data >= right->data;
+
+        case EB_MULTIPLY:
+            // return left->data * right->data;
+
+        case EB_DIVIDE:
+            //if(right->data != 0)
+                // return left->data / right->data;
+            //else
+                //Call error division by 0
+                //error(ERR_RUNTIME_DIV_BY_ZERO);
+                // return NULL;
+
+        case EB_ADD:
+            // return left->data + right->data;
+
+        case EB_SUBTRACT:
+            // return left->data - right->data;
+            break;
+
     }
+
     return NULL; //Just to pacify the compiler...
 }
 
+/**
+ *
+ *
+ */
 Value *evalStaticExpression(Expression *e) {
     Value *left, *right;
 
     switch (e->type) {
-    case E_FUNCALL:
-    case E_REFERENCE:
-        MERROR(ERR_SYNTAX, "Cannot use dynamic expressions during static variable initialization!");
-    case E_VALUE:
-        return e->data.value;
-    case E_BINARY:
-        left = evalStaticExpression(e->data.binary.left);
-        right = evalStaticExpression(e->data.binary.right);
-        return evalBinaryExpression(e->data.binary.op, left, right);
+        case E_FUNCALL:
+        case E_REFERENCE:
+            MERROR(ERR_SYNTAX, "Cannot use dynamic expressions during static variable initialization!");
+        case E_VALUE:
+            return e->data.value;
+        case E_BINARY:
+            left = evalStaticExpression(e->data.binary.left);
+            right = evalStaticExpression(e->data.binary.right);
+            return evalBinaryExpression(e->data.binary.op, left, right);
     }
     return NULL; //Just to pacify the compiler...
+}
+
+/**
+ *
+ *
+ */
+ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
+
+    ValueType returnType = T_VOID;
+
+    switch (op) {
+        case EB_EQUAL:
+        case EB_NOT_EQUAL:
+        case EB_LESS:
+        case EB_LESS_EQUAL:
+        case EB_GREATER:
+        case EB_GREATER_EQUAL:
+            if(left->type == right->type)
+            break;
+
+        case EB_MULTIPLY:
+        case EB_ADD:
+        case EB_SUBTRACT:
+            break;
+
+        case EB_DIVIDE:
+            break;
+    }
+
+    return returnType;
 }
