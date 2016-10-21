@@ -293,6 +293,10 @@ void table_insert(SymbolTable *tree, Node *object){
 
 Node *table_lookup(SymbolTable *tree, char *symbol){
 
+  /* First chceck if table exists */
+  if (tree == NULL)
+    return NULL;
+  /* if table does exists we can check root, cannot compare both options */
   if (tree->root == NULL)
     return NULL;
 
@@ -308,7 +312,7 @@ Node *table_lookup(SymbolTable *tree, char *symbol){
     else
       current = current->left;
   }
-  /* returns NULL or looked object */
+  /* returns looked object */
   return current;
 }
 
@@ -383,7 +387,7 @@ void printSymbolTable(SymbolTable *t) {
     }
 }
 
-/* iterate over BS tree */
+/* iterate over BS tree recursively */
 void pre_order(Node *object){
   if (object != NULL){
       printNode(object);
@@ -392,10 +396,19 @@ void pre_order(Node *object){
   }
 }
 
-/* fn calling iteration over BS tree */
-void table_iterate(SymbolTable *tree, void (*fn)(Node *object)){
+/**
+  * fn calling to iterate over every object in table TODO, no tree calling just
+  * object better is to call tree and traverse table by it, we can hit object
+  * with not left, right node
+  */
+void table_iterate(Node *object, void (*fn)(Node *object)){
   if (fn == NULL)
     return;
-  fn (tree->root);
+  if (object->left != NULL)
+    table_iterate(object->left,fn);
+  if (object->right != NULL)
+    table_iterate(object->right,fn);
+
+  fn (object);
 }
 
