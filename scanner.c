@@ -15,6 +15,8 @@
 
 /* Not in POSIX... */
 char *strdup_(const char *s) {
+    if (s == NULL)
+        return NULL;
     char *dup = malloc(strlen(s) + 1);
     CHECK_ALLOC(dup);
     strcpy(dup, s);
@@ -24,11 +26,12 @@ char *strdup_(const char *s) {
 Token *getNextToken(FILE *f) {
     char *str = NULL;
     int c = Get_Token(f, &str);
-    switch (c) {
-
-    }
-    Token *t = createToken(c, NULL, str);
-    return t;
+    putchar(c);
+    if (str != NULL)
+        printf(" %s", str);
+    putchar('\n');
+    free(str);
+    return NULL; //FIXME!
 }
 
 Token *createToken(TokenType type, void *value, char *original) {
@@ -281,12 +284,13 @@ void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
 		*string = malloc(*stringAlloc * sizeof(char));
 		CHECK_ALLOC(*string);
     }
-    if (stringLength == stringAlloc) {
+    if (stringLength >= stringAlloc) {
         *stringAlloc <<= 1;
         *string = realloc(*string, *stringAlloc * sizeof(char));
         CHECK_ALLOC(*string);
     }
-    *string[*stringLength++] = c;
+    (*string)[(*stringLength)++] = c;
+    (*string)[*stringLength] = '\0';
 }
 
 int Get_Token(FILE *input, char **string) {
