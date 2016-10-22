@@ -32,41 +32,55 @@ Token *getNextToken(FILE *f) {
     putchar('\n');
     Token *t = NULL;
     printf("%d", c);
-      switch(c) {
+     t = malloc(sizeof(Token));
+	 t->lineNum = t->lineChar = 0;
+	 t->original = str;
+	 t->next = NULL;
+    switch(c) {
+		
 		case AUT_IDEN :
-		 t= createToken(ID_SIMPLE, NULL,str);
+		 t->type = ID_SIMPLE;
+		 t->val.id = str;
 		 break;
 		case AUT_IDEN2:
-		 t= createToken(ID_COMPOUND, NULL,str);
+		 t->type = ID_COMPOUND;
+		 t->val.id = str;
 		 break;
 		case AUT_NUM:
-		 t= createToken(LIT_INTEGER, NULL,str);
+		 t->type = LIT_INTEGER;
+		 t->val.intVal = strtol(str,NULL,10);
 		 break;
 		case AUT_FLOAT2:
-		 t= createToken(LIT_DOUBLE, NULL,str);
+		 t->type = LIT_DOUBLE;
+		 t->val.doubleVal = strtod(str,NULL);
 		 break;
 		case AUT_EX3:
-		 t= createToken(LIT_DOUBLE, NULL,str);
+		 t->type = LIT_DOUBLE;
+		 t->val.doubleVal = strtol(str,NULL,10);
 		 break;
 		case AUT_STRING:
-		 t=createToken(LIT_STRING,NULL,str);
+		 t->type = LIT_STRING;
+		 t->val.stringVal = str;
 		 break;
+		 //zdruzit do 1 funkcie pre symbol
 		case AUT_DIV:
-		 t=createToken(SYMBOL,NULL,str);
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_SLASH;
 		 break;
 		case AUT_LESS:
-		 t=createToken(SYMBOL,NULL,str);
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_LESS;
 		 break;
 		case AUT_GREAT:
-		 t=createToken(SYMBOL,NULL,str);
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_GREATER;
 		 break;
 		case AUT_NOT_EQUALS:
-		 t=createToken(SYMBOL,NULL,str);
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_NOT_EQUALS;
 		 break;
 		
-	 }
-		
-    t = createToken( RESERVED,NULL,str);
+	 }  
     
     printToken(t);
     return t;
