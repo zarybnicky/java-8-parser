@@ -30,9 +30,48 @@ Token *getNextToken(FILE *f) {
     if (str != NULL)
         printf(" %s", str);
     putchar('\n');
-    free(str);
-    return NULL; //FIXME!
+    Token *t = NULL;
+    printf("%d", c);
+      switch(c) {
+		case AUT_IDEN :
+		 t= createToken(ID_SIMPLE, NULL,str);
+		 break;
+		case AUT_IDEN2:
+		 t= createToken(ID_COMPOUND, NULL,str);
+		 break;
+		case AUT_NUM:
+		 t= createToken(LIT_INTEGER, NULL,str);
+		 break;
+		case AUT_FLOAT2:
+		 t= createToken(LIT_DOUBLE, NULL,str);
+		 break;
+		case AUT_EX3:
+		 t= createToken(LIT_DOUBLE, NULL,str);
+		 break;
+		case AUT_STRING:
+		 t=createToken(LIT_STRING,NULL,str);
+		 break;
+		case AUT_DIV:
+		 t=createToken(SYMBOL,NULL,str);
+		 break;
+		case AUT_LESS:
+		 t=createToken(SYMBOL,NULL,str);
+		 break;
+		case AUT_GREAT:
+		 t=createToken(SYMBOL,NULL,str);
+		 break;
+		case AUT_NOT_EQUALS:
+		 t=createToken(SYMBOL,NULL,str);
+		 break;
+		
+	 }
+		
+    t = createToken( RESERVED,NULL,str);
+    
+    printToken(t);
+    return t;
 }
+
 
 Token *createToken(TokenType type, void *value, char *original) {
     Token *t = malloc(sizeof(Token));
