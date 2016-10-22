@@ -10,7 +10,6 @@
 
 // table_iterate(&root, sancheck());
 
-#include "stdbool.h"
 #include "ial.h"
 #include "ir.h"
 
