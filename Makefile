@@ -3,7 +3,7 @@ CPPFLAGS=-pedantic -Wall -Wextra -g
 CFLAGS=-std=c99
 LDFLAGS=-L.
 
-LIBOBJ=ial.o interpret.o ir.o parser.o scanner.o stringology.o
+LIBOBJ=ial.o interpret.o ir.o parser.o scanner.o stringology.o sanity.o
 
 .PHONY: all test clean
 
