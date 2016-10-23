@@ -10,8 +10,7 @@
 
 // table_iterate(&root, sancheck());
 
-#include "ial.h"
-#include "ir.h"
+#include "sanity.h"
 
 void fcheck(Node *node){
 
@@ -62,14 +61,15 @@ void fcheck(Node *node){
 
 void sancheck(Node *node){
     
-    static bool first = true;
+ /* static bool first = true; // Ulozeni korene stromu pro pripadne vyhledavani
     
     if (first == true){
-   //     Node *root = node;
+        Node *root = node;
 
         first = false;  
     }
-//root = NULL; 
+    */
+    
     if (node->type == N_VALUE){
 	// Variable check
     }

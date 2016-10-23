@@ -1,0 +1,30 @@
+/*
+ * Project: IFJ16, a programming language interpreter
+ * FIT VUT Brno
+ * Authors: xzaryb00 - Zarybnický Jakub
+ *          xtamas01 - Tama¹koviè Marek
+ *          xvasko12 - Va¹ko Martin
+ *          xvasko14 - Va¹ko Michal
+ *          xzales12 - Záleský Jiøí
+ */
+
+// table_iterate(&root, sancheck());
+
+void sancheck(){
+    static bool first = TRUE;
+    if (first == TRUE){
+        Node main = *root;
+        first = FALSE;  
+    }
+}
+
+
+#include "ial.h"
+// Nutno pridat funkci s table_iterate()
+void fcheck(Node *tree, Function *f){
+    if (tree.NodeType == N_FUNCTION){
+        
+    } 
+
+  
+}
