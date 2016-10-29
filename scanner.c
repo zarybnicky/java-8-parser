@@ -9,7 +9,9 @@
  */
 // Pomaly na tom pracujem postupne tu zacnem pridavat co mam
 
-// Zatial som si len vypisal klcuove slova alebo rezervovane slova ktore funkcia kontroluje
+
+//1 . ID COMPOUND ZATIAL NEFUNGUJE
+// LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
 #include "scanner.h"
 
 
@@ -23,6 +25,69 @@ char *strdup_(const char *s) {
     return dup;
 }
 
+enum{
+    NEUTRAL_STATE,
+    Start_state,
+    RESER,
+    AUT_IDEN,
+    AUT_IDEN2,
+    AUT_NUM,
+    AUT_FLOAT1 ,
+    AUT_FLOAT2,
+    AUT_EX1,
+    AUT_EX2,
+    AUT_EX3,
+    AUT_STRING,
+    AUT_ESC,
+    AUT_ESC_ZERO,
+    AUT_ESCN,
+    AUT_ESC_ZERO2,
+    AUT_ESCN2,
+    AUT_DIV,
+    AUT_DIV2,
+    AUT_CMTL,
+    AUT_CMTB,
+    AUT_CMTB_END,
+    AUT_EQUALS,
+    AUT_LESS,
+    AUT_GREAT,
+    AUT_NOT_EQUALS,
+    PLUS,
+    MINUS,
+    MUL,
+    SEMICOLON,
+    NOTHING,
+    NUMBER,
+    FLOAT,
+    ERROR_R,
+    ERROR_NUMBER,
+    ERROR_ESC,
+    ERROR_ESC_ZERO,
+    ERROR_ESCN,
+    ERROR_ESC_ZERO2,
+    ERROR_ESCN2,
+    DIV,
+    ERROR_CMTB,
+    EQUAL,
+    ASSIGN,
+    LESS_EQUAL,
+    LESS,
+    GREAT_EQUAL,
+    GREAT,
+    NOT_EQUAL,
+    ERROR_NOT_EQUALS,
+    BRACE_OPEN ,
+    BRACE_CLOSE,
+    PAREN_OPEN,
+    PAREN_CLOSE,
+    COMMA ,
+    BRACKET_OPEN,
+    BRACKET_CLOSE,
+    IDEN,
+    IDEN_COMPOUND,
+    STRING,
+}AUTSTATES;
+
 Token *getNextToken(FILE *f) {
     char *str = NULL;
     int c = Get_Token(f, &str);
@@ -32,68 +97,174 @@ Token *getNextToken(FILE *f) {
     putchar('\n');
     Token *t = NULL;
     printf("%d", c);
-     t = malloc(sizeof(Token));
+    
+	 t = malloc(sizeof(Token));
 	 t->lineNum = t->lineChar = 0;
 	 t->original = str;
 	 t->next = NULL;
     switch(c) {
-		
-		case AUT_IDEN :
+		case RES_BOOLEAN:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_BOOLEAN;
+		 break;
+		case RES_BREAK:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_BREAK;
+		 break;
+		case RES_CLASS:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_CLASS;
+		 break;
+		case RES_CONTINUE:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_CONTINUE;
+		 break;
+		case RES_DO:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_DO;
+		 break;
+		case RES_DOUBLE:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_DOUBLE;
+		 break;
+		case RES_ELSE:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_ELSE;
+		 break;
+		case RES_FOR:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_FOR;
+		 break;
+		case RES_IF:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_IF;
+		 break;
+		case RES_INT:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_INT;
+		 break;
+		case RES_RETURN:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_RETURN;
+		 break;
+		case RES_STRING:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_STRING;
+		 break;
+		case RES_STATIC:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_STATIC;
+		 break;
+		case RES_TRUE:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_TRUE;
+		 break;
+		case RES_VOID:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_VOID;
+		 break;
+		case RES_WHILE:
+		 t->type = RESERVED;
+		 t->val.reserved = RES_WHILE;
+		 break;
+		case IDEN:
 		 t->type = ID_SIMPLE;
 		 t->val.id = str;
 		 break;
-		case AUT_IDEN2:
+		case IDEN_COMPOUND:
 		 t->type = ID_COMPOUND;
 		 t->val.id = str;
 		 break;
-		case AUT_NUM:
+		case NUMBER:
 		 t->type = LIT_INTEGER;
 		 t->val.intVal = strtol(str,NULL,10);
 		 break;
-		case AUT_FLOAT2:
+		case FLOAT:
 		 t->type = LIT_DOUBLE;
 		 t->val.doubleVal = strtod(str,NULL);
 		 break;
-		case AUT_EX3:
-		 t->type = LIT_DOUBLE;
-		 t->val.doubleVal = strtol(str,NULL,10);
-		 break;
-		case AUT_STRING:
+		case STRING:
 		 t->type = LIT_STRING;
 		 t->val.stringVal = str;
 		 break;
 		 //zdruzit do 1 funkcie pre symbol
-		case AUT_DIV:
+		case DIV:
 		 t->type = SYMBOL;
 		 t->val.symbol = SYM_SLASH;
 		 break;
-		case AUT_LESS:
+		case LESS:
 		 t->type = SYMBOL;
 		 t->val.symbol = SYM_LESS;
 		 break;
-		case AUT_GREAT:
+		case GREAT:
 		 t->type = SYMBOL;
 		 t->val.symbol = SYM_GREATER;
 		 break;
-		case AUT_NOT_EQUALS:
+		case GREAT_EQUAL:
 		 t->type = SYMBOL;
-		 t->val.symbol = SYM_NOT_EQUALS;
+		 t->val.symbol = SYM_GREATER_EQUAL;
 		 break;
-		
+		case LESS_EQUAL:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_LESS_EQUAL;
+		 break;
+		case ASSIGN:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_ASSIGN;
+		 break;
+		case BRACE_OPEN:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_BRACE_OPEN;
+		 break;
+		case BRACE_CLOSE:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_BRACE_CLOSE;
+		 break;
+		case PAREN_OPEN:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_PAREN_OPEN;
+		 break;
+		case PAREN_CLOSE:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_PAREN_CLOSE;
+		 break;
+		case BRACKET_OPEN:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_BRACKET_OPEN;
+		 break;
+		case BRACKET_CLOSE:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_BRACKET_CLOSE;
+		 break;
+		case COMMA:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_COMMA;
+		 break;
+		case PLUS:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_PLUS;
+		 break;
+		case MINUS:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_MINUS;
+		 break;
+		case MUL:
+		 t->type = SYMBOL;
+		 t->val.symbol = SYM_STAR;
+		 break;
 	 }  
-    
     printToken(t);
     return t;
 }
 
-
 Token *createToken(TokenType type, void *value, char *original) {
     Token *t = malloc(sizeof(Token));
     t->lineNum = t->lineChar = 0;
-    t->original = strdup_(original);
+    t->original = original;
     t->next = NULL;
     t->type = type;
     t->val.id = value;
+     
     return t;
 }
 Token *chainTokens(Token *first, ...) {
@@ -207,130 +378,103 @@ void printToken(Token *t) {
 }
 
 //FIXME: Temporary, just so that this file is compilable
-enum{
-    NEUTRAL_STATE,
-    Start_state,
-    IDEN,
-    AUT_IDEN,
-    AUT_IDEN2,
-    AUT_NUM,
-    AUT_FLOAT1 ,
-    AUT_FLOAT2,
-    AUT_EX1,
-    AUT_EX2,
-    AUT_EX3,
-    STRING,
-    AUT_STRING,
-    AUT_ESC,
-    AUT_ESC_ZERO,
-    AUT_ESCN,
-    AUT_ESC_ZERO2,
-    AUT_ESCN2,
-    AUT_DIV,
-    AUT_DIV2,
-    AUT_CMTL,
-    AUT_CMTB,
-    AUT_CMTB_END,
-    AUT_EQUALS,
-    AUT_LESS,
-    AUT_GREAT,
-    AUT_NOT_EQUALS,
-    PLUS,
-    MINUS,
-    MUL,
-    SEMICOLON,
-    NOTHING,
-    NUMBER,
-    ERROR_NUMBER,
-    ERROR_ESC,
-    ERROR_ESC_ZERO,
-    ERROR_ESCN,
-    ERROR_ESC_ZERO2,
-    ERROR_ESCN2,
-    DIV,
-    ERROR_CMTB,
-    EQUAL,
-    ASSIGN,
-    LESS_EQUAL,
-    LESS,
-    GREAT_EQUAL,
-    GREAT,
-    NOT_EQUAL,
-    ERROR_NOT_EQUALS,
-    BRACE_OPEN ,
-    BRACE_CLOSE,
-    PAREN_OPEN,
-    PAREN_CLOSE,
-    COMMA ,
-    BRACKET_OPEN,
-    BRACKET_CLOSE,
-}AUTSTATES;
+
 
 int control_res_key_word(char *str)
 {
-    switch (str[0]) {
+     switch (str[0]) {
     case 'b':
-        if (strcmp(str, "boolean") == 0)
+        if (strcmp(str, "boolean") == 0) {
             return RES_BOOLEAN;
-        if (strcmp(str, "break") == 0)
-            return RES_BREAK;
-        return IDEN;
+          return RESER;}
+        if (strcmp(str, "break") == 0) {
+            return RES_BREAK; 
+		  return RESER; }
+		else
+		 return IDEN;
     case 'c':
-        if (strcmp(str, "class") == 0)
+        if (strcmp(str, "class") == 0) {
             return RES_CLASS;
-        if (strcmp(str, "continue") == 0)
+           return RESER;}
+        if (strcmp(str, "continue") == 0) {
             return RES_CONTINUE;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'd':
-        if (strcmp(str, "do") == 0)
+        if (strcmp(str, "do") == 0) {
             return RES_DO;
-        if (strcmp(str, "double") == 0)
+           return RESER; }
+        if (strcmp(str, "double") == 0) {
             return RES_DOUBLE;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'e':
-        if (strcmp(str, "else") == 0)
+        if (strcmp(str, "else") == 0) {
             return RES_ELSE;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'f':
-        if (strcmp(str, "false") == 0)
+        if (strcmp(str, "false") == 0) {
             return RES_FALSE;
-        if (strcmp(str, "for") == 0)
+          return RESER; }         
+        if (strcmp(str, "for") == 0) {
             return RES_FOR;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'i':
-        if (strcmp(str, "if") == 0)
+        if (strcmp(str, "if") == 0) {
             return RES_IF;
-        if (strcmp(str, "int") == 0)
+           return RESER; }
+        if (strcmp(str, "int") == 0) {
             return RES_INT;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'r':
-        if (strcmp(str, "return") == 0)
+        if (strcmp(str, "return") == 0) {
             return RES_RETURN;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 'S':
-        if (strcmp(str, "String") == 0)
+        if (strcmp(str, "String") == 0) {
             return RES_STRING;
-        return IDEN;
+          return RESER; }
+        else
+		 return IDEN;
     case 's':
-        if (strcmp(str, "static") == 0)
-            return RES_STATIC;
-        return IDEN;
+        if (strcmp(str, "static") == 0) {
+           return RES_STATIC;
+          return RESER; }
+        else
+		 return IDEN;
     case 't':
-        if (strcmp(str, "true") == 0)
+        if (strcmp(str, "true") == 0) {
             return RES_TRUE;
-        return IDEN;
+		 return RESER; }
+	    else
+		 return IDEN;
     case 'v':
-        if (strcmp(str, "void") == 0)
+        if (strcmp(str, "void") == 0) {
             return RES_VOID;
-        return IDEN;
+         return RESER; }
+        else
+		 return IDEN;
     case 'w':
-        if (strcmp(str, "while") == 0)
+        if (strcmp(str, "while") == 0) {
             return RES_WHILE;
-        return IDEN;
+         return RESER; }
+        else
+		 return IDEN;
     default:
-        return IDEN;
+      return IDEN;
     }
 }
+
 
 void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
     if (*string == NULL) {
@@ -345,7 +489,8 @@ void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
     (*string)[(*stringLength)++] = c;
     (*string)[*stringLength] = '\0';
 }
-
+//Token **t *t = (** Token) malloc (sizeof(*Token))
+//(*t)->value=val
 int Get_Token(FILE *input, char **string) {
     static int state = NEUTRAL_STATE;
     static int line = 0;
@@ -441,18 +586,23 @@ int Get_Token(FILE *input, char **string) {
             string_end(string, c, &stringLength, &stringAlloc);
             c = fgetc(input);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
+				if  (c == '.')
+                state = AUT_IDEN2;
+				else
                 state = Start_state;
                 return control_res_key_word(*string); // kontrola klicovych slov
-            } else if (c == '.')
-                state = AUT_IDEN2;
+               
+                
+            } 
             break;
-        case AUT_IDEN2:
+            case AUT_IDEN2: // NEFUNGUJE NECHAPEM PRECO VZDY VYPISE IBA PRVy IDEN a BODKU (napr "xoxo." a nevypise slovo zatim)
             string_end(string, c, &stringLength, &stringAlloc);
             c = fgetc(input);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
-                state = Start_state;
-                return control_res_key_word(*string);
+                //state = Start_state; 
+                return IDEN_COMPOUND; // prerob miso !! pridaj else a tak daj return
             }
+            break;
         case AUT_NUM:
             string_end(string, c, &stringLength, &stringAlloc);
             c = fgetc(input);
@@ -486,7 +636,7 @@ int Get_Token(FILE *input, char **string) {
                 state = AUT_EX1;
             else {
                 state = Start_state;
-                return NUMBER;
+                return FLOAT;
             }
             break;
         case AUT_EX1:
@@ -516,7 +666,7 @@ int Get_Token(FILE *input, char **string) {
             c = fgetc(input);
             if (! isdigit(c)) { //ak nie je cislo tak nepokracujeme ale vraciame sa na start
                 state = Start_state;
-                return NUMBER;
+                return FLOAT;
             }
             break;
 
