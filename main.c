@@ -4,7 +4,8 @@ void freeGlobalResources() { }
 
 int main(){
     FILE *F = fopen("test/2_no_class.java","r");
-    Token *t = getNextToken(F);
+    while (getNextToken(F) != NULL)
+        ;
     fclose(F);
     return 0;
 }

@@ -80,6 +80,52 @@ typedef enum {
     SYM_OR,           //||
 } SymbolType;
 
+typedef enum{
+    NEUTRAL_STATE,
+    Start_state,
+    RESERVED_WORD,
+    END_OF_FILE,
+    AUT_SYMBOL,
+    AUT_IDEN,
+    AUT_IDEN2,
+    AUT_NUM,
+    AUT_FLOAT1 ,
+    AUT_FLOAT2,
+    AUT_EX1,
+    AUT_EX2,
+    AUT_EX3,
+    AUT_STRING,
+    AUT_ESC,
+    AUT_ESC_ZERO,
+    AUT_ESCN,
+    AUT_ESC_ZERO2,
+    AUT_ESCN2,
+    AUT_DIV,
+    AUT_DIV2,
+    AUT_CMTL,
+    AUT_CMTB,
+    AUT_CMTB_END,
+    AUT_EQUALS,
+    AUT_LESS,
+    AUT_GREAT,
+    AUT_NOT_EQUALS,
+    NOTHING,
+    NUMBER,
+    FLOAT,
+    ERROR_R,
+    ERROR_NUMBER,
+    ERROR_ESC,
+    ERROR_ESC_ZERO,
+    ERROR_ESCN,
+    ERROR_ESC_ZERO2,
+    ERROR_ESCN2,
+    ERROR_CMTB,
+    ERROR_NOT_EQUALS,
+    IDEN,
+    IDEN_COMPOUND,
+    STRING,
+}AUTSTATES;
+
 typedef struct s_Token {
     //For error reporting
     int lineNum;
@@ -102,11 +148,11 @@ typedef struct s_Token {
 
 char *strdup_(const char *);
 Token *getNextToken(FILE *stream);
-int Get_Token(FILE *, char **);
 void string_end(char **string, char c, int *stringLength, int *stringAlloc);
 Token *createToken(TokenType, void *, char *);
 Token *chainTokens(Token *, ...);
 void freeToken(Token *t);
 void printToken(Token *t);
+AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reser, SymbolType *symbol, int *lineNumToken, int *lineColToken);
 
 #endif /* IFJ_SCANNER_H */

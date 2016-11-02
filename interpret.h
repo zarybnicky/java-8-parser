@@ -16,7 +16,6 @@
 // System libraries
 #include <stdio.h>
 #include <stdlib.h>
-#include <semaphore.h>
 
 // Local libraries
 #include "error.h"
@@ -30,7 +29,6 @@
 
 /*---------------------------------VARIABLES----------------------------------*/
 
-sem_t sem_interpret;
 
 /*----------------------------------MACROS------------------------------------*/
 
