@@ -7,16 +7,8 @@
  *          xvasko14 - Vaško Michal
  *          xzales12 - Záleský Jiří
  */
-// Pomaly na tom pracujem postupne tu zacnem pridavat co mam
-
-
-//1 . ID COMPOUND ZATIAL NEFUNGUJE
-// LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
-//1 . ID COMPOUND ZATIAL NEFUNGUJE
 //2.  LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
 //3. vyriesit num/nacitanie esc kodu
-// 4. ukoncenie suboru aby som mal
-// IDEN SA ZNOVA S NIECOM PREPISUJE
 #include "scanner.h"
 
 /* Not in POSIX... */
