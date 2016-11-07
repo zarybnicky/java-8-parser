@@ -13,6 +13,7 @@
 #include "error.h"
 #include "ir.h"
 #include "parser.h"
+#include "interpret.h"
 
 Lexer *l;
 Interpret *i;
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     }
     fclose(f);
 
-    evalMain(i);
+    //evalMain(i);
+    printSymbolTable(&i->symTable);
     return 0;
 }

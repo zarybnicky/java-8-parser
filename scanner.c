@@ -7,13 +7,14 @@
  *          xvasko14 - Vaško Michal
  *          xzales12 - Záleský Jiří
  */
-// Pomaly na tom pracujem postupne tu zacnem pridavat co mam
-
-// Zatial som si len vypisal klcuove slova alebo rezervovane slova ktore funkcia kontroluje
+//2.  LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
+//3. vyriesit num/nacitanie esc kodu
 #include "scanner.h"
 
 /* Not in POSIX... */
 char *strdup_(const char *s) {
+    if (s == NULL)
+        return NULL;
     char *dup = malloc(strlen(s) + 1);
     CHECK_ALLOC(dup);
     strcpy(dup, s);
@@ -21,17 +22,66 @@ char *strdup_(const char *s) {
 }
 
 Token *getNextToken(FILE *f) {
-    (void) f;                  //FIXME
-    return NULL;
+    char *str = NULL;
+    ReservedWord reserved;
+    SymbolType symbol;
+    int lineNum, lineCol;
+    int c = Get_Token(f, &str, &reserved, &symbol, &lineNum, &lineCol);
+    Token *t = NULL;
+
+    t = malloc(sizeof(Token));
+    t->lineNum = lineNum;
+    t->lineChar = lineCol;
+    t->original = str;
+    t->next = NULL;
+    switch(c) {
+    case RESERVED_WORD:
+        t->type = RESERVED;
+        t->val.reserved = reserved;
+        break;
+    case IDEN:
+        t->type = ID_SIMPLE;
+        t->val.id = str;
+        break;
+    case IDEN_COMPOUND:
+        t->type = ID_COMPOUND;
+        t->val.id = str;
+        break;
+    case NUMBER:
+        t->type = LIT_INTEGER;
+        t->val.intVal = strtol(str,NULL,10);
+        break;
+    case FLOAT:
+        t->type = LIT_DOUBLE;
+        t->val.doubleVal = strtod(str,NULL);
+        break;
+    case STRING:
+        t->type = LIT_STRING;
+        t->val.stringVal = str;
+        break;
+    case AUT_SYMBOL:
+        t->type = SYMBOL;
+        t->val.symbol = symbol;
+        break;
+    case END_OF_FILE:
+        free(t);
+        return NULL;
+    default:
+        printf("Invalid return value: %d\n", c);
+        exit(1);
+    }
+    printToken(t);
+    return t;
 }
 
 Token *createToken(TokenType type, void *value, char *original) {
     Token *t = malloc(sizeof(Token));
     t->lineNum = t->lineChar = 0;
-    t->original = strdup_(original);
+    t->original = original;
     t->next = NULL;
     t->type = type;
     t->val.id = value;
+
     return t;
 }
 Token *chainTokens(Token *first, ...) {
@@ -58,10 +108,12 @@ void freeToken(Token *t) {
     switch (t->type) {
     case ID_SIMPLE:
     case ID_COMPOUND:
-        free(t->val.id);
+        if (t->original != t->val.id)
+            free(t->val.id);
         break;
     case LIT_STRING:
-        free(t->val.stringVal);
+        if (t->original != t->val.stringVal)
+            free(t->val.stringVal);
         break;
     case RESERVED:
     case SYMBOL:
@@ -71,6 +123,8 @@ void freeToken(Token *t) {
     }
     free(t);
 }
+
+
 void printToken(Token *t) {
     if (t == NULL) {
         printf("NULL\n");
@@ -142,176 +196,160 @@ void printToken(Token *t) {
     }
 }
 
-//FIXME: Temporary, just so that this file is compilable
-#define BOOLEAN 0
-#define BREAK 0
-#define IDEN 0
-#define CLASS 0
-#define CONTINUE 0
-#define DO 0
-#define DOUBLE 0
-#define ELSE 0
-#define FALSE 0
-#define FOR 0
-#define IF 0
-#define INT 0
-#define RETURN 0
-#define STRING 0
-#define STATIC 0
-#define TRUE 0
-#define VOID 0
-#define WHILE 0
-
-int control_res_key_word(char *str)
+AUTSTATES control_res_key_word(char *str, ReservedWord *reserved)
 {
-    if (str[0] == 'b') {
-        if (strcmp(str, "boolean") == 0)
-            return BOOLEAN;
-        if (strcmp(str, "break") == 0)
-            return BREAK;
-        return IDEN;
-    }
-    if (str[0] == 'c') {
-        if (strcmp(str, "class") == 0)
-            return CLASS;
-        if (strcmp(str, "continue") == 0)
-            return CONTINUE;
-        return IDEN;
-    }
-    if (str[0] == 'd') {
-        if (strcmp(str, "do") == 0)
-            return DO;
-        if (strcmp(str, "double") == 0)
-            return DOUBLE;
-        return IDEN;
-    }
-    if (str[0] == 'e') {
-        if (strcmp(str, "else") == 0)
-            return ELSE;
-        return IDEN;
-    }
-    if (str[0] == 'f') {
-        if (strcmp(str, "false") == 0)
-            return FALSE;
-        if (strcmp(str, "for") == 0)
-            return FOR;
-        return IDEN;
-    }
-    if (str[0] == 'i') {
-        if (strcmp(str, "if") == 0)
-            return IF;
-        if (strcmp(str, "int") == 0)
-            return INT;
-        return IDEN;
-    }
-    if (str[0] == 'r') {
-        if (strcmp(str, "return") == 0)
-            return RETURN;
-        return IDEN;
-    }
-    if (str[0] == 'S') {
-        if (strcmp(str, "String") == 0)
-            return STRING;
-        return IDEN;
-    }
-    if (str[0] == 's') {
-        if (strcmp(str, "static") == 0)
-            return STATIC;
-        return IDEN;
-    }
-    if (str[0] == 't') {
-        if (strcmp(str, "true") == 0)
-            return TRUE;
-        return IDEN;
-    }
-    if (str[0] == 'v') {
-        if (strcmp(str, "void") == 0)
-            return VOID;
-        return IDEN;
-    }
-    if (str[0] == 'w') {
-        if (strcmp(str, "while") == 0)
-            return WHILE;
-        return IDEN;
+    switch (str[0]) {
+    case 'b':
+        if (strcmp(str, "boolean") == 0) {
+            *reserved = RES_BOOLEAN;
+            return RESERVED_WORD;
+        }
+        if (strcmp(str, "break") == 0) {
+            *reserved = RES_BREAK;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'c':
+        if (strcmp(str, "class") == 0) {
+            *reserved = RES_CLASS;
+            return RESERVED_WORD;
+        }
+        if (strcmp(str, "continue") == 0) {
+            *reserved = RES_CONTINUE;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'd':
+        if (strcmp(str, "do") == 0) {
+            *reserved = RES_DO;
+            return RESERVED_WORD;
+        }
+        if (strcmp(str, "double") == 0) {
+            *reserved = RES_DOUBLE;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'e':
+        if (strcmp(str, "else") == 0) {
+            *reserved = RES_ELSE;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'f':
+        if (strcmp(str, "false") == 0) {
+            *reserved = RES_FALSE;
+            return RESERVED_WORD; }
+        if (strcmp(str, "for") == 0) {
+            *reserved = RES_FOR;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'i':
+        if (strcmp(str, "if") == 0) {
+            *reserved = RES_IF;
+            return RESERVED_WORD; }
+        if (strcmp(str, "int") == 0) {
+            *reserved = RES_INT;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'r':
+        if (strcmp(str, "return") == 0) {
+           *reserved = RES_RETURN;
+            return RESERVED_WORD;
+        }
+        break;
+
+    case 'S':
+        if (strcmp(str, "String") == 0) {
+            *reserved = RES_STRING;
+            return RESERVED_WORD;
+        }
+        break;
+    case 's':
+        if (strcmp(str, "static") == 0) {
+            *reserved = RES_STATIC;
+            return RESERVED_WORD;
+        }
+        break;
+    case 't':
+        if (strcmp(str, "true") == 0) {
+            *reserved = RES_TRUE;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'v':
+        if (strcmp(str, "void") == 0) {
+            *reserved = RES_VOID;
+            return RESERVED_WORD;
+        }
+        break;
+    case 'w':
+        if (strcmp(str, "while") == 0) {
+        *reserved = RES_WHILE;
+            return RESERVED_WORD;
+        }
+        break;
     }
     return IDEN;
 }
 
-#define NEUTRAL_STATE 0
-#define Start_state 1
-#define AUT_IDEN 2
-#define AUT_IDEN2 3
-#define AUT_NUM 4
-#define AUT_FLOAT1 5
-#define AUT_FLOAT2 6
-#define AUT_EX1 7
-#define AUT_EX2 8
-#define AUT_EX3 9
-#define AUT_STRING 10
-#define AUT_ESC 11
-#define AUT_ESC_ZERO 33
-#define AUT_ESCN 12
-#define AUT_ESC_ZERO2 44
-#define AUT_ESCN2 22
-#define AUT_DIV 13
-#define AUT_DIV2 14
-#define AUT_CMTL 15
-#define AUT_CMTB 16
-#define AUT_CMTB_END 17
-#define AUT_EQUALS 18
-#define AUT_LESS 19
-#define AUT_GREAT 20
-#define AUT_NOT_EQUALS 21
-#define PLUS 0
-#define MINUS 0
-#define MUL 0
-#define SEMICOLON 0
-#define NOTHING 0
-#define NUMBER 0
-#define ERROR_NUMBER 0
-#define ERROR_ESC 0
-#define ERROR_ESC_ZERO 0
-#define ERROR_ESCN 0
-#define ERROR_ESC_ZERO2 0
-#define ERROR_ESCN2 0
-#define DIV 0
-#define ERROR_CMTB 0
-#define EQUAL 0
-#define ASSIGN 0
-#define LESS_EQUAL 0
-#define LESS 0
-#define GREAT_EQUAL 0
-#define GREAT 0
-#define NOT_EQUAL 0
-#define ERROR_NOT_EQUALS 0
-#define BRACE_OPEN 0
-#define BRACE_CLOSE 0
-#define PAREN_OPEN 0
-#define PAREN_CLOSE 0
-#define COMMA 0
-#define BRACKET_OPEN 0
-#define BRACKET_CLOSE 0
 
-//FIXME
-void string_end(char **c, char v) {
-    (void) c;
-    (void) v;
+
+void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
+    if (*string == NULL) {
+		*string = malloc(*stringAlloc * sizeof(char));
+		CHECK_ALLOC(*string);
+    }
+    if (stringLength >= stringAlloc) {
+        *stringAlloc <<= 1;
+        *string = realloc(*string, *stringAlloc * sizeof(char));
+        CHECK_ALLOC(*string);
+    }
+    (*string)[(*stringLength)++] = c;
+    (*string)[*stringLength] = '\0';
 }
 
-int Get_Token(void) {
-    FILE *input = NULL;
-    int c, state, line = 0;
-    char *string;
-    int num = 0;
+#define GET_CHAR(c, input, state, line, lineChar)           \
+    do {                                                    \
+        c = fgetc(input);                                   \
+        if (c == -1) {                                      \
+            state = END_OF_FILE;                            \
+            return END_OF_FILE;                             \
+        }                                                   \
+        if (c == '\n') {                                    \
+            lineNum++;                                      \
+            lineChar = 0;                                   \
+        } else {                                            \
+            lineChar++;                                     \
+        }                                                   \
+    } while (0);
+
+AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolType *symbol, int *lineNumToken, int *lineColToken) {
+    static int state = NEUTRAL_STATE;
+    static int lineNum = 0;
+    static int lineCol = 0;
+    static int c;
+
+    int num;
+    int stringLength = 0;
+    int stringAlloc = ALLOC_BLOCK;
+
     while (true) {
         switch (state) {
 
+        case END_OF_FILE:
+            return END_OF_FILE;
+
         case NEUTRAL_STATE :   // nacitame znak
-            c = fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
+
         case Start_state :
+            *lineNumToken = lineNum;
+            *lineColToken = lineCol;
+
             if (isspace(c)) {
                 state = NEUTRAL_STATE;
-                if (c == '\n') ++line;
             }
 
             else if (isalpha(c) || c == '_' || c == '$') //pokracujeme dalej na stav IDEN
@@ -321,45 +359,51 @@ int Get_Token(void) {
                 state = AUT_NUM;
 
             else if (c == '+') {
-                state = NEUTRAL_STATE;
-                return PLUS;
+                state = AUT_UNARY_PL;
             }
             else if (c == '-'){
-                state = NEUTRAL_STATE;
-                return MINUS;
+               state = AUT_UNARY_MN;
             }
             else if (c == '*') {
                 state = NEUTRAL_STATE;
-                return MUL;
+                *symbol = SYM_STAR;
+                return AUT_SYMBOL;
             }
             else if(c == '{') {
-                    state = NEUTRAL_STATE;
-                    return BRACE_OPEN;
-                }
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_BRACE_OPEN;
+                return AUT_SYMBOL;
+            }
             else if(c == '}') {
-                    state = NEUTRAL_STATE;
-                    return BRACE_CLOSE;
-                }
-             else if(c == '(') {
-                    state = NEUTRAL_STATE;
-                    return PAREN_OPEN;
-                }
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_BRACE_CLOSE;
+                return AUT_SYMBOL;
+            }
+            else if(c == '(') {
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_PAREN_OPEN;
+                return AUT_SYMBOL;
+            }
             else if(c == ')') {
-                    state = NEUTRAL_STATE;
-                    return PAREN_CLOSE;
-                }
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_PAREN_CLOSE;
+                return AUT_SYMBOL;
+            }
             else if(c == '[') {
-                    state = NEUTRAL_STATE;
-                    return BRACKET_OPEN;
-                }
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_BRACKET_OPEN;
+                return AUT_SYMBOL;
+            }
             else if(c == ']') {
-                    state = NEUTRAL_STATE;
-                    return BRACKET_CLOSE;
-                }
-           else if(c == ',') {
-                    state = NEUTRAL_STATE;
-                    return COMMA;
-                }
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_BRACKET_CLOSE;
+                return AUT_SYMBOL;
+            }
+            else if(c == ',') {
+                state = NEUTRAL_STATE;
+                 *symbol = SYM_COMMA;
+                return AUT_SYMBOL;
+            }
             else if (c == '/')      // pokracujeme dalej kvoli moznosti komentaru
                 state = AUT_DIV;
             else if (c == '<')
@@ -372,37 +416,39 @@ int Get_Token(void) {
                 state = AUT_NOT_EQUALS; // moznost nerovnosti
             else if (c == ';') {
                 state = NEUTRAL_STATE;  //Neviem ci tu mam zahrnovat aj dvojbodku, bodkociarku, bodku atd... toto som tu dal ale neviem ci to treba
-                return SEMICOLON;
+                *symbol = SYM_SEMI;
+                return AUT_SYMBOL;
             }
             else if (c == '"')    //skaceme na stav String
                 state = AUT_STRING;
-            else if (c == EOF)
-                return NOTHING;
             else {
-                state = NEUTRAL_STATE;
-                return ERROR_ESC;
+                FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
             }
             break;
 
         case AUT_IDEN:
-            string_end(&string,c); // zatial neimplementovana funkcia bude hadzat znaky na koniec
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
-                state = Start_state;
-                return control_res_key_word(string); // kontrola klicovych slov
-            } else if (c == '.')
-                state = AUT_IDEN2;
+				if  (c == '.') {
+                    state = AUT_IDEN2;
+				} else {
+                    state = Start_state;
+                    return control_res_key_word(*string, reserved);
+                }
+            }
             break;
         case AUT_IDEN2:
-            string_end(&string,c); //ako vyrobit nekonecny stav? NIESOM SI ISTY IDEN
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
                 state = Start_state;
-                return control_res_key_word(string);
+                return IDEN_COMPOUND;
             }
+            break;
         case AUT_NUM:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (isdigit(c))
                 ;
             else if (c == '.')
@@ -415,8 +461,8 @@ int Get_Token(void) {
             }
             break;
         case AUT_FLOAT1:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (isdigit(c))
                 state = AUT_FLOAT2;
             else {
@@ -425,20 +471,20 @@ int Get_Token(void) {
             }
             break;
         case AUT_FLOAT2:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (isdigit(c))
                 ;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
             else {
                 state = Start_state;
-                return NUMBER;
+                return FLOAT;
             }
             break;
         case AUT_EX1:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (c == '+' || c == '-')
                 state = AUT_EX2;
             else if (isdigit(c))
@@ -449,8 +495,8 @@ int Get_Token(void) {
             }
             break;
         case AUT_EX2:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+           GET_CHAR(c, input, state, line, lineCol);
             if (isdigit(c))
                 state = AUT_EX3;
             else {
@@ -459,35 +505,35 @@ int Get_Token(void) {
             }
             break;
         case AUT_EX3:
-            string_end(&string,c);
-            c = fgetc(input);
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
             if (! isdigit(c)) { //ak nie je cislo tak nepokracujeme ale vraciame sa na start
                 state = Start_state;
-                return NUMBER;
+                return FLOAT;
             }
             break;
 
         case AUT_STRING:
-            c = fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '"') {
                 state = NEUTRAL_STATE;
                 return STRING; }
             else if(c == '\\')
                 state = AUT_ESC; // NIESOM SI ISTY VO VSETKYCH VARIANTACH NEDOKONCENE ZATIAL
             else
-                string_end(&string, c);
+                string_end(string, c, &stringLength, &stringAlloc);
             break;
         case AUT_ESC:
-            c=fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == 'n'){
                 state = AUT_STRING;
-                string_end(&string,'\n');
+                string_end(string, c, &stringLength, &stringAlloc);
             } else if(c == 't') {
                 state = AUT_STRING;
-                string_end(&string, '\t');
+                string_end(string, c, &stringLength, &stringAlloc);
             } else if(c == '\\' || c == '"') {
                 state = AUT_STRING;
-                string_end(&string,c);
+                string_end(string, c, &stringLength, &stringAlloc);
             } else if(isdigit(c)) {
 				if(c >= '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
 				    num = num * 64 + (c - '0');
@@ -500,28 +546,28 @@ int Get_Token(void) {
                 else {
 				    state = Start_state;
                     return ERROR_ESC; }
-                }
+            }
             else {
-                    state = Start_state;
-                    return ERROR_ESC;
+                state = Start_state;
+                return ERROR_ESC;
             }
             break;
 
         case AUT_ESC_ZERO:
-	        c=fgetc(input);
+	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
-			  if (c == '0'){
-				num = num * 8 + (c - '0'); // ak dva nuly
-				state = AUT_ESC_ZERO2;
-              }
-			  else if (c > '0' || c <= '7' ) {
-				num = num * 8 + (c - '0');
-				state = AUT_ESCN;
-              }
-			  else {
-				state = Start_state;
-                return ERROR_ESC_ZERO;
-              }
+                if (c == '0'){
+                    num = num * 8 + (c - '0'); // ak dva nuly
+                    state = AUT_ESC_ZERO2;
+                }
+                else if (c > '0' || c <= '7' ) {
+                    num = num * 8 + (c - '0');
+                    state = AUT_ESCN;
+                }
+                else {
+                    state = Start_state;
+                    return ERROR_ESC_ZERO;
+                }
             }
 			else {
 				state = Start_state;
@@ -531,18 +577,18 @@ int Get_Token(void) {
 
 
 	    case AUT_ESCN:
-	        c=fgetc(input);
+	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
-              if(c > '0' || c <= '7' ) {
-                num = num * 8 + (c - '0');
-				state = AUT_ESCN2;
-              }
-			  else if (c == '0')
-			    state = AUT_ESC_ZERO2; // predchadzam moznosti 3 nul
-              else {
-                state = Start_state;
-				return ERROR_ESCN;
-              }
+                if(c > '0' || c <= '7' ) {
+                    num = num * 8 + (c - '0');
+                    state = AUT_ESCN2;
+                }
+                else if (c == '0')
+                    state = AUT_ESC_ZERO2; // predchadzam moznosti 3 nul
+                else {
+                    state = Start_state;
+                    return ERROR_ESCN;
+                }
 			}
 			else {
 			    state = Start_state;
@@ -550,67 +596,68 @@ int Get_Token(void) {
             }
 		    break;
 
-         case AUT_ESC_ZERO2:
-		    c=fgetc(input);
+        case AUT_ESC_ZERO2:
+		    GET_CHAR(c, input, state, line, lineCol);
 		    if(isdigit(c)) {
-			   if (c == '0') {
-			     state = Start_state;
-			     return ERROR_ESC_ZERO2;
-               } // 3 nuly cize error
-			   else if (c > '0' || c <= '7'){
-				 num = num * 1 + (c - '0');
-				 string_end(&string,num);
-				 state = AUT_STRING;
-               }
-			   else {
-	            state = Start_state;
-			    return ERROR_ESC_ZERO2;
-               }
-			 }
-	         else {
-	           state = Start_state;
-			   return ERROR_ESC_ZERO2;
-             }
-			 break;
+                if (c == '0') {
+                    state = Start_state;
+                    return ERROR_ESC_ZERO2;
+                } // 3 nuly cize error
+                else if (c > '0' || c <= '7'){
+                    num = num * 1 + (c - '0');
+                    string_end(string, c, &stringLength, &stringAlloc);
+                    state = AUT_STRING;
+                }
+                else {
+                    state = Start_state;
+                    return ERROR_ESC_ZERO2;
+                }
+            }
+            else {
+                state = Start_state;
+                return ERROR_ESC_ZERO2;
+            }
+            break;
 
 
 
 
         case AUT_ESCN2:
-            c=fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(isdigit(c)) {
-			  if(c >= '0' || c <= '7' ) {
-			    num = num * 1 + (c - '0');
-			    string_end(&string,num);
-			    state = AUT_STRING;
-              }
-			  else {
+                if(c >= '0' || c <= '7' ) {
+                    num = num * 1 + (c - '0');
+                    string_end(string, c, &stringLength, &stringAlloc);
+                    state = AUT_STRING;
+                }
+                else {
+                    state = Start_state;
+                    return ERROR_ESCN2;
+                }
+            }
+            else {
 			    state = Start_state;
 			    return ERROR_ESCN2;
-              }
-		     }
-		     else {
-			    state = Start_state;
-			    return ERROR_ESCN2;
-             }
+            }
 
-		     break;
+            break;
 
 
         case AUT_DIV:
-            c=fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c== '/')
                 state = AUT_DIV2;
             else if(c=='*')
                 state = AUT_CMTB;// posleme do coment bloku
             else {
                 state = Start_state;
-                return DIV;
+                 *symbol = SYM_SLASH;
+                return AUT_SYMBOL;
             }
             break;
 
         case AUT_DIV2:
-            c=fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '\n')
                 state = NEUTRAL_STATE;
             else
@@ -618,78 +665,106 @@ int Get_Token(void) {
             break;
 
         case AUT_CMTL: //Coment Line
-            c=fgetc(input);
-            if(c == '\n') {
+           GET_CHAR(c, input, state, line, lineCol);
+            if(c == '\n' || c == EOF) {
                 state = NEUTRAL_STATE;
-                ++line;
-            }else if(c == EOF)
-                return NOTHING;
+            }
             break;
 
         case AUT_CMTB :   //Coment Block
-            c=fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '*')
                 state = AUT_CMTB_END;
             else if(c == '\n')
-                ++line;
+                continue;
             else if(c == EOF)
                 return ERROR_CMTB;
             break;
         case AUT_CMTB_END:
-            c=fgetc(input);
+           GET_CHAR(c, input, state, line, lineCol);
             if(c == '/')
                 state = NEUTRAL_STATE;
-            else if(c=='\n'){
-                ++line;
-                state = AUT_CMTB;}
             else
                 state = AUT_CMTB;
 
             break;
 
 		case AUT_EQUALS:
-            c = fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '=') {
                 state = NEUTRAL_STATE;
-                return EQUAL;
+                 *symbol = SYM_EQUALS;
+                return AUT_SYMBOL;
             } else {
                 state = Start_state;
-                return ASSIGN;
+                 *symbol = SYM_ASSIGN;
+                return AUT_SYMBOL;
             }
             break;
 
         case AUT_LESS:
-            c = fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '=') {
                 state = NEUTRAL_STATE;
-                return LESS_EQUAL;
+                 *symbol = SYM_LESS_EQUAL;
+                return AUT_SYMBOL;
             } else {
                 state = Start_state;
-                return LESS;
+                 *symbol = SYM_LESS;
+                return AUT_SYMBOL;
             }
             break;
 
         case AUT_GREAT:
-            c = fgetc(input);
+            GET_CHAR(c, input, state, line, lineCol);
             if(c == '=') {
                 state = NEUTRAL_STATE;
-                return GREAT_EQUAL;
+                 *symbol = SYM_GREATER_EQUAL;
+                return AUT_SYMBOL;
             } else {
                 state = Start_state;
-                return GREAT;
+                 *symbol = SYM_GREATER;
+                return AUT_SYMBOL;
             }
             break;
 
         case AUT_NOT_EQUALS:
-            c = fgetc(input);
+           GET_CHAR(c, input, state, line, lineCol);
             if(c == '=') {
                 state = NEUTRAL_STATE;
-                return NOT_EQUAL;
+                 *symbol = SYM_NOT_EQUALS;
+                return AUT_SYMBOL;
             } else {
                 state = Start_state;
                 return ERROR_NOT_EQUALS;
             }
             break;
+        case AUT_UNARY_PL:
+            GET_CHAR(c, input, state, line, lineCol);
+            if(c == '+') {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_UNARY_PLUS;
+                return AUT_SYMBOL;
+            } else {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_PLUS;
+                return AUT_SYMBOL;
+            }
+            break;
+        case AUT_UNARY_MN:
+            GET_CHAR(c, input, state, line, lineCol);
+            if(c == '-') {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_UNARY_MINUS;
+                return AUT_SYMBOL;
+            } else {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_MINUS;
+                return AUT_SYMBOL;
+            }
+            break;
         }
     }
 }
+
+ // neviem ci to tu ma byt

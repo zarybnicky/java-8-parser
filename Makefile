@@ -16,6 +16,7 @@ clean:
 	$(RM) ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o $(LIBOBJ)
 
 ifj16: ifj16.o $(LIBOBJ)
+main: main.o $(LIBOBJ)
 
 test/parser: test/parser.o $(LIBOBJ)
 
