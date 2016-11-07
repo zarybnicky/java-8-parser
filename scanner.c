@@ -28,12 +28,6 @@ Token *getNextToken(FILE *f) {
     int lineNum, lineCol;
     int c = Get_Token(f, &str, &reserved, &symbol, &lineNum, &lineCol);
     Token *t = NULL;
-    putchar(c);
-    if (str != NULL)
-        printf(" %s", str);
-    putchar('\n');
-    
-    printf("%d", c);
 
     t = malloc(sizeof(Token));
     t->lineNum = lineNum;
@@ -69,6 +63,12 @@ Token *getNextToken(FILE *f) {
         t->type = SYMBOL;
         t->val.symbol = symbol;
         break;
+    case END_OF_FILE:
+        free(t);
+        return NULL;
+    default:
+        printf("Invalid return value: %d\n", c);
+        exit(1);
     }
     printToken(t);
     return t;
@@ -108,10 +108,12 @@ void freeToken(Token *t) {
     switch (t->type) {
     case ID_SIMPLE:
     case ID_COMPOUND:
-        free(t->val.id);
+        if (t->original != t->val.id)
+            free(t->val.id);
         break;
     case LIT_STRING:
-        free(t->val.stringVal);
+        if (t->original != t->val.stringVal)
+            free(t->val.stringVal);
         break;
     case RESERVED:
     case SYMBOL:
@@ -248,7 +250,7 @@ AUTSTATES control_res_key_word(char *str, ReservedWord *reserved)
             return RESERVED_WORD; }
         if (strcmp(str, "int") == 0) {
             *reserved = RES_INT;
-            return RESERVED_WORD; 
+            return RESERVED_WORD;
         }
         break;
     case 'r':
@@ -257,11 +259,11 @@ AUTSTATES control_res_key_word(char *str, ReservedWord *reserved)
             return RESERVED_WORD;
         }
         break;
-     
+
     case 'S':
         if (strcmp(str, "String") == 0) {
             *reserved = RES_STRING;
-            return RESERVED_WORD; 
+            return RESERVED_WORD;
         }
         break;
     case 's':
@@ -327,10 +329,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
     static int state = NEUTRAL_STATE;
     static int lineNum = 0;
     static int lineCol = 0;
+    static int c;
 
-    int c;
-    int line = 0;
-    int num = 0;
+    int num;
     int stringLength = 0;
     int stringAlloc = ALLOC_BLOCK;
 
@@ -349,7 +350,6 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
             if (isspace(c)) {
                 state = NEUTRAL_STATE;
-                if (c == '\n') ++line;
             }
 
             else if (isalpha(c) || c == '_' || c == '$') //pokracujeme dalej na stav IDEN
@@ -421,11 +421,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             }
             else if (c == '"')    //skaceme na stav String
                 state = AUT_STRING;
-            else if (c == EOF)
-                return NOTHING;
             else {
-                state = NEUTRAL_STATE;
-                return ERROR_ESC;
+                FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
             }
             break;
 
@@ -437,7 +434,6 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     state = AUT_IDEN2;
 				} else {
                     state = Start_state;
-
                     return control_res_key_word(*string, reserved);
                 }
             }
@@ -670,11 +666,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
         case AUT_CMTL: //Coment Line
            GET_CHAR(c, input, state, line, lineCol);
-            if(c == '\n') {
+            if(c == '\n' || c == EOF) {
                 state = NEUTRAL_STATE;
-                ++line;
-            }else if(c == EOF)
-                return NOTHING;
+            }
             break;
 
         case AUT_CMTB :   //Coment Block
@@ -682,7 +676,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             if(c == '*')
                 state = AUT_CMTB_END;
             else if(c == '\n')
-                ++line;
+                continue;
             else if(c == EOF)
                 return ERROR_CMTB;
             break;
@@ -690,9 +684,6 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
            GET_CHAR(c, input, state, line, lineCol);
             if(c == '/')
                 state = NEUTRAL_STATE;
-            else if(c=='\n'){
-                ++line;
-                state = AUT_CMTB;}
             else
                 state = AUT_CMTB;
 
