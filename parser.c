@@ -492,7 +492,7 @@ bool parseExpressionLiteral(Lexer *l, Expression **e) {
         v->data.integer = t->val.intVal;
         break;
     case LIT_STRING:
-        v = createValue(T_INTEGER);
+        v = createValue(T_STRING);
         v->data.integer = t->val.intVal;
         break;
     case LIT_DOUBLE:

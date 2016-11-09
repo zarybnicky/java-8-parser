@@ -14,6 +14,7 @@
 #include "ir.h"
 #include "parser.h"
 #include "interpret.h"
+#include "sanity.h"
 
 Lexer *l;
 Interpret *i;
@@ -41,7 +42,9 @@ int main(int argc, char *argv[])
     }
     fclose(f);
 
-    //evalMain(i);
     printSymbolTable(&i->symTable);
+    runSemanticAnalysis(i);
+
+    evalMain(i);
     return 0;
 }

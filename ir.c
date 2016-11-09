@@ -255,6 +255,7 @@ Function *createFunction(char *name, ValueType type, int argCount, Declaration *
     f->returnType = type;
     f->argCount = argCount;
     f->argHead = argHead;
+    f->body.head = f->body.tail = NULL;
     return f;
 }
 void freeFunction(Function *f) {
@@ -276,6 +277,35 @@ void printFunction(Function *f) {
     printf(", ");
     printBlock(&f->body);
     printf(")\n");
+}
+void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *)) {
+    if (c == NULL)
+        return;
+    fn(f, c);
+    switch (c->type) {
+    case C_DECLARE:
+    case C_DEFINE:
+    case C_ASSIGN:
+    case C_EXPRESSION:
+    case C_RETURN:
+        break;
+    case C_BLOCK:
+        traverseCommandsC(f, c->data.block.head, fn);
+        break;
+    case C_IF:
+        traverseCommandsC(f, c->data.ifC.thenBlock.head, fn);
+        traverseCommandsC(f, c->data.ifC.elseBlock.head, fn);
+        break;
+    case C_WHILE:
+        traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn);
+        break;
+    }
+    traverseCommandsC(f, c->next, fn);
+}
+void traverseCommands(Function *f, void (*fn)(Function *, Command *)) {
+    if (f->body.head != NULL) {
+        traverseCommandsC(f, f->body.head, fn);
+    }
 }
 
 /* ENUMS */

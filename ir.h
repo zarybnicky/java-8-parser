@@ -142,6 +142,7 @@ void printCommand(Command *);
 Function *createFunction(char *, ValueType, int, Declaration *);
 void freeFunction(Function *);
 void printFunction(Function *);
+void traverseCommands(Function *, void (*f)(Function *, Command *));
 
 char *showValueType(ValueType);
 char *showExpressionType(ExpressionType);

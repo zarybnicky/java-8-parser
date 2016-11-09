@@ -387,15 +387,6 @@ void printSymbolTable(SymbolTable *t) {
     }
 }
 
-/* iterate over BS tree recursively */
-void pre_order(Node *object){
-  if (object != NULL){
-      printNode(object);
-      pre_order(object->left);
-      pre_order(object->right);
-  }
-}
-
 /**
   * fn calling to iterate over every object in table TODO, no tree calling just
   * object better is to call tree and traverse table by it, we can hit object
@@ -411,4 +402,3 @@ void table_iterate(Node *object, void (*fn)(Node *object)){
 
   fn (object);
 }
-

@@ -1,84 +1,81 @@
 /*
  * Project: IFJ16, a programming language interpreter
  * FIT VUT Brno
- * Authors: xzaryb00 - Zarybnický Jakub
- *          xtamas01 - Tama¹koviè Marek
- *          xvasko12 - Va¹ko Martin
- *          xvasko14 - Va¹ko Michal
- *          xzales12 - Záleský Jiøí
+ * Authors: xzaryb00 - ZarybnickÃ½ Jakub
+ *          xtamas01 - TamaÅ¡koviÄ Marek
+ *          xvasko12 - VaÅ¡ko Martin
+ *          xvasko14 - VaÅ¡ko Michal
+ *          xzales12 - ZÃ¡leskÃ½ JiÅ™Ã­
  */
-
-// table_iterate(&root, sancheck());
 
 #include "sanity.h"
 
-void fcheck(Node *node){
+static SymbolTable *symTable;
 
-    int i;
+void runSemanticAnalysis(Interpret *i) {
+    symTable = &i->symTable;
+    Node *root = symTable->root;
 
-    // ARGS num
-    Declaration *pom = node->data.function->argHead->next;
-
-    for (i = 0; pom != NULL; i++){
-        pom = pom->next;
-    }
-
-    if (node->data.function->argCount != i){
-        MERROR(ERR_SEM_TYPECHECK, "Function has different number of arguments!");
-    }
-
-    // Return
-
-    Command *comm = node->data.function->body.tail;
-    bool ret = false;
-
-    if (comm != NULL){
-	
-        do {
-	    
-            if ((comm->type == C_RETURN) && (node->data.function->returnType != T_VOID)){
-		
-                if (comm->data.expr->data.value->type != node->data.function->returnType){
-                    MERROR(ERR_SEM_TYPECHECK, "Trying to return different type than declared!");
-		}
-	        ret = true;
-		
-	    }else if ((comm->type == C_RETURN) && (node->data.function->returnType == T_VOID)){
-
-                    MERROR(ERR_SEM_TYPECHECK, "Trying to return value in void function!")
-	    }
-	    
-        }while (comm->next != NULL);
-
-	    if ((node->data.function->returnType != T_VOID) && (ret ==false)){
-                 MERROR(ERR_SEM_TYPECHECK, "Missing return value in function!") 
-	    }
-    
-    }
-
-    
+    table_iterate(root, checkReturnType);
 }
 
-void sancheck(Node *node){
-    
- /* static bool first = true; // Ulozeni korene stromu pro pripadne vyhledavani
-    
-    if (first == true){
-        Node *root = node;
-
-        first = false;  
+//----- Check return type -----
+static bool hasReturnCommand;
+void checkReturnCommand(Function *f, Command *c) {
+    if (c->type != C_RETURN) {
+        return;
     }
-    */
-    
-    if (node->type == N_VALUE){
-	// Variable check
-    }
+    hasReturnCommand = true;
 
-    if (node->type == N_FUNCTION){
-        fcheck(node);
+    if (f->returnType == T_VOID) {
+        if (c->data.expr != NULL)
+            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value from a void function");
+        return;
     }
-
-    
+    Node *n; char *name;
+    switch (c->data.expr->type) {
+    case E_VALUE:
+        if (f->returnType != c->data.expr->data.value->type)
+            //FIXME: implicit conversions
+            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value with an incompatible type.");
+        break;
+    case E_FUNCALL:
+        name = c->data.expr->data.funcall.name;
+        n = table_lookup(symTable, name);
+        if (n == NULL)
+            FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", name);
+        if (n->type == N_VALUE)
+            FERROR(ERR_SEM_TYPECHECK, "Trying to call a variable '%s'.", name);
+        if (n->data.function->returnType != f->returnType)
+            //FIXME: implicit conversions
+            MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
+        break;
+    case E_REFERENCE:
+        name = c->data.expr->data.funcall.name;
+        n = table_lookup(symTable, name);
+        if (n == NULL)
+            FERROR(ERR_SEM_UNDEFINED, "Trying to return an undefined variable %s", name);
+        if (n->type == N_FUNCTION)
+            MERROR(ERR_SEM_TYPECHECK, "Trying to return a function.");
+        if (n->data.value->type != f->returnType)
+            //FIXME: implicit conversions
+            MERROR(ERR_SEM_TYPECHECK, "Trying to return a variable with an incompatible type.");
+        break;
+    case E_BINARY:
+        //FIXME
+        MERROR(ERR_INTERNAL, "Not yet implemented.");
+        break;
+    }
 }
-
-
+void checkReturnType(Node *node) {
+    if (node->type != N_FUNCTION) {
+        return;
+    }
+    Function *f = node->data.function;
+    hasReturnCommand = false;
+    printFunction(f);
+    traverseCommands(f, checkReturnCommand);
+    if (f->returnType != T_VOID && !hasReturnCommand) {
+        MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
+    }
+}

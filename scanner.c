@@ -166,7 +166,7 @@ void printToken(Token *t) {
         case RES_WHILE:   printf("while\n"); return;
         }
     case SYMBOL:
-        printf("S:");
+        printf("Y:");
         switch (t->val.symbol) {
         case SYM_BRACE_OPEN:    printf("{\n"); return;
         case SYM_BRACE_CLOSE:   printf("}\n"); return;

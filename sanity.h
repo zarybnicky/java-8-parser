@@ -15,8 +15,10 @@
 #include "error.h"
 #include "ir.h"
 #include "ial.h"
+#include "interpret.h"
 
-void fcheck(Node *node);
-void sancheck(Node *node);
+void runSemanticAnalysis(Interpret *i);
+
+void checkReturnType(Node *);
 
 #endif /* IFJ_SANITY_H */
