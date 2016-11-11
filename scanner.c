@@ -515,6 +515,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
         case AUT_STRING:
             GET_CHAR(c, input, state, line, lineCol);
+            if(!(isprint(c))) {
+                state = Start_state ;
+                return ERROR_ASCII; }
             if(c == '"') {
                 state = NEUTRAL_STATE;
                 return STRING; }
