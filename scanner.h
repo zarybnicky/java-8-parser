@@ -115,6 +115,7 @@ typedef enum{
     FLOAT,
     ERROR_R,
     ERROR_NUMBER,
+    ERROR_ASCII,
     ERROR_ESC,
     ERROR_ESC_ZERO,
     ERROR_ESCN,
