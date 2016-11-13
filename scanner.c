@@ -530,10 +530,10 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             GET_CHAR(c, input, state, line, lineCol);
             if(c == 'n'){
                 state = AUT_STRING;
-                string_end(string, c, &stringLength, &stringAlloc);
+                string_end(string, c='\n', &stringLength, &stringAlloc);
             } else if(c == 't') {
                 state = AUT_STRING;
-                string_end(string, c, &stringLength, &stringAlloc);
+                string_end(string, c='\t', &stringLength, &stringAlloc);
             } else if(c == '\\' || c == '"') {
                 state = AUT_STRING;
                 string_end(string, c, &stringLength, &stringAlloc);
