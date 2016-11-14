@@ -538,12 +538,12 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 state = AUT_STRING;
                 string_end(string, c, &stringLength, &stringAlloc);
             } else if(isdigit(c)) {
-				if(c >= '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
-				    num = num * 64 + (c - '0');
+				if(c > '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
+				    num += (c - '0')*64;
 				    state = AUT_ESCN; }
 
                 else if (c == '0') {
-				    num = num * 64 + (c - '0');
+				    num += (c - '0')*64;
 				    state = AUT_ESC_ZERO; }
 
                 else {
@@ -560,12 +560,12 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
                 if (c == '0'){
-                    num = num * 8 + (c - '0'); // ak dva nuly
+                    num += (c - '0')*8; // ak dva nuly
                     state = AUT_ESC_ZERO2;
                 }
                 else if (c > '0' || c <= '7' ) {
-                    num = num * 8 + (c - '0');
-                    state = AUT_ESCN;
+                    num += (c - '0')*8;
+                    state = AUT_ESCN2;
                 }
                 else {
                     state = Start_state;
@@ -583,11 +583,11 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
                 if(c > '0' || c <= '7' ) {
-                    num = num * 8 + (c - '0');
+                    num += ((c - '0')*8);
                     state = AUT_ESCN2;
                 }
-                else if (c == '0')
-                    state = AUT_ESC_ZERO2; // predchadzam moznosti 3 nul
+                else if (c == '0'){
+                    state = AUT_ESCN2;} // predchadzam moznosti 3 nul
                 else {
                     state = Start_state;
                     return ERROR_ESCN;
@@ -607,7 +607,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     return ERROR_ESC_ZERO2;
                 } // 3 nuly cize error
                 else if (c > '0' || c <= '7'){
-                    num = num * 1 + (c - '0');
+                    num += (c - '0');
                     string_end(string, c, &stringLength, &stringAlloc);
                     state = AUT_STRING;
                 }
@@ -629,8 +629,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             GET_CHAR(c, input, state, line, lineCol);
             if(isdigit(c)) {
                 if(c >= '0' || c <= '7' ) {
-                    num = num * 1 + (c - '0');
-                    string_end(string, c, &stringLength, &stringAlloc);
+                    num +=(c - '0');
+                    string_end(string, num, &stringLength, &stringAlloc);
                     state = AUT_STRING;
                 }
                 else {
