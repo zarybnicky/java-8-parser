@@ -15,5 +15,9 @@ assert_raises "./ifj16 test/4_wrong_param_number.java" 4
 assert_raises "./ifj16" 99
 #assert_raises "./ifj16 test/symbol-table.c" 0
 
+make dist
+assert_raises "bash test/is_it_ok.sh xzaryb00.tgz is_ok" 0
+rm -rf is_ok
+make clean
 
 assert_end

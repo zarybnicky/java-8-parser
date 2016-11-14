@@ -19,6 +19,13 @@
 
 void runSemanticAnalysis(Interpret *i);
 
+void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
+
+void checkFnExpresion(Function *,Expression *);
+
+//Top level only??
+void checkTopLevel(Node *node);
+void checkMainRun(Node *node);
 
 #endif /* IFJ_SANITY_H */

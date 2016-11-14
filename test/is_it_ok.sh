@@ -24,19 +24,19 @@ fi
 
 # extrakce archivu
 function unpack_archive () {
-	local ext=`echo $1 | cut -d . -f 2,3`
+  local ext=`echo $1 | cut -d . -f 2,3`
   echo -n "Archive extraction: "
   RETCODE=100  
-	if [[ "$ext" = "zip" ]]; then
-		unzip -o $1 >> $LOG 2>&1
+  if [[ "$ext" = "zip" ]]; then
+    unzip -o $1 >> $LOG 2>&1
     RETCODE=$?
-	elif [[ "$ext" = "gz" || "$ext" = "tgz" || "$ext" = "tar.gz" ]]; then
-		tar xfz $1 >> $LOG 2>&1
+  elif [[ "$ext" = "gz" || "$ext" = "tgz" || "$ext" = "tar.gz" ]]; then
+    tar xfz $1 >> $LOG 2>&1
     RETCODE=$? 
-	elif [[ "$ext" = "tbz2" || "$ext" = "tar.bz2" ]]; then
-		tar xfj $1 >> $LOG 2>&1
+  elif [[ "$ext" = "tbz2" || "$ext" = "tar.bz2" ]]; then
+    tar xfj $1 >> $LOG 2>&1
     RETCODE=$?   
-	fi
+  fi
   if [[ $RETCODE -eq 0 ]]; then
     echo "OK"
   elif [[ $RETCODE -eq 100 ]]; then
@@ -50,20 +50,20 @@ function unpack_archive () {
 
 # prevod jmen souboru obsahujicich nepovolene znaky
 function to_small () {
-	local N=`echo $1 | tr "[:upper:]" "[:lower:]"`
-	if [ "$N" != "$1" ]; then
-	    mv "$1" "$N" 2>/dev/null
+  local N=`echo $1 | tr "[:upper:]" "[:lower:]"`
+  if [ "$N" != "$1" ]; then
+      mv "$1" "$N" 2>/dev/null
       echo "ERROR ($1 -> $N)"
       exit 1       
-	fi
+  fi
 } 
 
 # flattening aktualniho adresare + to_small
 function flattening () {
         local FILE=""
         local NFILE=""
-	local FILES=`find . -name '*' -type f`
-	for FILE in $FILES; do
+  local FILES=`find . -name '*' -type f`
+  for FILE in $FILES; do
             NFILE=./${FILE##*/}            
             if [ "$FILE" != "$NFILE" ]; then
               mv "$FILE" ${NFILE} 2>/dev/null
@@ -74,18 +74,18 @@ function flattening () {
             if [ "$F" != "Makefile" ]; then
               to_small ${NFILE}
             fi
-	done     
+  done     
   echo "OK"
 }
 
 # stare odstraneni DOSovskych radku (nyni mozno pouzit i utilitu dos2unix)
 function remove_CR () {
-	FILES=`ls $* 2>/dev/null`
-	for FILE in $FILES; do
-		mv -f "$FILE" "$FILE.tmp"
-		tr -d "\015" < "$FILE.tmp" > "$FILE"
-		rm -f "$FILE.tmp"
-	done
+  FILES=`ls $* 2>/dev/null`
+  for FILE in $FILES; do
+    mv -f "$FILE" "$FILE.tmp"
+    tr -d "\015" < "$FILE.tmp" > "$FILE"
+    rm -f "$FILE.tmp"
+  done
 }
 
 #   0) Priprava testdir a overeni serveru
@@ -181,10 +181,10 @@ if [[ -f rozdeleni ]]; then
     i=0
     while read -a RADEK; do
       if [[ "${RADEK[0]}" != "" ]]; then
-    		LOGINS[$i]=${RADEK[0]}
-    		PERCENTS[$i]=`echo ${RADEK[1]} | tr -cd [:digit:]`
-    		((TMP_PROC+=${PERCENTS[$i]:-0}))
-    		((i++))
+        LOGINS[$i]=${RADEK[0]}
+        PERCENTS[$i]=`echo ${RADEK[1]} | tr -cd [:digit:]`
+        ((TMP_PROC+=${PERCENTS[$i]:-0}))
+        ((i++))
         if [[ "$NAME" = "${RADEK[0]}" ]]; then
           ARCHNAME=$NAME
         fi
@@ -198,7 +198,7 @@ if [[ -f rozdeleni ]]; then
   # kontrola formatu rozdeleni a souctu procent
   if [[ -n $RADEK ]]; then
     echo "ERROR (the last line is not ended properly)"
-  elif [[ $TMP_PROC -ne 100 ]]; then         	
+  elif [[ $TMP_PROC -ne 100 ]]; then          
     echo "ERROR (sum != 100%)"
   elif [[ -z $ARCHNAME ]]; then
     echo "ERROR (rozdeleni does not contain the leader's login $NAME)"
@@ -219,4 +219,3 @@ else
 fi 
 
 
-        
