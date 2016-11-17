@@ -18,6 +18,7 @@
 typedef enum {
     N_VALUE,
     N_FUNCTION,
+    N_CLASS,
 } NodeType;
 
 typedef struct tNode {
@@ -36,6 +37,7 @@ typedef struct {
 
 Node *createFunctionNode(char *, Function *);
 Node *createValueNode(char *, Value *);
+Node *createClassNode(char *);
 void freeNode(Node *);
 void printNode(Node *);
 char *showNodeType(NodeType);

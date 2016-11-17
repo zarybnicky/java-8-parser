@@ -336,12 +336,28 @@ Node *createValueNode(char *symbol, Value *v) {
     n->right = NULL;
     return n;
 }
+Node *createClassNode(char *symbol) {
+    Node *n = malloc(sizeof(Node));
+    CHECK_ALLOC(n);
+    n->symbol = symbol;
+    n->type = N_CLASS;
+    n->left = NULL;
+    n->right = NULL;
+    return n;
+}
 void freeNode(Node *n) {
     if (n != NULL) {
-        if (n->type == N_VALUE)
-            free(n->data.value);
-        else
-            free(n->data.function);
+        switch (n->type) {
+        case N_VALUE:
+            freeValue(n->data.value);
+            break;
+        case N_FUNCTION:
+            freeFunction(n->data.function);
+            break;
+        case N_CLASS:
+            break;
+        }
+        free(n->symbol);
         freeNode(n->left);
         freeNode(n->right);
         free(n);
@@ -362,6 +378,7 @@ char *showNodeType(NodeType x) {
     switch (x) {
     case N_VALUE:    return "Value";
     case N_FUNCTION: return "Function";
+    case N_CLASS:    return "Class";
     }
     return "Unknown NodeType"; //Just to pacify the compiler...
 }

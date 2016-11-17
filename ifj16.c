@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
     }
 
     i = createInterpret();
-
     l = createLexer(f, i);
+
     while (hasMore(l)) {
         parseClass(l);
     }
@@ -46,5 +46,6 @@ int main(int argc, char *argv[])
     runSemanticAnalysis(i);
 
     evalMain(i);
+    freeGlobalResources();
     return 0;
 }

@@ -135,7 +135,14 @@ void appendToBlock(Block *, Command *);
 void freeBlock(Block);
 void printBlock(Block *);
 
-Command *createCommand(CommandType);
+Command *createCommandDeclare(Declaration);
+Command *createCommandDefine(Declaration, Expression *);
+Command *createCommandAssign(char *, Expression *);
+Command *createCommandBlock();
+Command *createCommandIf(Expression *);
+Command *createCommandWhile(Expression *);
+Command *createCommandExpression(Expression *);
+#define createCommandReturn createCommandExpression
 void freeCommand(Command *);
 void printCommand(Command *);
 
