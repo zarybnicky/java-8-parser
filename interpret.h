@@ -148,9 +148,9 @@ char *str_cat(char *str1, char* str2);
  * @param      stack  The stack
  *
  * @post       stack can not be NULL pointer
- * @return     0 if success, nonzero in error
+ * @return     memory adress where is located stack
  */
-int createLocalStack(Stack *stack);
+Stack *createLocalStack(Stack *stack);
 
 
 /**
@@ -162,7 +162,7 @@ int createLocalStack(Stack *stack);
  * @post       stack can not be NULL pointer
  * @return     0 if success, nonzero in error
  */
-int deleteLocaleStack(Stack *stack);
+Stack *deleteLocaleStack(Stack *stack);
 
 /**
  * @brief      push value to stack.

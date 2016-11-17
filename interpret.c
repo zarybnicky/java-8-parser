@@ -50,6 +50,8 @@ int evalMain(Interpret *i) {
     }
     printf("Not implemented\n");
 
+    // sem zavolaj ten while s tym velkym switchom;
+
     return 0;
 }
 
@@ -364,8 +366,7 @@ char *str_cat(char *str1, char* str2){
 
 //  Stack Init Del Push Pop
 
-int createLocalStack(Stack *stack){
-    assert(stack == NULL);
+Stack *createLocalStack(Stack *stack){
 
     Stack *tmp = malloc(sizeof(Stack) + 5 * sizeof(Value*));
     CHECK_ALLOC(tmp);
@@ -378,20 +379,18 @@ int createLocalStack(Stack *stack){
     tmp->size = -1;
     tmp->cap = 5;
 
-    *stack = tmp;
-
-    return 0;
+    return tmp;
 }
 
-int deleteLocaleStack(Stack *stack){
+Stack *deleteLocaleStack(Stack *stack){
     assert(stack == NULL);
 
     Stack *tmp = stack;
-    *stack = *stack->prev;
+    // *stack = *stack->prev;
 
     free(tmp);
 
-    return 0;
+    return stack->prev;
 }
 
 int pustToStack(Stack *stack, Value *val){
