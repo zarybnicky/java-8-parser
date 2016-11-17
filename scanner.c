@@ -301,7 +301,7 @@ void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
 		*string = malloc(*stringAlloc * sizeof(char));
 		CHECK_ALLOC(*string);
     }
-    if (stringLength >= stringAlloc) {
+    if ((*stringLength) >= (*stringAlloc)) {
         *stringAlloc <<= 1;
         *string = realloc(*string, *stringAlloc * sizeof(char));
         CHECK_ALLOC(*string);

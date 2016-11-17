@@ -17,6 +17,8 @@ void runSemanticAnalysis(Interpret *i) {
     Node *root = symTable->root;
 
     table_iterate(root, checkReturnType);
+    //table_iterate(root, checkMainRun);
+    //table_iterate(root, checkTopLevel);
 }
 
 //----- Check return type -----
