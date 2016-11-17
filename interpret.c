@@ -8,93 +8,261 @@
  *          xzales12 - Záleský Jiří
  */
 
-// NOTE compile with -lpthread
+/*--------------------------------LIBRARIES---------------------------------*/
 
+// System libraries
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <assert.h>
+
+// Local libraries
+#include "error.h"
+#include "int_memory_management.h"
+#include "ir.h"
+#include "ial.h"
 #include "interpret.h"
 
 
-Interpret *createInterpret() {
+Interpret *createInterpret(void) {
     Interpret *i = malloc(sizeof(Interpret));
     CHECK_ALLOC(i);
     i->symTable.root = NULL;
     return i;
 }
 
-void freeInterpret(Interpret *i) {
+
+int freeInterpret(Interpret *i) {
     if (i == NULL)
-        return;
+        return 1;
     if (i->symTable.root != NULL)
         freeNode(i->symTable.root);
     free(i);
+    return 0;
 }
 
-/**
- *
- *
- */
-void evalMain(Interpret *i) {
+
+int evalMain(Interpret *i) {
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
     if (mainFn == NULL || mainFn->type != N_FUNCTION) {
         MERROR(ERR_SEM_UNDEFINED, "Required method Main.run is not defined");
     }
     printf("Not implemented\n");
+
+    return 0;
 }
 
-/**
- *
- *
- */
+
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
-    (void*) left;
-    (void*) right;
+    // memory allocation for result
+    Value *result = malloc(sizeof(Value));
+    CHECK_ALLOC(result);
 
+    // calculate result data type
+    result->type = evalReturnType(op, left, right);
+
+    result->undefined = true;
+
+    // switch to right operation
     switch (op) {
         case EB_EQUAL:
-            // return left->data == right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer == right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl == right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean == right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_NOT_EQUAL:
-            // return left->data != right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer != right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl != right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean != right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_LESS:
             // return left->data < right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer < right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl < right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean < right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_LESS_EQUAL:
             // return left->data <= right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer <= right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl <= right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean <= right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_GREATER:
             // return left->data > right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer > right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl > right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean > right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_GREATER_EQUAL:
             // return left->data >= right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer >= right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl >= right->data.dbl);
+                    break;
+                case(T_BOOLEAN):
+                    result->data.boolean = (left->data.boolean >= right->data.boolean);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                    break;
+            }
+
+            break;
 
         case EB_MULTIPLY:
             // return left->data * right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer * right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl * right->data.dbl);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                case(T_BOOLEAN):
+                    break;
+            }
+            break;
 
         case EB_DIVIDE:
-            //if(right->data != 0)
-                // return left->data / right->data;
-            //else
-                //Call error division by 0
-                //error(ERR_RUNTIME_DIV_BY_ZERO);
-                // return NULL;
+            // return left->data / right->data
+            switch(result->type){
+                case(T_INTEGER):
+                    if (result->data.integer == 0){
+                        ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+                    }
+                    result->data.integer = (left->data.integer / right->data.integer);
+                    break;
+
+                case(T_DOUBLE):
+                    if (result->data.dbl == 0){
+                        ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+                    }
+                    result->data.dbl = (left->data.dbl / right->data.dbl);
+                    break;
+
+                case(T_STRING):
+                case(T_VOID):
+                case(T_BOOLEAN):
+                    break;
+            }
+            break;
 
         case EB_ADD:
-            // return left->data + right->data;
+            // return left->data + right->data or concatenate strings
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer + right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl + right->data.dbl);
+                    break;
+                case(T_STRING):
+                    result->data.str = str_cat(left->data.str, right->data.str);
+                    break;
+                case(T_VOID):
+                case(T_BOOLEAN):
+                    break;
+            }
+            break;
 
         case EB_SUBTRACT:
             // return left->data - right->data;
+            switch(result->type){
+                case(T_INTEGER):
+                    result->data.integer = (left->data.integer - right->data.integer);
+                    break;
+                case(T_DOUBLE):
+                    result->data.dbl = (left->data.dbl - right->data.dbl);
+                    break;
+                case(T_STRING):
+                case(T_VOID):
+                case(T_BOOLEAN):
+                    break;
+            }
             break;
 
     }
 
-    return NULL; //Just to pacify the compiler...
+    result->undefined = false;
+
+    // printf("%s\n", "~~~~~~~~~~~~~~\n\tNot fully implemented!\n~~~~~~~~~~~~~~");
+
+    return result; //Just to pacify the compiler...
 }
 
-/**
- *
- *
- */
+
 Value *evalStaticExpression(Expression *e) {
     Value *left, *right;
 
@@ -112,11 +280,11 @@ Value *evalStaticExpression(Expression *e) {
     return NULL; //Just to pacify the compiler...
 }
 
-/**
- *
- *
- */
+
 ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
+
+    // (void*) left;
+    // (void*) right; // turn off compiler warnings for arguments
 
     ValueType returnType = T_VOID;
 
@@ -127,17 +295,131 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
         case EB_LESS_EQUAL:
         case EB_GREATER:
         case EB_GREATER_EQUAL:
-            if(left->type == right->type)
+
+            // if both arguments are equal type but are not string
+            if(left->type == right->type && left->type != T_STRING){
+                returnType = left->type;
+            }
+            // if arguments are not equal and not string
+            else if(left->type != right->type && left->type != T_STRING && right->type != T_STRING){
+                returnType = T_DOUBLE;
+            }
+            // string and boolean are not accepted here
             break;
 
-        case EB_MULTIPLY:
         case EB_ADD:
+            if(left->type == T_STRING || right->type == T_STRING){
+                returnType = T_STRING;
+                break;
+            }
+        case EB_MULTIPLY:
         case EB_SUBTRACT:
+
+            if(left->type == right->type){
+                returnType = left->type;
+            }
+            // if is at least one argument double result is also double
+            else if(left->type == T_DOUBLE || right->type == T_DOUBLE){
+                returnType = T_DOUBLE;
+            }
+            else{
+                returnType = T_BOOLEAN;
+            }
+
+
             break;
 
         case EB_DIVIDE:
+           if((left->type == right->type) == T_INTEGER){
+                returnType = T_INTEGER;
+            }
+            else{
+                returnType = T_DOUBLE;
+            }
             break;
     }
 
     return returnType;
+}
+
+char *str_cat(char *str1, char* str2){
+
+    assert(str1 == NULL);
+    assert(str2 == NULL);
+
+    char *result = malloc( sizeof(char) * ( strlen(str1) + strlen(str2) ) );
+    CHECK_ALLOC(result);
+
+    unsigned x = 0;
+
+    for ( x = 0; x < strlen(str1); x++)
+        result[x] = str1[x];
+    for (; x < strlen(str2) + strlen(str1); x++)
+        result[x] = str2[x - strlen(str1)];
+
+    return result;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~Function handling~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+//  Stack Init Del Push Pop
+
+int createLocalStack(Stack *stack){
+    assert(stack == NULL);
+
+    Stack *tmp = malloc(sizeof(Stack) + 5 * sizeof(Value*));
+    CHECK_ALLOC(tmp);
+
+    tmp->prev = stack;
+
+    //  alocate space for 5 params.
+    tmp->data[0] = NULL;
+
+    tmp->size = -1;
+    tmp->cap = 5;
+
+    *stack = tmp;
+
+    return 0;
+}
+
+int deleteLocaleStack(Stack *stack){
+    assert(stack == NULL);
+
+    Stack *tmp = stack;
+    *stack = *stack->prev;
+
+    free(tmp);
+
+    return 0;
+}
+
+int pustToStack(Stack *stack, Value *val){
+    assert(stack == NULL);
+    assert(val == NULL);
+
+    stack->size++;
+
+    //reallocate whole stack if is no space in stack;
+    if(stack->size == stack->cap){
+        stack = realloc( stack, sizeof(stack) + stack->cap * 2);
+        CHECK_ALLOC(stack->data);
+    }
+
+    stack->data[stack->size] = val;
+
+    return 0;
+}
+
+Value *popFromStack(Stack *stack){
+    assert(stack == NULL);
+
+    if(stack->size == -1){
+        return NULL;
+    }
+    else{
+        return stack->data[stack->size];
+    }
+
+    return 0;
 }
