@@ -1,6 +1,14 @@
 #include "../ir.h"
 #include "../ial.h"
 
+void pre_order(Node *node){
+  if (node != NULL){
+    printNode(node);
+    pre_order(node->left);
+    pre_order(node->right);
+  }
+}
+
 int main(){
   char name[10] ="a";
   Value *new_val = createValue (1);
