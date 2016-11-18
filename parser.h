@@ -108,7 +108,7 @@ bool commit(Lexer *l);
         }                                                               \
         nextToken(l);                                                   \
     } while (0);
-#define tryValueType(l, ret) do {\
+#define tryValueType(l, ret) do {                                       \
         Token *t = peekToken(l);                                        \
         if (t == NULL || t->type != RESERVED ||                         \
             !(t->val.reserved == RES_BOOLEAN ||                         \
@@ -118,6 +118,28 @@ bool commit(Lexer *l);
             return ret;                                                 \
         }                                                               \
     } while (0);
+#define errorExpectedExpression(l) do {                                 \
+    Token *t = peekToken(l);                                            \
+    FERROR(ERR_SYNTAX,                                                  \
+           "Expected an expression on line %d:%d, received '%s'.\n",    \
+           t->lineNum, t->lineChar, t->original);                       \
+    } while (0);
+#define errorExpectedCommand(l) do {                                    \
+    Token *t = peekToken(l);                                            \
+    FERROR(ERR_SYNTAX,                                                  \
+           "Expected a command on line %d:%d, received '%s'.\n",        \
+           t->lineNum, t->lineChar, t->original);                       \
+    } while (0);
+#define PARSE_EXPRESSION(e, l)                  \
+    Expression *e = NULL;                       \
+    if (!parseExpression(l, &e)) {              \
+        errorExpectedExpression(l);             \
+    }
+#define PARSE_EXPRESSION(e, l)                  \
+    Expression *e = NULL;                       \
+    if (!parseExpression(l, &e)) {              \
+        errorExpectedExpression(l);             \
+    }
 
 #define hasMore(l) \
     (peekToken(l) != NULL)
@@ -142,10 +164,14 @@ bool parseLocalDeclaration(Lexer *l, Block *b);
 bool parseLocalDefinition(Lexer *l, Block *b);
 bool parseIf(Lexer *l, Block *b);
 bool parseWhile(Lexer *l, Block *b);
+bool parseDoWhile(Lexer *l, Block *b);
+bool parseFor(Lexer *l, Block *b);
 bool parseCommand(Lexer *l, Block *b);
 
 bool parseAssign(Lexer *l, Block *b);
 bool parseFuncall(Lexer *l, Block *b);
+bool parseContinue(Lexer *l, Block *b);
+bool parseBreak(Lexer *l, Block *b);
 bool parseReturn(Lexer *l, Block *b);
 bool parseBlock(Lexer *l, Block *b);
 

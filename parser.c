@@ -117,13 +117,7 @@ bool parseStaticDefinition(Lexer *l) {
     ValueType type = parseType(l);
     char *name = parseAndQualifySimpleId(l);
     trySymbol(l, SYM_ASSIGN, (free(name), false));
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
 
     Value *v = evalStaticExpression(e);
     if (v->type != type) {
@@ -159,8 +153,6 @@ bool parseFunction(Lexer *l) {
 bool parseFunctionBody(Lexer *l, Block *b) {
     bracket(l, parseLocalDeclaration, b);
     bracket(l, parseLocalDefinition, b);
-    bracket(l, parseIf, b);
-    bracket(l, parseWhile, b);
     bracket(l, parseCommand, b);
     return false;
 }
@@ -181,44 +173,42 @@ bool parseLocalDefinition(Lexer *l, Block *b) {
         return false;
     }
     expectSymbol(l, SYM_ASSIGN);
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
     expectSymbol(l, SYM_SEMI);
+
     appendToBlock(b, createCommandDefine(d, e));
     return true;
 }
 
+bool parseCommand(Lexer *l, Block *b) {
+    bracket(l, parseIf, b);
+    bracket(l, parseWhile, b);
+    bracket(l, parseDoWhile, b);
+    bracket(l, parseFor, b);
+    bracket(l, parseAssign, b);
+    bracket(l, parseFuncall, b);
+    bracket(l, parseContinue, b);
+    bracket(l, parseBreak, b);
+    bracket(l, parseReturn, b);
+    bracket(l, parseBlock, b);
+    return false;
+}
+
 bool parseIf(Lexer *l, Block *b) {
     tryReserved(l, RES_IF, false);
+
     expectSymbol(l, SYM_PAREN_OPEN);
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
     expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommandIf(e);
     if (!parseCommand(l, &c->data.ifC.thenBlock)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
+        errorExpectedCommand(l);
     }
     appendToBlock(b, c);
     tryReserved(l, RES_ELSE, true);
     if (!parseCommand(l, &c->data.ifC.elseBlock)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected a command on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
+        errorExpectedCommand(l);
     }
     return true;
 }
@@ -226,32 +216,59 @@ bool parseIf(Lexer *l, Block *b) {
 bool parseWhile(Lexer *l, Block *b) {
     tryReserved(l, RES_WHILE, false);
     expectSymbol(l, SYM_PAREN_OPEN);
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
     expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommandWhile(e);
     if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected a command on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-   }
+        errorExpectedCommand(l);
+    }
     appendToBlock(b, c);
     return true;
 }
 
-bool parseCommand(Lexer *l, Block *b) {
-    bracket(l, parseAssign, b);
-    bracket(l, parseFuncall, b);
-    bracket(l, parseReturn, b);
-    bracket(l, parseBlock, b);
-    return false;
+bool parseDoWhile(Lexer *l, Block *b) {
+    tryReserved(l, RES_DO, false);
+    Command *c = createCommandDoWhile();
+    if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
+        errorExpectedCommand(l);
+    }
+
+    expectReserved(l, RES_WHILE);
+    expectSymbol(l, SYM_PAREN_OPEN);
+    PARSE_EXPRESSION(e, l);
+    c->data.doWhileC.cond = e;
+    expectSymbol(l, SYM_PAREN_CLOSE);
+    expectSymbol(l, SYM_SEMI);
+
+    appendToBlock(b, c);
+    return true;
+}
+
+bool parseFor(Lexer *l, Block *b) {
+    tryReserved(l, RES_FOR, false);
+    expectSymbol(l, SYM_PAREN_OPEN);
+    Declaration d, *dPtr = &d;
+    if (!parseDeclaration(l, &dPtr)) {
+        return false;
+    }
+    expectSymbol(l, SYM_ASSIGN);
+    PARSE_EXPRESSION(init, l);
+    expectSymbol(l, SYM_SEMI);
+    PARSE_EXPRESSION(cond, l);
+    expectSymbol(l, SYM_SEMI);
+    Block dummy; dummy.head = dummy.tail = NULL;
+    if (!parseAssign(l, &dummy)) {
+        errorExpectedCommand(l);
+    }
+    expectSymbol(l, SYM_PAREN_CLOSE);
+
+    Command *c = createCommandFor(d, init, cond, dummy.head);
+    if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
+        errorExpectedCommand(l);
+    }
+    appendToBlock(b, c);
+    return true;
 }
 
 bool parseAssign(Lexer *l, Block *b) {
@@ -260,13 +277,7 @@ bool parseAssign(Lexer *l, Block *b) {
         return false;
     char *name = parseAndQualifyId(l);
     trySymbol(l, SYM_ASSIGN, (free(name), false));
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
     expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandAssign(name, e));
     return true;
@@ -282,19 +293,25 @@ bool parseFuncall(Lexer *l, Block *b) {
     return true;
 }
 
+bool parseContinue(Lexer *l, Block *b) {
+    tryReserved(l, RES_CONTINUE, false);
+    appendToBlock(b, createCommandContinue());
+    return true;
+}
+
+bool parseBreak(Lexer *l, Block *b) {
+    tryReserved(l, RES_BREAK, false);
+    appendToBlock(b, createCommandBreak());
+    return true;
+}
+
 bool parseReturn(Lexer *l, Block *b) {
     tryReserved(l, RES_RETURN, false);
     if (isSymbol(l, SYM_SEMI)) {
         appendToBlock(b, createCommandReturn(NULL));
         return true;
     }
-    Expression *e = NULL;
-    if (!parseExpression(l, &e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e, l);
     expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandReturn(e));
     return true;
@@ -322,13 +339,8 @@ bool parseExpression(Lexer *l, Expression **e) {
         return true;
     }
     nextToken(l);
-    Expression *right = NULL;
-    if (!parseExpression(l, &right)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(right, l);
+
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
         = t->val.symbol == SYM_EQUALS ? EB_EQUAL : EB_NOT_EQUAL;
@@ -351,13 +363,8 @@ bool parseExpressionCmp(Lexer *l, Expression **e) {
         return true;
     }
     nextToken(l);
-    Expression *right = NULL;
-    if (!parseExpression(l, &right)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(right, l);
+
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op =
         t->val.symbol == SYM_LESS ? EB_LESS :
@@ -380,13 +387,8 @@ bool parseExpressionMul(Lexer *l, Expression **e) {
         return true;
     }
     nextToken(l);
-    Expression *right = NULL;
-    if (!parseExpression(l, &right)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(right, l);
+
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
         = t->val.symbol == SYM_STAR ? EB_MULTIPLY : EB_DIVIDE;
@@ -407,13 +409,8 @@ bool parseExpressionAdd(Lexer *l, Expression **e) {
         return true;
     }
     nextToken(l);
-    Expression *right = NULL;
-    if (!parseExpression(l, &right)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(right, l);
+
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op = t->val.symbol == SYM_PLUS ? EB_ADD : EB_SUBTRACT;
     (*e)->data.binary.left = left;
@@ -431,12 +428,8 @@ bool parseExpressionTerm(Lexer *l, Expression **e) {
 
 bool parseExpressionParen(Lexer *l, Expression **e) {
     trySymbol(l, SYM_PAREN_OPEN, false);
-    if (!parseExpression(l, e)) {
-        Token *t = peekToken(l);
-        FERROR(ERR_SYNTAX,
-               "Expected an expression on line %d:%d, received '%s'.\n",
-               t->lineNum, t->lineChar, t->original);
-    }
+    PARSE_EXPRESSION(e_, l);
+    *e = e_;
     expectSymbol(l, SYM_PAREN_CLOSE);
     return true;
 }
@@ -549,12 +542,8 @@ Expression *parseArgListCall(Lexer *l, int *argCount) {
     Expression **f = &e->next;
     while (1) {
         trySymbol(l, SYM_COMMA, e);
-        if (!parseExpression(l, f)) {
-            Token *t = peekToken(l);
-            FERROR(ERR_SYNTAX,
-                   "Expected an expression on line %d:%d, received '%s'.\n",
-                   t->lineNum, t->lineChar, t->original);
-        }
+        PARSE_EXPRESSION(f_, l);
+        *f = f_;
         (*argCount)++;
         f = &(*f)->next;
     }

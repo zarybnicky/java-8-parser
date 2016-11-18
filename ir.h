@@ -51,7 +51,11 @@ typedef enum {
     C_BLOCK,
     C_IF,
     C_WHILE,
+    C_DO_WHILE,
+    C_FOR,
     C_EXPRESSION,
+    C_CONTINUE,
+    C_BREAK,
     C_RETURN,
 } CommandType;
 
@@ -107,6 +111,12 @@ typedef struct tCommand {
         Block block;
         struct { Expression *cond; Block thenBlock; Block elseBlock; } ifC;
         struct { Expression *cond; Block bodyBlock; } whileC;
+        struct { Block bodyBlock; Expression *cond; } doWhileC;
+        struct {
+            Declaration var; Expression *initial;
+            Expression *cond; struct tCommand *iter;
+            Block bodyBlock;
+        } forC;
         Expression *expr; //C_EXPRESSION + C_RETURN
     } data;
 } Command;
@@ -141,8 +151,12 @@ Command *createCommandAssign(char *, Expression *);
 Command *createCommandBlock();
 Command *createCommandIf(Expression *);
 Command *createCommandWhile(Expression *);
+Command *createCommandDoWhile();
+Command *createCommandFor(Declaration, Expression *, Expression *, Command *);
 Command *createCommandExpression(Expression *);
-#define createCommandReturn createCommandExpression
+Command *createCommandContinue();
+Command *createCommandBreak();
+Command *createCommandReturn(Expression *);
 void freeCommand(Command *);
 void printCommand(Command *);
 

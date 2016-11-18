@@ -199,9 +199,36 @@ Command *createCommandWhile(Expression *e) {
     c->data.whileC.bodyBlock.head = c->data.whileC.bodyBlock.tail = NULL;
     return c;
 }
+Command *createCommandDoWhile() {
+    CREATE_COMMAND(c, C_DO_WHILE);
+    c->data.doWhileC.bodyBlock.head = c->data.doWhileC.bodyBlock.tail = NULL;
+    return c;
+}
+Command *createCommandFor(Declaration d, Expression *init, Expression *cond, Command *iter) {
+    CREATE_COMMAND(c, C_FOR);
+    c->data.forC.var = d;
+    c->data.forC.initial = init;
+    c->data.forC.cond = cond;
+    c->data.forC.iter = iter;
+    c->data.forC.bodyBlock.head = c->data.forC.bodyBlock.tail = NULL;
+    return c;
+}
 Command *createCommandExpression(Expression *e) {
     CREATE_COMMAND(c, C_EXPRESSION);
     c->data.expr = e;
+    return c;
+}
+Command *createCommandReturn(Expression *e) {
+    CREATE_COMMAND(c, C_RETURN);
+    c->data.expr = e;
+    return c;
+}
+Command *createCommandContinue() {
+    CREATE_COMMAND(c, C_CONTINUE);
+    return c;
+}
+Command *createCommandBreak() {
+    CREATE_COMMAND(c, C_BREAK);
     return c;
 }
 
@@ -232,9 +259,23 @@ void freeCommand(Command *c) {
             freeExpression(c->data.whileC.cond);
             freeBlock(c->data.whileC.bodyBlock);
             break;
+        case C_DO_WHILE:
+            freeExpression(c->data.doWhileC.cond);
+            freeBlock(c->data.doWhileC.bodyBlock);
+            break;
+        case C_FOR:
+            free(c->data.forC.var.name);
+            freeExpression(c->data.forC.initial);
+            freeExpression(c->data.forC.cond);
+            freeCommand(c->data.forC.iter);
+            freeBlock(c->data.forC.bodyBlock);
+            break;
         case C_EXPRESSION:
         case C_RETURN:
             freeExpression(c->data.expr);
+            break;
+        case C_CONTINUE:
+        case C_BREAK:
             break;
         }
         free(c);
@@ -272,9 +313,23 @@ void printCommand(Command *c) {
             printExpression(c->data.whileC.cond), printf(", ");
             printBlock(&c->data.whileC.bodyBlock);
             break;
+        case C_DO_WHILE:
+            printExpression(c->data.doWhileC.cond), printf(", ");
+            printBlock(&c->data.doWhileC.bodyBlock);
+            break;
+        case C_FOR:
+            printDeclaration(&c->data.forC.var), printf(", ");
+            printExpression(c->data.forC.initial), printf(", ");
+            printExpression(c->data.forC.cond), printf(", ");
+            printCommand(c->data.forC.iter), printf(", ");
+            printBlock(&c->data.whileC.bodyBlock);
+            break;
         case C_EXPRESSION:
         case C_RETURN:
             printExpression(c->data.expr);
+            break;
+        case C_CONTINUE:
+        case C_BREAK:
             break;
         }
         printf(")\n");
@@ -323,6 +378,8 @@ void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *
     case C_ASSIGN:
     case C_EXPRESSION:
     case C_RETURN:
+    case C_CONTINUE:
+    case C_BREAK:
         break;
     case C_BLOCK:
         traverseCommandsC(f, c->data.block.head, fn);
@@ -333,6 +390,13 @@ void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *
         break;
     case C_WHILE:
         traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn);
+        break;
+    case C_DO_WHILE:
+        traverseCommandsC(f, c->data.doWhileC.bodyBlock.head, fn);
+        break;
+    case C_FOR:
+        traverseCommandsC(f, c->data.forC.iter, fn);
+        traverseCommandsC(f, c->data.forC.bodyBlock.head, fn);
         break;
     }
     traverseCommandsC(f, c->next, fn);
@@ -386,7 +450,11 @@ char *showCommandType(CommandType x) {
     case C_BLOCK:      return "Block";
     case C_IF:         return "If";
     case C_WHILE:      return "While";
+    case C_DO_WHILE:   return "DoWhile";
+    case C_FOR:        return "For";
     case C_EXPRESSION: return "Expression";
+    case C_CONTINUE:   return "Continue";
+    case C_BREAK:      return "Break";
     case C_RETURN:     return "Return";
     }
     return "Unknown CommandType"; //Just to pacify the compiler...
