@@ -1,5 +1,14 @@
 #include "../ir.h"
 #include "../ial.h"
+#include "../scanner.h"
+#include "../parser.h"
+
+Lexer *l;
+Interpret *i;
+void freeGlobalResources() {
+    freeLexer(l);
+    freeInterpret(i);
+}
 
 void pre_order(Node *node){
   if (node != NULL){
@@ -72,6 +81,7 @@ int main(){
 
   // returns null lookup
   lookup = table_lookup (NULL, "");
+  lookup = table_lookup(new_table,"i");
   table_iterate (b, pre_order);
 
   printf("\n");
