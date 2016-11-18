@@ -8,29 +8,28 @@
  *          xzales12 - Záleský Jiří
  */
 
-#include "error.h"
-#include <stdio.h>
-#include <stdlib.h>
-
 #ifndef INT_MEM_MANAGEMET
 #define INT_MEM_MANAGEMET
 
-typedef struct mem_elem {
-    struct mem_elem *ptr;
-    void* data;
-} *mem_elem_ptr;
+#define HTAB_SIZE 49157
 
-typedef struct{
-    mem_elem_ptr Act;
-    mem_elem_ptr First;
-    mem_elem_ptr Last;
-} mem_t;
+typedef struct T_HTItem{
+    ValueType type;
+    void *addr;
+    struct T_HTItem *next;
+} T_HTItem;
 
-void InitMemory (mem_t *L);
-void DisposeMemory (mem_t *L);
-void *malloc_c (mem_t *L, size_t size);
-void *calloc_c (mem_t *L, unsigned num, size_t size);
-void free_c (mem_t *L, mem_elem_ptr ptr);
-void free_c_all (mem_t *L);
+typedef T_HTItem* T_HTable[HTAB_SIZE];
+
+T_HTable alloc_tab;
+
+void *malloc_c (size_t size);
+void *calloc_c (unsigned num, size_t size);
+void free_c (void *addr);
+void free_c_all (void);
+unsigned int hash_function(const void *addr, unsigned htab_size);
+void ht_init ( T_HTable *tab );
+T_HTItem* ht_search ( T_HTable* tab, void *addr );
+void ht_insert ( T_HTable* tab, void *addr );
 
 #endif

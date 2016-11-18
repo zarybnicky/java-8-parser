@@ -16,12 +16,15 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <limits.h>
+#include <errno.h>
 
 // Local libraries
 #include "error.h"
-#include "int_memory_management.h"
-#include "ir.h"
 #include "ial.h"
+#include "ir.h"
+#include "int_memory_management.h"
+
 #include "interpret.h"
 
 
@@ -48,7 +51,25 @@ int evalMain(Interpret *i) {
     if (mainFn == NULL || mainFn->type != N_FUNCTION) {
         MERROR(ERR_SEM_UNDEFINED, "Required method Main.run is not defined");
     }
-    printf("Not implemented\n");
+
+    Stack *GlobalStack = NULL;
+    GlobalStack = createLocalStack(NULL);
+
+    //  Push arguments to stack
+
+    for(Declaration *dec = i->symTable.root->data.function->argHead;
+        dec->next != NULL;
+        dec = dec->next)
+    {
+        Value *tmp = reTypeFromDeclToVal(dec);
+        printf("%s: %s: tmp: %d",__FILE__, __func__, tmp->type);
+
+    }
+
+    free(GlobalStack);
+
+    // interpret(i->symTable.root->data.function);
+
 
     // sem zavolaj ten while s tym velkym switchom;
 
@@ -385,12 +406,12 @@ Stack *createLocalStack(Stack *stack){
 Stack *deleteLocaleStack(Stack *stack){
     assert(stack == NULL);
 
-    Stack *tmp = stack;
+    Stack *tmp = stack->prev;
     // *stack = *stack->prev;
 
-    free(tmp);
+    free(stack);
 
-    return stack->prev;
+    return tmp;
 }
 
 int pustToStack(Stack *stack, Value *val){
@@ -419,6 +440,71 @@ Value *popFromStack(Stack *stack){
     else{
         return stack->data[stack->size];
     }
+
+    return 0;
+}
+
+
+//  Retype
+
+Value *reTypeFromDeclToVal(Declaration *dec){
+
+    Value *val = (Value*)malloc_c(sizeof(Value));
+    val->undefined = 0;
+
+    // Integer
+    //
+    errno = 0;
+    char *rubbish = NULL;
+    long tmp_i = strtol(dec->name, &rubbish, 10);
+
+    if(rubbish == NULL && errno != ERANGE){
+        val->data.integer = tmp_i;
+        val->type = T_INTEGER;
+        return val;
+    }
+
+    // Double
+    //
+    rubbish = NULL;
+    errno = 0;
+
+    double tmp_d = strtof(dec->name, &rubbish);
+
+    if(rubbish == NULL && errno != ERANGE){
+        val->data.dbl = tmp_d;
+        val->type = T_DOUBLE;
+        return val;
+    }
+
+    // Boolean
+    //
+    char *tr = "TRUE\0";
+    char *fl = "FALSE\0";
+
+    if(!strcmp(dec->name,tr)){
+        val->data.boolean = 1;
+        val->type = T_BOOLEAN;
+        return val;
+    }
+    else if(!strcmp(dec->name,fl)){
+        val->data.boolean = 0;
+        val->type = T_BOOLEAN;
+        return val;
+    }
+
+    return NULL;
+
+}
+
+int reType(Value *to, Value *from, ValueType type){
+
+    if(to == NULL || from == NULL)
+        return -1;
+
+    if(type != T_VOID)
+        return -1;
+
 
     return 0;
 }

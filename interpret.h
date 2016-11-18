@@ -187,4 +187,6 @@ int pustToStack(Stack *stack, Value *val);
  */
 Value *popFromStack(Stack *stack);
 
+Value *reTypeFromDeclToVal(Declaration *dec);
+
 #endif
