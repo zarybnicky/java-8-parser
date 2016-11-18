@@ -51,9 +51,8 @@ Expression *createExpression(ExpressionType type) {
     return e;
 }
 void freeExpression(Expression *e) {
-    Expression *f;
     while (e != NULL) {
-        f = e->next;
+        Expression *f = e->next;
         switch (e->type) {
         case E_FUNCALL:
             free(e->data.funcall.name);
@@ -117,9 +116,8 @@ Declaration *createDeclaration(ValueType type, char *name) {
     return d;
 }
 void freeDeclaration(Declaration *d) {
-    Declaration *e;
     while (d != NULL) {
-        e = d->next;
+        Declaration *e = d->next;
         free(d->name);
         free(d);
         d = e;
@@ -160,20 +158,56 @@ void printBlock(Block *b) {
 }
 
 /* COMMAND */
-Command *createCommand(CommandType type) {
-    Command *c = malloc(sizeof(Command));
-    CHECK_ALLOC(c);
-    c->type = type;
-    c->next = NULL;
+#define CREATE_COMMAND(c, type_) \
+    Command *c = malloc(sizeof(Command));       \
+    CHECK_ALLOC(c);                             \
+    c->type = type_;                            \
+    c->next = NULL;                             \
+
+Command *createCommandDeclare(Declaration d) {
+    CREATE_COMMAND(c, C_DECLARE);
+    c->data.declare = d;
     return c;
 }
+Command *createCommandDefine(Declaration d, Expression *e) {
+    CREATE_COMMAND(c, C_DEFINE);
+    c->data.define.declaration = d;
+    c->data.define.expr = e;
+    return c;
+}
+Command *createCommandAssign(char *n, Expression *e) {
+    CREATE_COMMAND(c, C_ASSIGN);
+    c->data.assign.name = n;
+    c->data.assign.expr = e;
+    return c;
+}
+Command *createCommandBlock() {
+    CREATE_COMMAND(c, C_BLOCK);
+    c->data.block.head = c->data.block.tail = NULL;
+    return c;
+}
+Command *createCommandIf(Expression *e) {
+    CREATE_COMMAND(c, C_IF);
+    c->data.ifC.cond = e;
+    c->data.ifC.thenBlock.head = c->data.ifC.thenBlock.tail = NULL;
+    c->data.ifC.elseBlock.head = c->data.ifC.elseBlock.tail = NULL;
+    return c;
+}
+Command *createCommandWhile(Expression *e) {
+    CREATE_COMMAND(c, C_WHILE);
+    c->data.whileC.cond = e;
+    c->data.whileC.bodyBlock.head = c->data.whileC.bodyBlock.tail = NULL;
+    return c;
+}
+Command *createCommandExpression(Expression *e) {
+    CREATE_COMMAND(c, C_EXPRESSION);
+    c->data.expr = e;
+    return c;
+}
+
 void freeCommand(Command *c) {
-    if (c == NULL) {
-        return;
-    }
-    Command *d;
     while (c != NULL) {
-        d = c->next;
+        Command *d = c->next;
         switch (c->type) {
         case C_DECLARE:
             free(c->data.declare.name);
@@ -184,8 +218,8 @@ void freeCommand(Command *c) {
             break;
         case C_ASSIGN:
             free(c->data.assign.name);
-        freeExpression(c->data.assign.expr);
-        break;
+            freeExpression(c->data.assign.expr);
+            break;
         case C_BLOCK:
             freeCommand(c->data.block.head);
             break;
@@ -193,6 +227,7 @@ void freeCommand(Command *c) {
             freeExpression(c->data.ifC.cond);
             freeBlock(c->data.ifC.thenBlock);
             freeBlock(c->data.ifC.elseBlock);
+            break;
         case C_WHILE:
             freeExpression(c->data.whileC.cond);
             freeBlock(c->data.whileC.bodyBlock);
