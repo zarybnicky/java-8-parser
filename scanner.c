@@ -70,7 +70,6 @@ Token *getNextToken(FILE *f) {
         printf("Invalid return value: %d\n", c);
         exit(1);
     }
-    printToken(t);
     return t;
 }
 
