@@ -47,10 +47,6 @@ int freeInterpret(Interpret *i) {
 
 
 int evalMain(Interpret *i) {
-    Node *mainFn = table_lookup(&i->symTable, "Main.run");
-    if (mainFn == NULL || mainFn->type != N_FUNCTION) {
-        MERROR(ERR_SEM_UNDEFINED, "Required method Main.run is not defined");
-    }
 
     Stack *GlobalStack = NULL;
     GlobalStack = createLocalStack(NULL);

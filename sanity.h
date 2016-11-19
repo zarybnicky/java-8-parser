@@ -17,15 +17,17 @@
 #include "ial.h"
 #include "interpret.h"
 
-void runSemanticAnalysis(Interpret *i);
+void runSemanticAnalysis(Interpret *);
 
 void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
-void checkFnExpresion(Function *,Expression *);
+//support function for fnExpression definition??!
+void checkFnExpresion(Function *,Command *);
 
 //Top level only??
-void checkTopLevel(Node *node);
-void checkMainRun(Node *node);
+void checkTopLevel(Node *);
+void checkAllStatic (Node *);
+void checkMainRun(SymbolTable *);
 
 #endif /* IFJ_SANITY_H */

@@ -1,12 +1,14 @@
 /* Program 1: Vypocet faktorialu (iterativne) */
 class Main
 {
+    static void abc(){ int b; }
     static void run()
     {
         int a;
         ifj16.print("Zadejte cislo pro vypocet faktorialu: ");
         a = ifj16.readInt();
         int vysl;
+        abc(def());
         if (a < 0) { // nacitani zaporneho cisla nemusite podporovat
             ifj16.print("Faktorial nelze spocitat!\n");
         }

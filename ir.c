@@ -158,7 +158,7 @@ void printBlock(Block *b) {
 }
 
 /* COMMAND */
-#define CREATE_COMMAND(c, type_) \
+#define CREATE_COMMAND(c, type_)                \
     Command *c = malloc(sizeof(Command));       \
     CHECK_ALLOC(c);                             \
     c->type = type_;                            \

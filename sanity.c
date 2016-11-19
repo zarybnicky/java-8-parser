@@ -17,8 +17,8 @@ void runSemanticAnalysis(Interpret *i) {
     Node *root = symTable->root;
 
     table_iterate(root, checkReturnType);
-    //table_iterate(root, checkMainRun);
-    //table_iterate(root, checkTopLevel);
+    checkMainRun(&i->symTable);
+    table_iterate(root, checkAllStatic);
 }
 
 //----- Check return type -----
@@ -80,4 +80,57 @@ void checkReturnType(Node *node) {
     if (f->returnType != T_VOID && !hasReturnCommand) {
         MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
     }
+}
+
+void checkFnExpresion(Function *f, Command *c){
+    (void)f;
+    //FIXME ?!?!
+
+    if (c->type == C_EXPRESSION){
+        //printf("\n\n");
+        //printCommand(c);
+        //printf("%s\n\n\n", showExpressionType(c->data.expr->type));
+        Node *n; char *name;
+        switch(c->data.expr->type){
+            case E_FUNCALL:
+                name = c->data.expr->data.funcall.name;
+                //FIXME GOBAL TABLE??!?
+                n=table_lookup(symTable, name);
+                if (n == NULL)
+                    FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined function '%s'.", name);
+                break;
+            case E_REFERENCE:
+                name = c->data.expr->data.funcall.name;
+                n=table_lookup(symTable, name);
+                if ( n == NULL || (c->type != C_DECLARE ||
+                    c->type != C_EXPRESSION) ){
+                    FERROR(ERR_SEM_UNDEFINED,"Function '%s' not defined.", name);
+                }
+            default:
+                break;
+        }
+    }
+}
+
+void checkAllStatic (Node *node){
+    if (node->type == N_VALUE){
+        Value *v = node->data.value;
+        if (v->undefined == false)
+            FERROR(ERR_SEM_UNDEFINED, "Value '%s' not defined.", node->symbol);
+    }
+    if (node->type == N_FUNCTION){
+        Function *f = node->data.function;
+        traverseCommands(f, checkFnExpresion);
+    }
+}
+
+
+void checkMainRun(SymbolTable *table){
+    Node *tmp = table_lookup (table, "Main");
+    if (tmp == NULL || tmp->type != N_CLASS){
+        MERROR(ERR_SEM_UNDEFINED, "Missing class Main.");
+    }
+    tmp = table_lookup(table, "Main.run");
+    if (tmp == NULL || tmp->type != N_FUNCTION)
+        MERROR(ERR_SEM_UNDEFINED, "Missing run method in Main.");
 }
