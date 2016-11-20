@@ -67,8 +67,7 @@ Token *getNextToken(FILE *f) {
         free(t);
         return NULL;
     default:
-        printf("Invalid return value: %d\n", c);
-        exit(1);
+        FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
     }
     return t;
 }
@@ -351,7 +350,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 state = NEUTRAL_STATE;
             }
 
-            else if (isalpha(c) || c == '_' || c == '$') //pokracujeme dalej na stav IDEN
+            // POZOR CISLA PRVE BRAT NEMOZE --DONE
+            else if ((c>='A' && c<='z') || c == '_' || c == '$') 
                 state = AUT_IDEN;
 
             else if (isdigit(c))  //pokracujeme na stav cisla
