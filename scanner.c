@@ -476,6 +476,13 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 ;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
+             else if ((c >='!') && (c >= '/') || ((c >=':') && 
+					(c <= 'D'))|| ((c >='F') && (c <= 'd')) || 
+					((c >='f') && (c <= '~') ) )
+                  {   // OSETRTI CHYBU 5.5a -------- DONEEEE
+					  state = Start_state;
+                      return ERROR_NUMBER;
+			      }
             else {
                 state = Start_state;
                 return FLOAT;
@@ -522,6 +529,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 return STRING; }
             else if(c == '\\')
                 state = AUT_ESC; // NIESOM SI ISTY VO VSETKYCH VARIANTACH NEDOKONCENE ZATIAL
+            else if(c == EOF) {
+               state = Start_state;
+                return ERROR_ESC; }
             else
                 string_end(string, c, &stringLength, &stringAlloc);
             break;
