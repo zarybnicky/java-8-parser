@@ -14,6 +14,7 @@
 #include "stringology.h"
 #include "error.h"
 #include "ir.h"
+#include "scanner.h"
 
 typedef enum {
     N_VALUE,
@@ -81,12 +82,19 @@ void table_balance( SymbolTable * );
   * Inserts Node into created AVL table
   */
 void table_insert( SymbolTable *, Node * );
+void table_insert_dummy(SymbolTable *, Declaration);
+
+/**
+ * Removes the Node referenced by `symbol` and returns the deleted node.
+ */
+Node *table_remove(SymbolTable *, char *symbol);
 
 /**
   * Seach for a Node in AVL table
   * returns pointer to Node
   */
 Node *table_lookup(SymbolTable *, char *);
+Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var);
 
 void table_iterate(Node *tree, void (*fn)(Node *));
 

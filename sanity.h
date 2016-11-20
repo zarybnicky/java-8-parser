@@ -30,4 +30,6 @@ void checkTopLevel(Node *);
 void checkAllStatic (Node *);
 void checkMainRun(SymbolTable *);
 
+void checkOperatorAssignmentType(Node *);
+
 #endif /* IFJ_SANITY_H */

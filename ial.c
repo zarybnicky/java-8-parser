@@ -290,6 +290,19 @@ void table_insert(SymbolTable *tree, Node *object){
     /* balance tree after insertion */
     table_balance(tree);
 }
+void table_insert_dummy(SymbolTable *t, Declaration var) {
+    Node *n = (Node *) malloc(sizeof(Node) + sizeof(Value));
+    Value *v = (Value *) n + sizeof(Node);
+    CHECK_ALLOC(n);
+    v->type = var.type;
+    v->undefined = NULL;
+    n->symbol = strdup_(var.name);
+    n->type = N_VALUE;
+    n->data.value = v;
+    n->left = n->right = NULL;
+
+    table_insert(t, n);
+}
 
 Node *table_lookup(SymbolTable *tree, char *symbol){
 
@@ -315,6 +328,21 @@ Node *table_lookup(SymbolTable *tree, char *symbol){
     }
     /* returns looked object */
     return current;
+}
+Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
+    Node *n;
+    if (NULL != (n = table_lookup(local, var))) {
+        return n;
+    }
+    int classLength = strlen(class);
+    int idLength = strlen(var);
+    char *qualified = malloc((classLength + 1 + idLength + 1));
+    CHECK_ALLOC(qualified);
+    strcpy(qualified, class);
+    qualified[classLength] = '.';
+    strcpy(qualified + classLength + 1, var);
+    qualified[classLength + 1 + idLength] = '\0';
+    return table_lookup(global, qualified);
 }
 
 Node *createFunctionNode(char *symbol, Function *f) {

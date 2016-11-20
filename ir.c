@@ -368,7 +368,7 @@ void printFunction(Function *f) {
     printBlock(&f->body);
     printf(")\n");
 }
-void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *)) {
+void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *), void (*onForExit)(Command *)) {
     if (c == NULL)
         return;
     fn(f, c);
@@ -382,28 +382,30 @@ void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *
     case C_BREAK:
         break;
     case C_BLOCK:
-        traverseCommandsC(f, c->data.block.head, fn);
+        traverseCommandsC(f, c->data.block.head, fn, onForExit);
         break;
     case C_IF:
-        traverseCommandsC(f, c->data.ifC.thenBlock.head, fn);
-        traverseCommandsC(f, c->data.ifC.elseBlock.head, fn);
+        traverseCommandsC(f, c->data.ifC.thenBlock.head, fn, onForExit);
+        traverseCommandsC(f, c->data.ifC.elseBlock.head, fn, onForExit);
         break;
     case C_WHILE:
-        traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn);
+        traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn, onForExit);
         break;
     case C_DO_WHILE:
-        traverseCommandsC(f, c->data.doWhileC.bodyBlock.head, fn);
+        traverseCommandsC(f, c->data.doWhileC.bodyBlock.head, fn, onForExit);
         break;
     case C_FOR:
-        traverseCommandsC(f, c->data.forC.iter, fn);
-        traverseCommandsC(f, c->data.forC.bodyBlock.head, fn);
+        traverseCommandsC(f, c->data.forC.iter, fn, onForExit);
+        traverseCommandsC(f, c->data.forC.bodyBlock.head, fn, onForExit);
+        if (onForExit != NULL)
+            onForExit(c);
         break;
     }
-    traverseCommandsC(f, c->next, fn);
+    traverseCommandsC(f, c->next, fn, onForExit);
 }
-void traverseCommands(Function *f, void (*fn)(Function *, Command *)) {
+void traverseCommands(Function *f, void (*fn)(Function *, Command *), void (*onForExit)(Command *)) {
     if (f->body.head != NULL) {
-        traverseCommandsC(f, f->body.head, fn);
+        traverseCommandsC(f, f->body.head, fn, onForExit);
     }
 }
 

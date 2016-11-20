@@ -579,6 +579,16 @@ char *parseAndQualifyId(Lexer *l) {
            "Expected an identifier on line %d:%d, received '%s'.\n",
            t->lineNum, t->lineChar, t->original);
 }
+char *parseAnyId(Lexer *l) {
+    Token *t = peekToken(l);
+    if (t->type != ID_COMPOUND && t->type != ID_SIMPLE) {
+        FERROR(ERR_SYNTAX,
+           "Expected an identifier on line %d:%d, received '%s'.\n",
+           t->lineNum, t->lineChar, t->original);
+    }
+    nextToken(l);
+    return strdup_(t->val.id);
+}
 
 ValueType parseType(Lexer *l) {
     expectType(l, RESERVED);
