@@ -90,6 +90,26 @@ void checkFnExpresion(Function *f, Command *c){
     (void)f;
     //FIXME ?!?!
 
+    switch(c->type){
+        case C_IF:
+        case C_WHILE:
+        case C_DO_WHILE:
+            //FIXME TODO here
+            break;
+        case C_ASSIGN:
+            Node *n; char *name;
+            switch(c->data.assign.expr->type){
+                //TODO change message type
+                case E_FUNCALL:
+                case E_REFERENCE:
+                case E_BINARY:
+                case E_VALUE:
+                    name = c->data.assign.name;
+                    n=table_lookup(symTable,name);
+                    if (n == NULL)
+                        FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", name);
+        }
+    }
     if (c->type == C_EXPRESSION){
         //printf("\n\n");
         //printCommand(c);
