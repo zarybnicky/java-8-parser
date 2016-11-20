@@ -480,8 +480,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 ;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
-             else if ((c >='!') && (c >= '/') || ((c >=':') && 
-					(c <= 'D'))|| ((c >='F') && (c <= 'd')) || 
+             else if (((c >='!') && (c >= '/')) || ((c >=':') &&
+					(c <= 'D'))|| ((c >='F') && (c <= 'd')) ||
 					((c >='f') && (c <= '~') ) )
                   {   // OSETRTI CHYBU 5.5a -------- DONEEEE
 					  state = Start_state;

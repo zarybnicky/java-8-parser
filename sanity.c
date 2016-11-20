@@ -90,6 +90,7 @@ void checkFnExpresion(Function *f, Command *c){
     (void)f;
     //FIXME ?!?!
 
+    Node *n; char *name;
     switch(c->type){
         case C_IF:
         case C_WHILE:
@@ -97,7 +98,6 @@ void checkFnExpresion(Function *f, Command *c){
             //FIXME TODO here
             break;
         case C_ASSIGN:
-            Node *n; char *name;
             switch(c->data.assign.expr->type){
                 //TODO change message type
                 case E_FUNCALL:
@@ -108,13 +108,16 @@ void checkFnExpresion(Function *f, Command *c){
                     n=table_lookup(symTable,name);
                     if (n == NULL)
                         FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", name);
-        }
+            }
+            break;
+        //TODO
+        default:
+            break;
     }
     if (c->type == C_EXPRESSION){
         //printf("\n\n");
         //printCommand(c);
         //printf("%s\n\n\n", showExpressionType(c->data.expr->type));
-        Node *n; char *name;
         switch(c->data.expr->type){
             case E_FUNCALL:
                 name = c->data.expr->data.funcall.name;

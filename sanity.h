@@ -30,6 +30,11 @@ void checkTopLevel(Node *);
 void checkAllStatic (Node *);
 void checkMainRun(SymbolTable *);
 
+ValueType coerceBinary(BinaryOperation, ValueType, ValueType);
+void checkAssignCompatible(ValueType, ValueType);
+ValueType getExpressionType(Expression *);
+void checkOperatorAssignmentTypeC(Function *, Command *);
+void checkOperatorAssignmentTypeF(Command *);
 void checkOperatorAssignmentType(Node *);
 
 #endif /* IFJ_SANITY_H */
