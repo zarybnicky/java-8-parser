@@ -345,6 +345,66 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
     return table_lookup(global, qualified);
 }
 
+void ReplaceByRight(SymbolTable *tbl, Node *replac, Node *root, Node **result){
+    if (root == NULL){
+        FERROR(ERR_SEM_UNDEFINED, "Cannot replace object %s", root->symbol);
+    }
+    else{
+        //need to go to the rightmost node
+        if (root->right != NULL){
+            ReplaceByRight(tbl, replac,root->right,result);
+        }
+        else{
+            //assign Node
+            *result = table_lookup(tbl,root->symbol);
+
+            strcpy(replac->symbol, root->symbol);
+            replac->type = root->type;
+            switch(root->type){
+                case N_VALUE:
+                    memcpy(replac->data.value,root->data.value,sizeof(Value));
+                    break;
+                case N_FUNCTION:
+                    memcpy(replac->data.value,root->data.value,sizeof(Function));
+                    break;
+                case N_CLASS:
+                    break;
+            }
+            /* create copies, clear useless data at end */
+            printNode(replac->left);
+            printNode(root->left);
+            //memcpy(replac->left,root->left,sizeof(Node));
+            //memcpy(replac->right,root->right,sizeof(Node));
+        }
+    }
+
+}
+
+Node *table_remove(SymbolTable *table, char *symbol){
+    Node *tmp = NULL;
+    if (table == NULL || symbol == NULL)
+        MERROR(ERR_SEM_UNDEFINED, "Cannot remove without parameters.");
+    tmp = table_lookup(table,symbol);
+    if (tmp == NULL)
+        FERROR(ERR_SEM_UNDEFINED, "Cannot remove object %s",symbol);
+    //this is new root
+    Node *result = NULL;
+    Node *root = tmp;
+    if (tmp->left == NULL){
+        result = table_lookup(table,tmp->right->symbol);
+    }
+    else if (tmp->right == NULL){
+        result = table_lookup(table,tmp->left->symbol);
+    }
+    else{
+        //tmp just replace its name value and left right should be same
+        //then return result which should be dealocated
+        ReplaceByRight(table, tmp, root->left, &result);
+    }
+
+    return result;
+}
+
 Node *createFunctionNode(char *symbol, Function *f) {
     Node *n = malloc(sizeof(Node));
     CHECK_ALLOC(n);
@@ -390,6 +450,7 @@ void freeNode(Node *n) {
         freeNode(n->left);
         freeNode(n->right);
         free(n);
+        n=NULL;
     }
 }
 void printNode(Node *n)  {

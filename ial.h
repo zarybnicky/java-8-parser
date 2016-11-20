@@ -87,7 +87,8 @@ void table_insert_dummy(SymbolTable *, Declaration);
 /**
  * Removes the Node referenced by `symbol` and returns the deleted node.
  */
-Node *table_remove(SymbolTable *, char *symbol);
+void ReplaceByRight(SymbolTable*, Node *replace, Node* root, Node **result);
+Node *table_remove(SymbolTable *, char *);
 
 /**
   * Seach for a Node in AVL table
@@ -96,6 +97,6 @@ Node *table_remove(SymbolTable *, char *symbol);
 Node *table_lookup(SymbolTable *, char *);
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var);
 
-void table_iterate(Node *tree, void (*fn)(Node *));
+void table_iterate(Node *, void (*fn)(Node *));
 
 #endif /* IFJ_IAL_H */

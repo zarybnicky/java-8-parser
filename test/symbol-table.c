@@ -10,6 +10,33 @@ void freeGlobalResources() {
     freeInterpret(i);
 }
 
+/*void ReplaceByRight(SymbolTable *table, Node *replace, Node **root){
+    if (*root == NULL){
+        FERROR(ERR_SEM_UNDEFINED, "Cannot replace object %s", (*root)->symbol);
+    }
+    else{
+        if ((*root)->right != NULL)
+            ReplaceByRight(table, replace,&(*root)->right);
+        else{
+            Node *tmp = table_lookup(table, (*root)->symbol);
+            strcpy(replace->symbol, (*root)->symbol);
+            replace->type = (*root)->type;
+            switch((*root)->type){
+                case N_VALUE:
+                    replace->data.value = (*root)->data.value;
+                    break;
+                case N_FUNCTION:
+                    replace->data.function = (*root)->data.function;
+                    break;
+                case N_CLASS:
+                    break;
+            }
+            *root = tmp;
+        }
+    }
+    return;
+}
+*/
 void pre_order(Node *node){
   if (node != NULL){
     printNode(node);
@@ -21,7 +48,7 @@ void pre_order(Node *node){
 int main(){
   char *name;
   name = malloc (4 * sizeof(char));
-  strcpy(name,"h");
+  strcpy(name,"a");
   Value *new_val = createValue (1);
   new_val->data.integer = 10;
   printValue (new_val);
@@ -39,7 +66,7 @@ int main(){
   char *string;
   string = malloc (4 * sizeof(char));
 
-  strcpy(string,"g");
+  strcpy(string,"b");
   new_nd = createValueNode (string,new_v);
 //  printNode(new_nd);
 
@@ -52,7 +79,7 @@ int main(){
 
   char *string2;
   string2 = malloc (4* sizeof(char));
-  strcpy(string2, "a");
+  strcpy(string2, "c");
   a = createValueNode (string2,va);
 
   Value *vb = createValue (1);
@@ -61,7 +88,7 @@ int main(){
 
   char * string3;
   string3 = malloc (4* sizeof(char));
-  strcpy(string3,"b");
+  strcpy(string3,"d");
   b = createValueNode (string3,vb);
 
   Value *vc = createValue (1);
@@ -70,7 +97,7 @@ int main(){
 
   char *string4;
   string4 = malloc (4* sizeof(char));
-  string4[0] = 'c';
+  string4[0] = 'g';
   string4[1] = '\0';
 
   c = createValueNode (string4,vc);
@@ -81,7 +108,7 @@ int main(){
 
   char *string5;
   string5 = malloc (4 * sizeof(char));
-  strcpy(string5,"d");
+  strcpy(string5,"h");
   d = createValueNode (string5,vd);
 
 
@@ -114,13 +141,16 @@ int main(){
   table_insert (new_table, e);
   table_insert (new_table, f);
 
+
   // returns null lookup
   lookup = table_lookup (NULL, "");
   lookup = table_lookup(new_table,"i");
-  table_iterate (b, pre_order);
-
-  printf("\n");
+  //remove root
+  lookup = table_remove (new_table, "d");
   printNode(lookup);
+  freeNode(lookup);
+  //table_iterate (b, pre_order);
+
   printf("\n");
   printSymbolTable (new_table);
 
