@@ -418,6 +418,10 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 *symbol = SYM_SEMI;
                 return AUT_SYMBOL;
             }
+            else if (c == '&') // moznost AND
+                state = AUT_AND;
+            else if (c == '|')
+                state = AUT_OR;//moznost OR
             else if (c == '"')    //skaceme na stav String
                 state = AUT_STRING;
             else {
@@ -747,8 +751,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  *symbol = SYM_NOT_EQUALS;
                 return AUT_SYMBOL;
             } else {
-                state = Start_state;
-                return ERROR_NOT_EQUALS;
+               state = NEUTRAL_STATE;
+                *symbol = SYM_NOT;
+                return AUT_SYMBOL;
             }
             break;
         case AUT_UNARY_PL:
@@ -773,6 +778,28 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  state = NEUTRAL_STATE;
                  *symbol = SYM_MINUS;
                 return AUT_SYMBOL;
+            }
+            break;
+        case AUT_AND:
+         GET_CHAR(c, input, state, line, lineCol);
+            if(c == '&') {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_AND;
+                return AUT_SYMBOL;
+            } else {
+                 state = Start_state;
+                 return ERROR_AND;
+            }
+            break;
+         case AUT_OR:
+         GET_CHAR(c, input, state, line, lineCol);
+            if(c == '|') {
+                 state = NEUTRAL_STATE;
+                 *symbol = SYM_OR;
+                return AUT_SYMBOL;
+            } else {
+                 state = Start_state;
+                 return ERROR_OR;
             }
             break;
         }
