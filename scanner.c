@@ -751,7 +751,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  *symbol = SYM_NOT_EQUALS;
                 return AUT_SYMBOL;
             } else {
-               state = NEUTRAL_STATE;
+               state = Start_state;
                 *symbol = SYM_NOT;
                 return AUT_SYMBOL;
             }
@@ -763,7 +763,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  *symbol = SYM_UNARY_PLUS;
                 return AUT_SYMBOL;
             } else {
-                 state = NEUTRAL_STATE;
+                 state = Start_state;
                  *symbol = SYM_PLUS;
                 return AUT_SYMBOL;
             }
@@ -775,7 +775,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  *symbol = SYM_UNARY_MINUS;
                 return AUT_SYMBOL;
             } else {
-                 state = NEUTRAL_STATE;
+                 state = Start_state;
                  *symbol = SYM_MINUS;
                 return AUT_SYMBOL;
             }
