@@ -23,6 +23,9 @@ void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
 //support function for fnExpression definition??!
+void checkBinaryReference_(char *,char *);
+void checkBinaryCond_(Expression *);
+void checkCondition_(Command *);
 void checkFnExpression(Function *,Command *);
 
 //Top level only??
