@@ -32,6 +32,9 @@
 
 #include "interpret.h"
 
+static SymbolTable *symGlob;
+static Stack *GlobalStack;
+
 
 Interpret *createInterpret(void) {
     Interpret *i = malloc(sizeof(Interpret));
@@ -59,22 +62,8 @@ int evalMain(Interpret *i) {
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
 
-    static SymbolTable symGlob = &(i->symTable);
-    static Stack *GlobalStack = createLocalStack(NULL);
-
-
-    // switch (i->symTable.root->type){
-    //     case N_CLASS:
-    //         Node *nextNode = i->symTable.root;
-
-    //         if (nextNode->left != NULL)
-    //             nextNode = nextNode->left;
-    //         else
-    //             nextNode = nextNode->right;
-
-    //         i->symTable.root = nextNode;
-    //         break;
-    // }
+    symGlob = &(i->symTable);
+    GlobalStack = createLocalStack(NULL);
 
     interpretNode(GlobalStack, mainFn);
 
@@ -88,7 +77,7 @@ int interpretNode(Stack *stack, Node *node){
     assert(stack != NULL);
     assert(node != NULL);
 
-    switch(node->type):
+    switch(node->type){
         N_CLASS:
             // RIP co s tym?
             break;
@@ -99,7 +88,7 @@ int interpretNode(Stack *stack, Node *node){
             // RIP co s tymto?
             // node->value->data ??
             break;
-
+    }
 
     return 0;
 }
@@ -108,9 +97,9 @@ int interpretFunc(Stack *stack, Node *node){
 
     // if is node
     Stack *localStack = NULL;
-    SymbolTable localTable = NULL;
-    Node *mainFn = table_lookup(&i->symTable, "Main.run");
+    SymbolTable *localTable = NULL;
 
+    Node *mainFn = table_lookup(symGlob, "Main.run");
 
     if(strcmp(node->symbol, mainFn->symbol)){
         dPrintf("%s","Creating new local stack.");
@@ -127,14 +116,14 @@ int interpretFunc(Stack *stack, Node *node){
     assert(localStack != NULL);
     assert(localTable != NULL);
 
-    int fn_type = builtInFunc(localTable, localStack, node->function);
+    int fn_type = builtInFunc(localTable, localStack, node->data.function);
 
     // if fn type was built-in function return
     if(fn_type == 0)
         return 0;
 
-    Command *current = node->data.function->block.head;
-    Command *tail = node->data.function->block.tail;
+    Command *current = node->data.function->body.head;
+    Command *tail = node->data.function->body.tail;
 
     while(current != tail){
         evalCommand(localTable, localStack, current);
@@ -148,7 +137,7 @@ int interpretFunc(Stack *stack, Node *node){
 
 int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
 
-    switch(cmd->type):
+    switch(cmd->type){
         case(C_DECLARE):
             ;
             break;
@@ -180,6 +169,7 @@ int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
         case(C_RETURN):
             ;
             break;
+    }
 
 
     return 0;
@@ -227,7 +217,7 @@ int builtInFunc(SymbolTable symTable, Stack *stack, Function *fn){
         Value *val = malloc_c(sizeof(Value));
 
         val->type = T_INTEGER;
-        val->data.string = readString();
+        val->data.str = readString();
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
 
@@ -314,7 +304,7 @@ int builtInFunc(SymbolTable symTable, Stack *stack, Function *fn){
         return -1;
 }
 
-int pushParamsToStack(SymbolTable symTable, Stack *stack, Function *fn){
+int pushParamsToStack(SymbolTable *symTable, Stack *stack, Function *fn){
 
     for(Declaration *dec = fn->argHead; dec != NULL; dec = dec->next){
 
@@ -331,7 +321,7 @@ int pushParamsToStack(SymbolTable symTable, Stack *stack, Function *fn){
         }
 
         // push to stack
-        pushToStack(stack, node->value);
+        pushToStack(stack, tmp->data.value);
 
     }
 
