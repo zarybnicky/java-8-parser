@@ -24,6 +24,5 @@ assert_raises "./test/parser" 0
 make dist
 assert_raises "bash test/is_it_ok.sh xzaryb00.tgz is_ok" 0
 rm -rf is_ok
-make clean
 
 assert_end

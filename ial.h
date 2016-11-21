@@ -87,13 +87,13 @@ void table_insert_dummy(SymbolTable *, Declaration);
 /**
  * Removes the Node referenced by `symbol` and returns the deleted node.
  */
-void ReplaceByRight(SymbolTable*, Node *replace, Node* root, Node **result);
 Node *table_remove(SymbolTable *, char *);
 
 /**
   * Seach for a Node in AVL table
   * returns pointer to Node
   */
+Node **table_lookup_ptr(SymbolTable *, char *);
 Node *table_lookup(SymbolTable *, char *);
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var);
 

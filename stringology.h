@@ -21,7 +21,7 @@
 int readInt();
 double readDouble();
 char *readString();
-void print();
+void print(Value *term);
 int length(char *s);
 char *substr(char *s, int i, int n);
 int compare(char *s1, char *s2);

@@ -291,11 +291,11 @@ void table_insert(SymbolTable *tree, Node *object){
     table_balance(tree);
 }
 void table_insert_dummy(SymbolTable *t, Declaration var) {
-    Node *n = (Node *) malloc(sizeof(Node) + sizeof(Value));
-    Value *v = (Value *) n + sizeof(Node);
+    Node *n = malloc(sizeof(Node));
+    Value *v = malloc(sizeof(Value));;
     CHECK_ALLOC(n);
     v->type = var.type;
-    v->undefined = NULL;
+    v->undefined = true;
     n->symbol = strdup_(var.name);
     n->type = N_VALUE;
     n->data.value = v;
@@ -304,34 +304,34 @@ void table_insert_dummy(SymbolTable *t, Declaration var) {
     table_insert(t, n);
 }
 
-Node *table_lookup(SymbolTable *tree, char *symbol){
-
-    /* First chceck if table exists */
-    if (tree == NULL)
-        return NULL;
-    /* if table does exists we can check root, cannot compare both options */
-    if (tree->root == NULL)
+Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
+    if (tree == NULL || tree->root == NULL)
         return NULL;
 
-    Node *current = tree->root;
-    int compare;
-
-    /* loop ends at end or when comapre is eq 0 */
-    while (current && (compare = strcmp (symbol, current->symbol))) {
-        /* comparison between 2 keys is bigger go right */
-        if (compare > 0) {
-            current = current->right;
+    Node **current = &tree->root;
+    while (*current != NULL) {
+        int cmp = strcmp(symbol, (*current)->symbol);
+        if (cmp > 0) {
+            current = &(*current)->right;
+        } else if (cmp < 0) {
+            current = &(*current)->left;
         } else {
-            /* comparison is less go left */
-            current = current->left;
+            break;
         }
     }
-    /* returns looked object */
+    if (*current == NULL)
+        return NULL;
     return current;
 }
+Node *table_lookup(SymbolTable *tree, char *symbol) {
+    Node **n = table_lookup_ptr(tree, symbol);
+    if (n == NULL)
+        return NULL;
+    return *n;
+}
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
-    Node *n;
-    if (NULL != (n = table_lookup(local, var))) {
+    Node *n = table_lookup(local, var);
+    if (n != NULL) {
         return n;
     }
     int classLength = strlen(class);
@@ -345,64 +345,42 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
     return table_lookup(global, qualified);
 }
 
-void ReplaceByRight(SymbolTable *tbl, Node *replac, Node *root, Node **result){
-    if (root == NULL){
-        FERROR(ERR_SEM_UNDEFINED, "Cannot replace object %s", root->symbol);
-    }
-    else{
-        //need to go to the rightmost node
-        if (root->right != NULL){
-            ReplaceByRight(tbl, replac,root->right,result);
-        }
-        else{
-            //assign Node
-            *result = table_lookup(tbl,root->symbol);
-
-            strcpy(replac->symbol, root->symbol);
-            replac->type = root->type;
-            switch(root->type){
-                case N_VALUE:
-                    memcpy(replac->data.value,root->data.value,sizeof(Value));
-                    break;
-                case N_FUNCTION:
-                    memcpy(replac->data.value,root->data.value,sizeof(Function));
-                    break;
-                case N_CLASS:
-                    break;
-            }
-            /* create copies, clear useless data at end */
-            printNode(replac->left);
-            printNode(root->left);
-            //memcpy(replac->left,root->left,sizeof(Node));
-            //memcpy(replac->right,root->right,sizeof(Node));
-        }
-    }
-
-}
-
 Node *table_remove(SymbolTable *table, char *symbol){
-    Node *tmp = NULL;
-    if (table == NULL || symbol == NULL)
+    if (table == NULL || symbol == NULL) {
         MERROR(ERR_SEM_UNDEFINED, "Cannot remove without parameters.");
-    tmp = table_lookup(table,symbol);
-    if (tmp == NULL)
-        FERROR(ERR_SEM_UNDEFINED, "Cannot remove object %s",symbol);
-    //this is new root
-    Node *result = NULL;
-    Node *root = tmp;
-    if (tmp->left == NULL){
-        result = table_lookup(table,tmp->right->symbol);
-    }
-    else if (tmp->right == NULL){
-        result = table_lookup(table,tmp->left->symbol);
-    }
-    else{
-        //tmp just replace its name value and left right should be same
-        //then return result which should be dealocated
-        ReplaceByRight(table, tmp, root->left, &result);
     }
 
-    return result;
+    Node **localRootPtr = table_lookup_ptr(table, symbol);
+    if (localRootPtr == NULL) {
+        printf("not found\n");
+        return NULL;
+    }
+
+    Node *deleted = *localRootPtr;
+    printNode(deleted);
+
+    //remove the node from the tree
+    if (deleted->left == NULL) {
+        *localRootPtr = deleted->right;
+    } else if (deleted->right == NULL) {
+        *localRootPtr = deleted->left;
+    } else {
+        //swap with the rightmost (grand)child of the left child
+        Node **childPtr = &deleted->left;
+        while ((*childPtr)->right != NULL) {
+            childPtr = &(*childPtr)->right;
+        }
+        Node *child = *childPtr;
+        //it can't have right children but may have left ones
+        *childPtr = child->right;
+
+        child->left = deleted->left;
+        child->right = deleted->right;
+        *localRootPtr = child;
+    }
+
+    deleted->left = deleted->right = NULL;
+    return deleted;
 }
 
 Node *createFunctionNode(char *symbol, Function *f) {
@@ -435,28 +413,28 @@ Node *createClassNode(char *symbol) {
     return n;
 }
 void freeNode(Node *n) {
-    if (n != NULL) {
-        switch (n->type) {
-        case N_VALUE:
-            freeValue(n->data.value);
-            break;
-        case N_FUNCTION:
-            freeFunction(n->data.function);
-            break;
-        case N_CLASS:
-            break;
-        }
-        free(n->symbol);
-        freeNode(n->left);
-        freeNode(n->right);
-        free(n);
-        n=NULL;
+    if (n == NULL) {
+        return;
     }
+    switch (n->type) {
+    case N_VALUE:
+        freeValue(n->data.value);
+        break;
+    case N_FUNCTION:
+        freeFunction(n->data.function);
+        break;
+    case N_CLASS:
+        break;
+    }
+    free(n->symbol);
+    freeNode(n->left);
+    freeNode(n->right);
+    free(n);
 }
 void printNode(Node *n)  {
     if (n == NULL) {
-        printf("Node(NULL)");
-        return; // ADD
+        printf("Node(NULL)\n");
+        return;
     }
     printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
     printNode(n->left);
