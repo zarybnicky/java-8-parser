@@ -53,15 +53,12 @@ int freeInterpret(Interpret *i) {
 
 
 int evalMain(Interpret *i) {
-<<<<<<< HEAD
-=======
 
     assert(i != NULL);
 
 
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
->>>>>>> Add execution of builtins, push to stack
 
     static SymbolTable symGlob = &(i->symTable);
     static Stack *GlobalStack = createLocalStack(NULL);
