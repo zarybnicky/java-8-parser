@@ -17,14 +17,11 @@
 #include "error.h"
 #include "ir.h"
 #include "ial.h"
+#include "int_debug.h"
 
 #include "int_memory_management.h"
 
-#ifdef NDEBUG
-    #define dPrintf(s,...)
-#else
-    #define dPrintf(s,...) fprintf(stderr, __FILE__":%u:" s "\n",__LINE__,__VA_ARGS__)
-#endif
+
 
 
 void *malloc_c(size_t size){

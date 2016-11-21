@@ -10,6 +10,10 @@
 
 /*--------------------------------LIBRARIES---------------------------------*/
 
+
+/**
+ returny su 99 ak su chyba
+**/
 // System libraries
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +28,8 @@
 #include "ial.h"
 #include "ir.h"
 #include "int_memory_management.h"
+#include "int_debug.h"
+#include "int_builtin.h"
 
 #include "interpret.h"
 
@@ -47,30 +53,295 @@ int freeInterpret(Interpret *i) {
 
 
 int evalMain(Interpret *i) {
+<<<<<<< HEAD
+=======
 
-    Stack *GlobalStack = NULL;
-    GlobalStack = createLocalStack(NULL);
+    assert(i != NULL);
 
-    //  Push arguments to stack
 
-    for(Declaration *dec = i->symTable.root->data.function->argHead;
-        dec->next != NULL;
-        dec = dec->next)
-    {
-        Value *tmp = reTypeFromDeclToVal(dec);
-        printf("%s: %s: tmp: %d",__FILE__, __func__, tmp->type);
+    Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
-    }
+>>>>>>> Add execution of builtins, push to stack
+
+    static SymbolTable symGlob = &(i->symTable);
+    static Stack *GlobalStack = createLocalStack(NULL);
+
+
+    // switch (i->symTable.root->type){
+    //     case N_CLASS:
+    //         Node *nextNode = i->symTable.root;
+
+    //         if (nextNode->left != NULL)
+    //             nextNode = nextNode->left;
+    //         else
+    //             nextNode = nextNode->right;
+
+    //         i->symTable.root = nextNode;
+    //         break;
+    // }
+
+    interpretNode(GlobalStack, mainFn);
 
     free(GlobalStack);
 
-    // interpret(i->symTable.root->data.function);
+    return 0;
+}
 
+int interpretNode(Stack *stack, Node *node){
 
-    // sem zavolaj ten while s tym velkym switchom;
+    assert(stack != NULL);
+    assert(node != NULL);
+
+    switch(node->type):
+        N_CLASS:
+            // RIP co s tym?
+            break;
+        N_FUNCTION:
+            interpretFunc(stack, node);
+            break;
+        N_VALUE:
+            // RIP co s tymto?
+            // node->value->data ??
+            break;
+
 
     return 0;
 }
+
+int interpretFunc(Stack *stack, Node *node){
+
+    // if is node
+    Stack *localStack = NULL;
+    SymbolTable localTable = NULL;
+    Node *mainFn = table_lookup(&i->symTable, "Main.run");
+
+
+    if(strcmp(node->symbol, mainFn->symbol)){
+        dPrintf("%s","Creating new local stack.");
+        localStack = createLocalStack(&stack);
+        dPrintf("%s","Creating new local table.");
+        localTable = createSymbolTable();
+    }
+    else{
+        dPrintf("%s\n\t- %s\n\t- %s","Setting reference of:","local stack to global stack,","local table to global table.");
+        localStack = GlobalStack;
+        localTable = symGlob;
+    }
+
+    assert(localStack != NULL);
+    assert(localTable != NULL);
+
+    int fn_type = builtInFunc(localTable, localStack, node->function);
+
+    // if fn type was built-in function return
+    if(fn_type == 0)
+        return 0;
+
+    Command *current = node->data.function->block.head;
+    Command *tail = node->data.function->block.tail;
+
+    while(current != tail){
+        evalCommand(localTable, localStack, current);
+        current = current->next;
+    }
+
+
+
+    return 0;
+}
+
+int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
+
+    switch(cmd->type):
+        case(C_DECLARE):
+            ;
+            break;
+
+        case(C_DEFINE):
+            ;
+            break;
+
+        case(C_ASSIGN):
+            ;
+            break;
+
+        case(C_BLOCK):
+            ;
+            break;
+
+        case(C_IF):
+            ;
+            break;
+
+        case(C_WHILE):
+            ;
+            break;
+
+        case(C_EXPRESSION):
+            ;
+            break;
+
+        case(C_RETURN):
+            ;
+            break;
+
+
+    return 0;
+}
+
+//  Look for builtin functions
+//
+int builtInFunc(SymbolTable symTable, Stack *stack, Function *fn){
+
+    char *str = fn->name;
+
+    //  TODO push params to stack;
+    if(!strcmp(str, FN_PRINT) ){
+        pushParamsToStack(symTable, stack, fn);
+        Value *term = popFromStack(stack);
+
+        print(term);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.readInt") ){
+        // FIXME pushnut do stacku?
+        Value *val = malloc_c(sizeof(Value));
+
+        val->type = T_INTEGER;
+        val->data.integer = readInt();
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.readDouble") ){
+
+        Value *val = malloc_c(sizeof(Value));
+
+        val->type = T_INTEGER;
+        val->data.dbl = readDouble();
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.readString") ){
+
+        Value *val = malloc_c(sizeof(Value));
+
+        val->type = T_INTEGER;
+        val->data.string = readString();
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.length") ){
+        pushParamsToStack(symTable, stack, fn);
+
+        Value *val = popFromStack(stack);
+        char *s = val->data.str;
+
+        val->type = T_INTEGER;
+        val->data.integer = length(s);
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.substr") ){
+        pushParamsToStack(symTable, stack, fn);
+
+        Value *val = popFromStack(stack);
+        char *s = val->data.str;
+
+        val = popFromStack(stack);
+        int i = val->data.integer;
+
+        val = popFromStack(stack);
+        int n = val->data.integer;
+
+        val->type = T_STRING;
+        val->data.str = substr(s, i, n);
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.compare") ){
+        pushParamsToStack(symTable, stack, fn);
+
+        Value *val = popFromStack(stack);
+        char *s1 = val->data.str;
+
+        val = popFromStack(stack);
+        char *s2 = val->data.str;
+
+        val->type = T_INTEGER;
+        val->data.integer = compare(s1, s2);
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.sort") ){
+        pushParamsToStack(symTable, stack, fn);
+
+        Value *val = popFromStack(stack);
+        char *s = val->data.str;
+
+        val->type = T_STRING;
+        val->data.str = sort(s);
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else if(!strcmp(str, "ifj16.find") ){
+        pushParamsToStack(symTable, stack, fn);
+
+        Value *val = popFromStack(stack);
+        char *s1 = val->data.str;
+
+        val = popFromStack(stack);
+        char *s2 = val->data.str;
+
+        val->type = T_INTEGER;
+        val->data.integer = find(s1, s2);
+
+        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+
+        return 0;
+    }
+    else
+        return -1;
+}
+
+int pushParamsToStack(SymbolTable symTable, Stack *stack, Function *fn){
+
+    for(Declaration *dec = fn->argHead; dec != NULL; dec = dec->next){
+
+        //find in local table
+        Node *tmp = table_lookup(symTable, dec->name);
+        //find in global
+        if(tmp == NULL){
+            tmp = table_lookup(symGlob, dec->name);
+        }
+
+        // if not found error
+        if(tmp == NULL){
+            PERROR("variable not found");
+        }
+
+        // push to stack
+        pushToStack(stack, node->value);
+
+    }
+
+    return 0;
+}
+
 
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
@@ -305,6 +576,9 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
     // (void*) left;
     // (void*) right; // turn off compiler warnings for arguments
 
+    assert(left != NULL);
+    assert(right != NULL);
+
     ValueType returnType = T_VOID;
 
     switch (op) {
@@ -410,7 +684,7 @@ Stack *deleteLocaleStack(Stack *stack){
     return tmp;
 }
 
-int pustToStack(Stack *stack, Value *val){
+int pushToStack(Stack *stack, Value *val){
     assert(stack == NULL);
     assert(val == NULL);
 
@@ -475,8 +749,8 @@ Value *reTypeFromDeclToVal(Declaration *dec){
 
     // Boolean
     //
-    char *tr = "TRUE\0";
-    char *fl = "FALSE\0";
+    char *tr = "TRUE";
+    char *fl = "FALSE";
 
     if(!strcmp(dec->name,tr)){
         val->data.boolean = 1;

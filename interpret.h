@@ -57,6 +57,19 @@ typedef struct Stack{
     Value *data[];
 } Stack;
 
+typedef enum{
+    FN_PRINT,
+    FN_READINT,
+    FN_READDBL,
+    FN_READSTR,
+    FN_LENGTH,
+    FN_SUBSTR,
+    FN_COMPARE,
+    FN_SORT,
+    FN_FIND,
+    FN_OTHER
+} FnTypes;
+
 /*--------------------------------VARIABLES---------------------------------*/
 
 // Some variables which shoul be global
