@@ -1,4 +1,5 @@
 CC=gcc
+#Werror add?
 CPPFLAGS=-pedantic -Wall -Wextra -g
 CFLAGS=-std=c99
 LDFLAGS=-L.

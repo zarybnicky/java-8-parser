@@ -23,7 +23,7 @@ void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
 //support function for fnExpression definition??!
-void checkFnExpresion(Function *,Command *);
+void checkFnExpression(Function *,Command *);
 
 //Top level only??
 void checkTopLevel(Node *);

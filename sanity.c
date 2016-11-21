@@ -11,22 +11,28 @@
 #include "sanity.h"
 
 static SymbolTable *symTable;
+static bool hasReturnCommand;
+static SymbolTable *localTable;
+static char *className;
+//----- Global variables ------
 
 void runSemanticAnalysis(Interpret *i) {
     symTable = &i->symTable;
     Node *root = symTable->root;
 
     table_iterate(root, checkReturnType);
-
     checkMainRun(&i->symTable);
+    // maybe create global variables
     table_iterate(root, checkAllStatic);
     table_iterate(root, checkOperatorAssignmentType);
 
+    //free global variables
     symTable = NULL;
 }
 
 //----- Check return type -----
-static bool hasReturnCommand;
+
+
 void checkReturnCommand(Function *f, Command *c) {
     if (c->type != C_RETURN) {
         return;
@@ -86,70 +92,127 @@ void checkReturnType(Node *node) {
     }
 }
 
-void checkFnExpresion(Function *f, Command *c){
-    (void)f;
-    //FIXME ?!?!
+void checkBinaryReference_(char *name, char *typeM){
+    //filter
+    char *look = strchr(name,'.');
+    ++look;
+    //end of filter
+    Node *n=table_lookup_either(symTable, localTable, className, look);
+    if (n == NULL)
+        FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.",typeM,name);
+}
 
-    Node *n; char *name;
-    switch(c->type){
-        case C_IF:
-        case C_WHILE:
-        case C_DO_WHILE:
-            //FIXME TODO here
-            break;
-        case C_ASSIGN:
-            switch(c->data.assign.expr->type){
-                //TODO change message type
-                case E_FUNCALL:
-                case E_REFERENCE:
-                case E_BINARY:
-                case E_VALUE:
-                    name = c->data.assign.name;
-                    n=table_lookup(symTable,name);
-                    if (n == NULL)
-                        FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", name);
-            }
-            break;
-        //TODO
-        default:
-            break;
+void checkBinaryCond_(Expression *e){
+    if (e->data.binary.left->data.reference != NULL){
+        checkBinaryReference_(e->data.binary.left->data.reference, "reference");
     }
-    if (c->type == C_EXPRESSION){
-        //printf("\n\n");
-        //printCommand(c);
-        //printf("%s\n\n\n", showExpressionType(c->data.expr->type));
-        switch(c->data.expr->type){
-            case E_FUNCALL:
-                name = c->data.expr->data.funcall.name;
-                //FIXME GOBAL TABLE??!?
-                n=table_lookup(symTable, name);
-                if (n == NULL)
-                    FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined function '%s'.", name);
-                break;
-            case E_REFERENCE:
-                name = c->data.expr->data.funcall.name;
-                n=table_lookup(symTable, name);
-                if ( n == NULL || (c->type != C_DECLARE && c->type != C_EXPRESSION) ){
-                    FERROR(ERR_SEM_UNDEFINED,"Function '%s' not defined.", name);
-                }
-            default:
-                break;
-        }
+    else if (e->data.binary.right->data.reference != NULL)
+        checkBinaryReference_(e->data.binary.right->data.reference, "reference");
+    else if (e->data.binary.left->data.reference != NULL && e->data.binary.right->data.reference != NULL){
+        checkBinaryReference_(e->data.binary.left->data.reference, "reference");
+        checkBinaryReference_(e->data.binary.right->data.reference, "reference");
+    }
+    if (e->data.binary.left->data.funcall.name != NULL)
+        checkBinaryReference_(e->data.binary.left->data.funcall.name , "function");
+    else if (e->data.binary.right->data.funcall.name != NULL)
+        checkBinaryReference_(e->data.binary.right->data.funcall.name, "function");
+    else if (e->data.binary.left->data.funcall.name != NULL && e->data.binary.right->data.funcall.name != NULL){
+        checkBinaryReference_(e->data.binary.left->data.funcall.name,"function");
+        checkBinaryReference_(e->data.binary.right->data.funcall.name, "function");
+    }
+}
+
+void checkCondition_(Command *c){
+    Node *n; char *name;
+    Expression *e;
+
+    /* initialization of name */
+    if (c->type == C_IF)
+        e=c->data.ifC.cond;
+    else if (c->type == C_WHILE)
+        e=c->data.whileC.cond;
+    else if (c->type == C_DO_WHILE)
+        e=c->data.doWhileC.cond;
+    else if (c->type == C_FOR)
+        e=c->data.forC.cond;
+
+    switch(e->type){
+    case E_FUNCALL:
+        name = e->data.funcall.name;
+        n=table_lookup_either(symTable, localTable, className, name);
+        if (n == NULL || (c->type != C_DECLARE && c->type != C_DEFINE) )
+            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined function '%s'.", name);
+        break;
+    case E_REFERENCE:
+        name = e->data.reference;
+        n=table_lookup_either(symTable, localTable, className, name);
+        if (n == NULL)
+            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined reference '%s'.", name);
+        break;
+    case E_BINARY:
+        checkBinaryCond_(e);
+        break;
+    case E_VALUE:
+        break;
+    }
+}
+void checkFnExpression(Function *f, Command *c){
+    (void)f;
+
+    Node *n;
+    switch(c->type){
+    case C_DECLARE:
+        table_insert_dummy(localTable, c->data.declare);
+        break;
+    case C_DEFINE:
+        table_insert_dummy(localTable, c->data.define.declaration);
+        break;
+    case C_ASSIGN:
+        n = table_lookup_either(symTable, localTable, className, c->data.assign.name);
+        if (n == NULL)
+            FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", c->data.assign.name);
+        break;
+    case C_IF:
+    case C_WHILE:
+    case C_DO_WHILE:
+    case C_EXPRESSION:
+    case C_RETURN:
+        checkCondition_(c);
+        break;
+    case C_FOR:
+        table_insert_dummy(localTable, c->data.forC.var);
+        checkCondition_(c);
+        break;
+    default:
+        break;
     }
 }
 
 void checkAllStatic (Node *node){
-    if (node->type == N_VALUE){
-        Value *v = node->data.value;
-        if (v->undefined == false)
-            FERROR(ERR_SEM_UNDEFINED, "Value '%s' not defined.", node->symbol);
-    }
     if (node->type == N_FUNCTION){
+        int i = 0;
         Function *f = node->data.function;
-        traverseCommands(f, checkFnExpresion, NULL);
+        while (f->name[i] != '.' && f->name[i] != '\0')
+            i++;
+        if (f->name[i] == '\0')
+            MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
+        className = malloc(sizeof(char) * (i + 1));
+        strncpy(className, f->name, i);
+        className[i] = '\0';
+
+        localTable = createSymbolTable();
+        Declaration *arg = f->argHead;
+        while (arg != NULL) {
+            table_insert_dummy(localTable, *arg);
+        }
+
+        traverseCommands(f, checkFnExpression, NULL);
+        freeSymbolTable(localTable);
+        localTable = NULL;
+        free(className);
+        className = NULL;
     }
 }
-
 
 void checkMainRun(SymbolTable *table){
     Node *tmp = table_lookup (table, "Main");
@@ -226,8 +289,6 @@ void checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     ERROR(ERR_SEM_TYPECHECK);
 }
 
-static SymbolTable *localTable;
-static char *className;
 ValueType getExpressionType(Expression *e) {
     if (e == NULL) {
         MERROR(ERR_INTERNAL, "NULL expression");
@@ -264,7 +325,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
     case C_DEFINE:
         checkAssignCompatible(c->data.define.declaration.type,
-                              getExpressionType(c->data.define.expr));
+        getExpressionType(c->data.define.expr));
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
     case C_ASSIGN:
@@ -272,7 +333,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         if (n->type != N_VALUE)
             MERROR(ERR_SEM_TYPECHECK, "Can't assign to a function");
         checkAssignCompatible(n->data.value->type,
-                              getExpressionType(c->data.assign.expr));
+        getExpressionType(c->data.assign.expr));
         break;
     case C_IF:
         checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.ifC.cond));
