@@ -23,7 +23,7 @@ void runSemanticAnalysis(Interpret *i) {
     table_iterate(root, checkReturnType);
     checkMainRun(&i->symTable);
     // maybe create global variables
-    table_iterate(root, checkAllStatic);
+    //table_iterate(root, checkAllStatic);
     table_iterate(root, checkOperatorAssignmentType);
 
     //free global variables
@@ -158,19 +158,26 @@ void checkCondition_(Command *c){
 }
 void checkFnExpression(Function *f, Command *c){
     (void)f;
-
+    //end
+    if (c == NULL)
+        return;
+    char *look;
     Node *n;
     switch(c->type){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
         break;
     case C_DEFINE:
+        checkAssignCompatible(c->data.define.declaration.type,
+        getExpressionType(c->data.define.expr));
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
     case C_ASSIGN:
-        n = table_lookup_either(symTable, localTable, className, c->data.assign.name);
+        look = strchr(c->data.assign.name,'.');
+        ++look;
+        n = table_lookup_either(symTable, localTable, className, look);
         if (n == NULL)
-            FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", c->data.assign.name);
+            FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", look);
         break;
     case C_IF:
     case C_WHILE:
@@ -183,7 +190,9 @@ void checkFnExpression(Function *f, Command *c){
         table_insert_dummy(localTable, c->data.forC.var);
         checkCondition_(c);
         break;
-    default:
+    case C_CONTINUE:
+    case C_BREAK:
+    case C_BLOCK:
         break;
     }
 }
@@ -206,7 +215,7 @@ void checkAllStatic (Node *node){
             table_insert_dummy(localTable, *arg);
         }
 
-        traverseCommands(f, checkFnExpression, NULL);
+        traverseCommands(f, checkFnExpression, checkOperatorAssignmentTypeF);
         freeSymbolTable(localTable);
         localTable = NULL;
         free(className);
