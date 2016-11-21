@@ -32,9 +32,8 @@
 
 #include "interpret.h"
 
-static SymbolTable *symGlob;
-static Stack *GlobalStack;
-
+static SymbolTable *symGlob = NULL;
+static Stack *GlobalStack = NULL;
 
 Interpret *createInterpret(void) {
     Interpret *i = malloc(sizeof(Interpret));
@@ -79,14 +78,13 @@ int interpretNode(Stack *stack, Node *node){
 
     switch(node->type){
         N_CLASS:
-            // RIP co s tym?
+            dPrintf("%s %d","Unexpected happened with node!",node->type);
             break;
         N_FUNCTION:
             interpretFunc(stack, node);
             break;
         N_VALUE:
-            // RIP co s tymto?
-            // node->value->data ??
+            dPrintf("%s %d","Unexpected happened with node!", node->type);
             break;
     }
 
@@ -103,7 +101,7 @@ int interpretFunc(Stack *stack, Node *node){
 
     if(strcmp(node->symbol, mainFn->symbol)){
         dPrintf("%s","Creating new local stack.");
-        localStack = createLocalStack(&stack);
+        localStack = createLocalStack(stack);
         dPrintf("%s","Creating new local table.");
         localTable = createSymbolTable();
     }
@@ -135,7 +133,7 @@ int interpretFunc(Stack *stack, Node *node){
     return 0;
 }
 
-int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
+int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
 
     switch(cmd->type){
         case(C_DECLARE):
@@ -169,6 +167,18 @@ int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
         case(C_RETURN):
             ;
             break;
+        case(C_FOR):
+            ;
+            break;
+        case(C_CONTINUE):
+            ;
+            break;
+        case(C_BREAK):
+            ;
+            break;
+        case(C_DO_WHILE):
+            ;
+            break;
     }
 
 
@@ -177,12 +187,12 @@ int evalCommand(SymbolTable symTable, Stack *stack, Command *cmd){
 
 //  Look for builtin functions
 //
-int builtInFunc(SymbolTable symTable, Stack *stack, Function *fn){
+int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
     char *str = fn->name;
 
     //  TODO push params to stack;
-    if(!strcmp(str, FN_PRINT) ){
+    if(!strcmp(str, "ifj16.print")){
         pushParamsToStack(symTable, stack, fn);
         Value *term = popFromStack(stack);
 
