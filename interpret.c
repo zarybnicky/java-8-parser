@@ -29,7 +29,6 @@
 #include "ir.h"
 #include "int_memory_management.h"
 #include "int_debug.h"
-#include "int_builtin.h"
 
 #include "interpret.h"
 
