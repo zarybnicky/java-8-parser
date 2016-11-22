@@ -60,28 +60,29 @@ int evalMain(Interpret *);
 //Static variables can be initialiezd using an expression as well, though I
 //suppose these expressions shouldn't contain any references to variables?
 
-int interpretNode(Stack *stack, Node *node);
-int interpretFunc(Stack *stack, Node *node);
-int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd);
-int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn);
-int pushParamsToStack(SymbolTable *symTable, Stack *stack, Function *fn);
+int interpretNode(Stack *, Node *);
+int interpretFunc(Stack *, Node *);
+int builtInFunc(SymbolTable *, Stack *, Function *);
 
 Value *evalStaticExpression(Expression *);
+Value *evalExpression(Expression *e);
+Value *evalCommand(SymbolTable *, Stack *, Command *);
+int evalBlock(SymbolTable *, Stack *, Block *);
 
-Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right);
+Value *evalBinaryExpression(BinaryOperation op, Value *, Value *);
+ValueType evalReturnType(BinaryOperation op, Value *, Value *);
 
-ValueType evalReturnType( BinaryOperation op, Value *left, Value *right);
 
-char *str_cat(char *str1, char* str2);
 
-Stack *createLocalStack(Stack *stack);
+char *str_cat(char *, char* );
 
-Stack *deleteLocaleStack(Stack *stack);
+Stack *createLocalStack(Stack *);
+Stack *deleteLocaleStack(Stack *);
 
-int pushToStack(Stack *stack, Value *val);
+int pushToStack(Stack *, Value *);
+Value *popFromStack(Stack *);
+int pushParamsToStack(SymbolTable *, Stack *, Function *);
 
-Value *popFromStack(Stack *stack);
-
-Value *reTypeFromDeclToVal(Declaration *dec);
+Value *reTypeFromDeclToVal(Declaration *);
 
 #endif

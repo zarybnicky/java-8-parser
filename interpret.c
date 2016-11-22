@@ -32,8 +32,15 @@
 
 #include "interpret.h"
 
+#define TRUE 0
+#define FALSE 1
+
 static SymbolTable *symGlob = NULL;
 static Stack *GlobalStack = NULL;
+
+static bool continueFlag = FALSE;
+static bool breakFlag = FALSE;
+
 
 #define FN(i, ret, fnName, count, arg) do {                             \
         char *name = strdup_("ifj16." #fnName);                         \
@@ -121,6 +128,7 @@ int interpretFunc(Stack *stack, Node *node){
         localStack = createLocalStack(stack);
         dPrintf("%s","Creating new local table.");
         localTable = createSymbolTable();
+        ht_insert (&alloc_tab, localTable);
     }
     else{
         dPrintf("%s\n\t- %s\n\t- %s","Setting reference of:","local stack to global stack,","local table to global table.");
@@ -151,12 +159,16 @@ int interpretFunc(Stack *stack, Node *node){
     return 0;
 }
 
-int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
+Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
     (void) symTable;
     (void) stack;
     Node *node;
     Value *val;
-    Command *head, *tail;
+
+    Command *current, *tail;
+
+    continueFlag = 0;
+
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
@@ -171,7 +183,7 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             // find node and evaluate expression
             node = table_lookup(symTable, cmd->data.define.declaration.name);
 
-            val = evalStaticExpression(cmd->data.define.expr);
+            val = evalExpression(cmd->data.define.expr);
 
             if(val == NULL || node == NULL)
                 PERROR("Interpret: CMD: Define: node or value not found.");
@@ -193,7 +205,7 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
 
-            val = evalStaticExpression(cmd->data.assign.expr);
+            val = evalExpression(cmd->data.assign.expr);
 
             if(val == NULL)
                 PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
@@ -204,77 +216,149 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             break;
 
         case(C_BLOCK):
-            //FIXME add this to a function
-            //
-            head = cmd->data.block.head;
-            tail = cmd->data.block.tail;
 
-            while(head != tail){
-                evalCommand(symTable, stack, head);
-                head = head->next;
-            }
-
-            evalCommand(symTable, stack, head);
+            evalBlock(symTable, stack, &(cmd->data.block));
 
             break;
 
         case(C_IF):
-            val = evalStaticExpression(cmd->data.ifC.cond);
-            PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
+            val = evalExpression(cmd->data.ifC.cond);
+            if(val == NULL)
+                PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
 
             if(valueIsZero(val)){
 
-                //FIXME add this to a function
-                head = cmd->data.ifC.thenBlock.head;
-                tail = cmd->data.ifC.thenBlock.tail;
-
-                while(head != tail){
-                    evalCommand(symTable, stack, head);
-                    head = head->next;
-                }
-
-                evalCommand(symTable, stack, head);
+                evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock));
             }
             else{
 
-                //FIXME add this to a function
-                head = cmd->data.ifC.elseBlock.head;
-                tail = cmd->data.ifC.elseBlock.tail;
+                evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock));
 
-                while(head != tail){
-                    evalCommand(symTable, stack, head);
-                    head = head->next;
-                }
-
-                evalCommand(symTable, stack, head);
             }
 
             break;
 
         case(C_WHILE):
-            ;
+            val = evalExpression(cmd->data.whileC.cond);
+            if(val == NULL)
+                PERROR("Interpret: CMD: whileC: Evaluation of condition was not successful.")
+
+            current = cmd->data.whileC.bodyBlock.head;
+            tail = cmd->data.whileC.bodyBlock.tail;
+
+            continueFlag = FALSE;
+
+            while(valueIsZero(val)){
+
+                while(current != tail){
+
+                    if(continueFlag)
+                        continueFlag = FALSE;
+
+                    evalCommand(symTable, stack, current);
+
+                    if(continueFlag == TRUE){
+                        current = cmd->data.whileC.bodyBlock.head;
+                        break;
+                    }else if(breakFlag == TRUE){
+                        break;
+                    }
+                    else{
+                        current = current->next;
+                        if(current == tail){
+                            evalCommand(symTable, stack, current);
+                        }
+                    }
+                }
+
+                if(breakFlag == TRUE){
+                        break;
+                }
+
+                val = evalExpression(cmd->data.ifC.cond);
+
+            }
+
             break;
 
         case(C_EXPRESSION):
-            ;
+            val = evalExpression(cmd->data.expr);
             break;
 
         case(C_RETURN):
             ;
             break;
+
         case(C_FOR):
             ;
             break;
+
         case(C_CONTINUE):
-            ;
+            continueFlag = TRUE;
             break;
+
         case(C_BREAK):
-            ;
+            breakFlag = TRUE;
             break;
+
         case(C_DO_WHILE):
-            ;
+            val = evalExpression(cmd->data.whileC.cond);
+            if(val == NULL)
+                PERROR("Interpret: CMD: doWhile: Evaluation of condition was not successful.")
+
+            current = cmd->data.whileC.bodyBlock.head;
+            tail = cmd->data.whileC.bodyBlock.tail;
+
+            continueFlag = FALSE;
+
+            do{
+
+                while(current != tail){
+
+                    if(continueFlag)
+                        continueFlag = FALSE;
+
+                    evalCommand(symTable, stack, current);
+
+                    if(continueFlag == TRUE){
+                        current = cmd->data.whileC.bodyBlock.head;
+                        break;
+                    }
+                    else if(breakFlag == TRUE){
+                        break;
+                    }
+                    else{
+                        current = current->next;
+                        if(current == tail){
+                            evalCommand(symTable, stack, current);
+                        }
+                    }
+                }
+
+                if(breakFlag == TRUE){
+                        break;
+                }
+
+                val = evalExpression(cmd->data.ifC.cond);
+
+            }while(valueIsZero(val));
+
             break;
     }
+
+    return 0;
+}
+
+int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
+    Command *current = block->head;
+    Command *tail = block->tail;
+
+    while(current != tail){
+        evalCommand(symTable, stack, current);
+        current = current->next;
+    }
+
+    evalCommand(symTable, stack, current);
 
     return 0;
 }
@@ -629,6 +713,24 @@ Value *evalStaticExpression(Expression *e) {
     return NULL; //Just to pacify the compiler...
 }
 
+Value *evalExpression(Expression *e) {
+    switch (e->type) {
+        case E_FUNCALL:
+        dPrintf("%s","Evaluation of Funcall not implemented");
+            break;
+        case E_REFERENCE:
+            dPrintf("%s","Evaluation of reference not implemented");
+            break;
+        case E_VALUE:
+            return e->data.value;
+        case E_BINARY:
+            return evalBinaryExpression(e->data.binary.op,
+                                        evalStaticExpression(e->data.binary.left),
+                                        evalStaticExpression(e->data.binary.right));
+    }
+    return NULL; //Just to pacify the compiler...
+}
+
 
 ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
 
@@ -694,7 +796,7 @@ char *str_cat(char *str1, char* str2){
     assert(str1 == NULL);
     assert(str2 == NULL);
 
-    char *result = malloc( sizeof(char) * ( strlen(str1) + strlen(str2) ) );
+    char *result = malloc_c( sizeof(char) * ( strlen(str1) + strlen(str2) ) );
     CHECK_ALLOC(result);
 
     unsigned x = 0;
@@ -713,7 +815,7 @@ char *str_cat(char *str1, char* str2){
 
 Stack *createLocalStack(Stack *stack){
 
-    Stack *tmp = malloc(sizeof(Stack) + 5 * sizeof(Value*));
+    Stack *tmp = malloc_c(sizeof(Stack) + 5 * sizeof(Value*));
     CHECK_ALLOC(tmp);
 
     tmp->prev = stack;
