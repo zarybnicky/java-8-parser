@@ -113,6 +113,8 @@ typedef enum{
     AUT_UNARY_MN,
     AUT_AND,
     AUT_OR,
+    AUT_BIN,
+    AUT_BIN2,
     NUMBER,
     FLOAT,
     ERROR_R,
@@ -130,6 +132,7 @@ typedef enum{
     IDEN,
     IDEN_COMPOUND,
     STRING,
+    EXT_BASE,
 }AUTSTATES;
 
 typedef struct s_Token {
