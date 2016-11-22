@@ -154,11 +154,9 @@ int interpretFunc(Stack *stack, Node *node){
 int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
     (void) symTable;
     (void) stack;
-
     Node *node;
     Value *val;
     Command *head, *tail;
-
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table

@@ -25,15 +25,13 @@ void runSemanticAnalysis(Interpret *i) {
     table_iterate(root, checkTopLevel);
     // maybe create global variables
     table_iterate(root, checkAllStatic);
-    table_iterate(root, checkOperatorAssignmentType);
+    //table_iterate(root, checkOperatorAssignmentType);
 
     //free global variables
     symTable = NULL;
 }
 
 //----- Check return type -----
-
-
 void checkReturnPresenceC(Function *f, Command *c) {
     (void) f;
     if (c->type == C_RETURN) {
@@ -54,61 +52,141 @@ void checkReturnPresence(Node *node) {
     }
 }
 
+
+char *changeFunctionName(Expression *e){
+    char *name=e->data.funcall.name;
+    name = strchr(name,'.');
+    return ++name;
+}
+
+//----- Check Binary reference/function ------
 void checkBinaryReference_(char *name, char *typeM){
-    //filter
-    char *look = strchr(name,'.');
-    ++look;
-    //end of filter
-    Node *n=table_lookup_either(symTable, localTable, className, look);
+    Node *n=table_lookup_either(symTable, localTable, className, name);
     if (n == NULL)
         FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.", typeM, name);
 }
 
 void checkBinaryCond_(Expression *e){
-    if (e->data.binary.left->data.reference != NULL){
-        checkBinaryReference_(e->data.binary.left->data.reference, "reference");
-    }
-    else if (e->data.binary.right->data.reference != NULL)
-        checkBinaryReference_(e->data.binary.right->data.reference, "reference");
-    else if (e->data.binary.left->data.reference != NULL && e->data.binary.right->data.reference != NULL){
-        checkBinaryReference_(e->data.binary.left->data.reference, "reference");
-        checkBinaryReference_(e->data.binary.right->data.reference, "reference");
-    }
-    if (e->data.binary.left->data.funcall.name != NULL)
-        checkBinaryReference_(e->data.binary.left->data.funcall.name , "function");
-    else if (e->data.binary.right->data.funcall.name != NULL)
-        checkBinaryReference_(e->data.binary.right->data.funcall.name, "function");
-    else if (e->data.binary.left->data.funcall.name != NULL && e->data.binary.right->data.funcall.name != NULL){
-        checkBinaryReference_(e->data.binary.left->data.funcall.name,"function");
-        checkBinaryReference_(e->data.binary.right->data.funcall.name, "function");
+    //BOTH, TODO traverse through binary exp
+    if (e == NULL)
+        return;
+    char *name;
+    switch(e->data.binary.left->type){
+    case E_FUNCALL:
+        switch(e->data.binary.right->type){
+        case E_FUNCALL:
+            name =changeFunctionName(e->data.binary.left);
+            checkBinaryReference_(name,"function");
+            name =changeFunctionName(e->data.binary.right);
+            checkBinaryReference_(name, "function");
+            break;
+        case E_REFERENCE:
+            name =changeFunctionName(e->data.binary.left);
+            checkBinaryReference_(name,"function");
+            checkBinaryReference_(e->data.binary.right->data.reference, "reference");
+            break;
+        case E_BINARY:
+            name =changeFunctionName(e->data.binary.left);
+            checkBinaryReference_(name,"function");
+            //RECURSION
+            checkBinaryCond_(e->data.binary.right);
+            break;
+        case E_VALUE:
+            break;
+        }
+        break;
+    case E_REFERENCE:
+        //Function call on right expression
+        switch(e->data.binary.right->type){
+        case E_FUNCALL:
+            name =changeFunctionName(e->data.binary.right);
+            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
+            checkBinaryReference_(name, "function");
+            break;
+        case E_REFERENCE:
+            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
+            checkBinaryReference_(e->data.binary.right->data.reference, "reference");
+            break;
+        case E_BINARY:
+            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
+            //RECURSION
+            checkBinaryCond_(e->data.binary.right);
+        case E_VALUE:
+            break;
+        }
+        break;
+    case E_BINARY:
+    case E_VALUE:
+        //more binary operators allow?!?
+        //checkBinaryCond_(e->data.binary.left);
+        break;
     }
 }
 
-void checkCondition_(Command *c){
-    Node *n; char *name;
+Expression *expLoopSwitch(Command *c){
     Expression *e;
-
-    /* initialization of name */
-    if (c->type == C_IF)
+    switch(c->type){
+    case C_IF:
         e=c->data.ifC.cond;
-    else if (c->type == C_WHILE)
+        break;
+    case C_WHILE:
         e=c->data.whileC.cond;
-    else if (c->type == C_DO_WHILE)
+        break;
+    case C_DO_WHILE:
         e=c->data.doWhileC.cond;
-    else if (c->type == C_FOR)
+        break;
+    case C_FOR:
         e=c->data.forC.cond;
-    else
+        break;
+    case C_EXPRESSION:
+    case C_RETURN:
+        e=c->data.expr;
+        break;
+    default:
+        break;
+    }
+    return e;
+}
+/**
+  * Condition + Expr + Ret check.
+  * Checks variables/functions inside loop or classic condition
+  * lookup for node in local/global table return fault or proccess
+  */
+void checkCondition_(Expression *e, Function *f){
+    Node *n; char *name;
+    Expression *arg;
+    if (e == NULL)
         return;
+    /* initialization of name */
 
+    //printExpression(e);
+    //printf("\n\n");
     switch(e->type){
     case E_FUNCALL:
-        name = e->data.funcall.name;
+        name = changeFunctionName(e);
+        arg = e->data.funcall.argHead;
+        if (arg != NULL) {
+            checkCondition_(e->data.funcall.argHead,f);
+            arg = arg->next;
+        }
         n=table_lookup_either(symTable, localTable, className, name);
-        if (n == NULL || (c->type != C_DECLARE && c->type != C_DEFINE))
-            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined function '%s'.", name);
+        if (n == NULL){
+            //check for ifj16 class
+            n=table_lookup_either(symTable, NULL, "ifj16", name);
+            if (n == NULL)
+                FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", name);
+            //TODO if (n->data.function->returnType != f->returnType)
+                //FIXME: implicit conversions
+             //   MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
+        }
+        //if (n->data.function->returnType != f->returnType)
+            //FIXME: implicit conversions
+           // MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
         break;
     case E_REFERENCE:
         name = e->data.reference;
+        if (e != NULL)
+            checkCondition_(e->next,f);
         n=table_lookup_either(symTable, localTable, className, name);
         if (n == NULL)
             FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined reference '%s'.", name);
@@ -117,17 +195,25 @@ void checkCondition_(Command *c){
         checkBinaryCond_(e);
         break;
     case E_VALUE:
+        /*TODO if (f->returnType != e->data.value->type)
+            //FIXME: implicit conversions
+            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value with an incompatible type.");*/
         break;
     }
 }
+/**
+  * function checks whether it has return command
+  * hasReturnCommand = true else false
+  * command checks whether should assign to table new node
+  * or check compatibility of nodes(functions, variables)
+  */
 void checkFnExpression(Function *f, Command *c){
-    (void)f;
-    //end
     if (c == NULL)
         return;
     char *look;
     Node *n;
     ValueType ltype, rtype;
+    Expression *e;
     switch(c->type){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
@@ -143,7 +229,7 @@ void checkFnExpression(Function *f, Command *c){
         break;
     case C_ASSIGN:
         look = strchr(c->data.assign.name,'.');
-        ++look;
+        look++;
         n = table_lookup_either(symTable, localTable, className, look);
         if (n == NULL) {
             fprintf(stderr, "In function %s:\n", f->name);
@@ -153,13 +239,18 @@ void checkFnExpression(Function *f, Command *c){
     case C_IF:
     case C_WHILE:
     case C_DO_WHILE:
+        e=expLoopSwitch(c);
+        checkCondition_(e,f);
+        break;
     case C_EXPRESSION:
     case C_RETURN:
-        checkCondition_(c);
+        e=expLoopSwitch(c);
+        checkCondition_(e,f);
         break;
     case C_FOR:
         table_insert_dummy(localTable, c->data.forC.var);
-        checkCondition_(c);
+        e=expLoopSwitch(c);
+        checkCondition_(e,f);
         break;
     case C_CONTINUE:
     case C_BREAK:
@@ -168,10 +259,14 @@ void checkFnExpression(Function *f, Command *c){
     }
 }
 
-void checkAllStatic(Node *node){
+
+//TODO vycistit lokalni tabulku sym pri chybe
+//----- Check return type all variables/functions -----
+void checkAllStatic (Node *node){
     if (node->type == N_FUNCTION){
         int i = 0;
         Function *f = node->data.function;
+        hasReturnCommand = false;
         while (f->name[i] != '.' && f->name[i] != '\0')
             i++;
         if (f->name[i] == '\0') {
@@ -183,12 +278,15 @@ void checkAllStatic(Node *node){
         className[i] = '\0';
 
         localTable = createSymbolTable();
+        //insert arguments to table
         Declaration *arg = f->argHead;
         while (arg != NULL) {
             table_insert_dummy(localTable, *arg);
+            arg = arg->next;
         }
-
+        //traverse commands
         traverseCommands(f, checkFnExpression, checkOperatorAssignmentTypeF);
+        /* dealocation of local sym table */
         freeSymbolTable(localTable);
         localTable = NULL;
         free(className);
@@ -206,6 +304,8 @@ void checkMainRun(SymbolTable *table){
         MERROR(ERR_SEM_UNDEFINED, "Missing run method in Main.");
 }
 
+/* ------ Operators ---- */
+// ------ Semantic  ---- */
 ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
     if (left == T_VOID || right == T_VOID) {
         return T_VOID; //this should never happen

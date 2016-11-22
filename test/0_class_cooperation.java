@@ -12,7 +12,6 @@ class Main{
         String a = "ahoj";
         int comp1 = ifj16.compare(a, test.s);
         int comp2 = test.testing(a, test.s);
-
         if (comp1 == comp2){
             ifj16.print("Dopadlo to dobre.\n");
         } else {

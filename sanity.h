@@ -25,13 +25,13 @@ void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
 //support function for fnExpression definition??!
+char *changeFunctionName(Expression *);
 void checkBinaryReference_(char *,char *);
 void checkBinaryCond_(Expression *);
-void checkCondition_(Command *);
+Expression *expLoopSwitch(Command *);
+void checkCondition_(Expression *, Function *);
 void checkFnExpression(Function *,Command *);
-
-//Top level only??
-void checkTopLevel(Node *);
+//Sanity main local/global variables functions
 void checkAllStatic (Node *);
 void checkMainRun(SymbolTable *);
 
