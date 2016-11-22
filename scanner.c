@@ -51,6 +51,11 @@ Token *getNextToken(FILE *f) {
         t->type = LIT_INTEGER;
         t->val.intVal = strtol(str,NULL,10);
         break;
+    case EXT_BASE:
+        str+=2;
+        t->type = LIT_INTEGER;
+        t->val.intVal = strtol(str,&endptr,2);
+        break;
     case FLOAT:
         t->type = LIT_DOUBLE;
         t->val.doubleVal = strtod(str,NULL);
@@ -354,7 +359,10 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             else if ((c>='A' && c<='z') || c == '_' || c == '$') 
                 state = AUT_IDEN;
 
-            else if (isdigit(c))  //pokracujeme na stav cisla
+            else if (c == '0')  //pokracujeme na stav cisla
+                state = AUT_BIN;
+
+            else if ((isdigit(c)) && (c!='0'))  //pokracujeme na stav cisla
                 state = AUT_NUM;
 
             else if (c == '+') {
@@ -800,6 +808,29 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             } else {
                  state = Start_state;
                  return ERROR_OR;
+            }
+            break;
+         case AUT_BIN:
+         //printf("%c",c);
+         string_end(string, c, &stringLength, &stringAlloc);
+         GET_CHAR(c, input, state, line, lineCol);
+            if(c == 'b') {
+                 state = AUT_BIN2;
+            } else if (isdigit(c)){
+                 state = AUT_NUM;;
+            }
+            break;
+            
+         case AUT_BIN2:
+         //printf("%c",c);
+         string_end(string, c, &stringLength, &stringAlloc);
+         GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
+                 //oprav isdigitc = '1';
+                 state = AUT_BIN2;
+            } else if (isspace(c)){
+                 state = Start_state;
+                 return EXT_BASE;
             }
             break;
         }
