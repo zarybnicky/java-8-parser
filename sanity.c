@@ -85,7 +85,7 @@ void checkReturnType(Node *node) {
     }
     Function *f = node->data.function;
     hasReturnCommand = false;
-    printFunction(f);
+
     traverseCommands(f, checkReturnCommand, NULL);
     if (f->returnType != T_VOID && !hasReturnCommand) {
         MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
@@ -135,6 +135,8 @@ void checkCondition_(Command *c){
         e=c->data.doWhileC.cond;
     else if (c->type == C_FOR)
         e=c->data.forC.cond;
+    else
+        return;
 
     switch(e->type){
     case E_FUNCALL:
@@ -241,20 +243,16 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
         if (op == EB_ADD) {
             return T_STRING; //concatenation
         }
-        fprintf(stderr, "Wrong operator types for operation %s: %s, %s.\n",
-                showBinaryOperation(op),
-                showValueType(left), showValueType(right));
-        ERROR(ERR_SEM_TYPECHECK);
+        FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
+               showBinaryOperation(op), showValueType(left), showValueType(right));
     }
     if (left == T_BOOLEAN || right == T_BOOLEAN) {
         if (left == T_BOOLEAN && right == T_BOOLEAN &&
             (op == EB_EQUAL || op == EB_NOT_EQUAL)) {
             return T_BOOLEAN; //bool comparison
         }
-        fprintf(stderr, "Wrong operator types for operation %s: %s, %s.\n",
-                showBinaryOperation(op),
-                showValueType(left), showValueType(right));
-        ERROR(ERR_SEM_TYPECHECK);
+        FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
+               showBinaryOperation(op), showValueType(left), showValueType(right));
     }
 
     //now left & right are both int or double
@@ -276,11 +274,8 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
         return T_BOOLEAN;
     }
 
-    //...and to appease the compiler
-    fprintf(stderr, "Wrong operator types for operation %s: %s, %s.\n",
-            showBinaryOperation(op),
-            showValueType(left), showValueType(right));
-    ERROR(ERR_SEM_TYPECHECK);
+    FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
+          showBinaryOperation(op), showValueType(left), showValueType(right));
 }
 void checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     if ((lvalue == T_INTEGER || lvalue == T_DOUBLE) &&
@@ -293,9 +288,8 @@ void checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     if (lvalue == T_BOOLEAN && rvalue == T_BOOLEAN) {
         return;
     }
-    fprintf(stderr, "Cannot assign a %s to %s.\n",
-            showValueType(rvalue), showValueType(lvalue));
-    ERROR(ERR_SEM_TYPECHECK);
+    FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
+           showValueType(rvalue), showValueType(lvalue));
 }
 
 ValueType getExpressionType(Expression *e) {
@@ -303,7 +297,6 @@ ValueType getExpressionType(Expression *e) {
         MERROR(ERR_INTERNAL, "NULL expression");
     }
     Node *n;
-    ValueType l, r;
     switch (e->type) {
     case E_VALUE:
         return e->data.value->type;
@@ -318,9 +311,9 @@ ValueType getExpressionType(Expression *e) {
             MERROR(ERR_SEM_TYPECHECK, "Trying to reference a function");
         return n->data.value->type;
     case E_BINARY:
-        l = getExpressionType(e->data.binary.left);
-        r = getExpressionType(e->data.binary.right);
-        return coerceBinary(e->data.binary.op, l, r);
+        return coerceBinary(e->data.binary.op,
+                            getExpressionType(e->data.binary.left),
+                            getExpressionType(e->data.binary.right));
     }
 
     //...and appease the compiler

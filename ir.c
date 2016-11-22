@@ -33,11 +33,11 @@ void printValue(Value *v) {
     }
     printf("Value(");
     switch (v->type) {
-    case T_STRING:  printf("\"%s\"", v->data.str); break;
-    case T_INTEGER: printf("%d", v->data.integer); break;
-    case T_DOUBLE:  printf("%g", v->data.dbl);     break;
-    case T_BOOLEAN: printf("%d", v->data.boolean); break;
-    case T_VOID:    break;
+    case T_STRING:  printf("String:\"%s\"", v->data.str); break;
+    case T_INTEGER: printf("int:%d", v->data.integer); break;
+    case T_DOUBLE:  printf("double:%g", v->data.dbl);     break;
+    case T_BOOLEAN: printf("bool:%d", v->data.boolean); break;
+    case T_VOID:    printf("void"); break;
     }
     printf(")");
 }

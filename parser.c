@@ -453,6 +453,7 @@ bool parseExpressionFuncall(Lexer *l, Expression **e) {
 bool parseExpressionLiteral(Lexer *l, Expression **e) {
     Token *t = peekToken(l);
     Value *v;
+
     switch (t->type) {
     case RESERVED:
         if (t->val.reserved == RES_TRUE) {
@@ -471,7 +472,7 @@ bool parseExpressionLiteral(Lexer *l, Expression **e) {
         break;
     case LIT_STRING:
         v = createValue(T_STRING);
-        v->data.str = t->val.stringVal;
+        v->data.str = strdup_(t->val.stringVal);
         break;
     case LIT_DOUBLE:
         v = createValue(T_DOUBLE);
@@ -480,7 +481,6 @@ bool parseExpressionLiteral(Lexer *l, Expression **e) {
     default:
         return false;
     }
-    v->type = t->type;
     *e = createExpression(E_VALUE);
     (*e)->data.value = v;
     nextToken(l);

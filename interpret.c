@@ -35,10 +35,35 @@
 static SymbolTable *symGlob = NULL;
 static Stack *GlobalStack = NULL;
 
+#define FN(i, ret, fnName, count, arg) do {                             \
+        static Function fnName = { .body = { .head = NULL, .tail = NULL }, \
+                                   .name = #fnName, .returnType = ret,  \
+                                   .argCount = count, .argHead = arg    \
+        };                                                              \
+        table_insert(&i->symTable, createFunctionNode(#fnName, &fnName)); \
+    } while (0);
+
 Interpret *createInterpret(void) {
     Interpret *i = malloc(sizeof(Interpret));
     CHECK_ALLOC(i);
     i->symTable.root = NULL;
+
+    static Declaration oneString = { .type = T_STRING, .name = "x", .next = NULL };
+    static Declaration twoStrings = { .type = T_STRING, .name = "y", .next = &oneString };
+    static Declaration numString = { .type = T_INTEGER, .name = "i", .next = &oneString };
+    static Declaration twoNumString = { .type = T_INTEGER, .name = "n", .next = &numString };
+
+    table_insert(&i->symTable, createClassNode("ifj16"));
+    FN(i, T_INTEGER, readInt, 0, NULL);
+    FN(i, T_DOUBLE, readDouble, 0, NULL);
+    FN(i, T_STRING, readString, 0, NULL);
+    FN(i, T_VOID, print, 1, &oneString);
+    FN(i, T_STRING, sort, 2, &oneString);
+    FN(i, T_INTEGER, length, 2, &twoStrings);
+    FN(i, T_INTEGER, find, 2, &twoStrings);
+    FN(i, T_INTEGER, compare, 2, &twoStrings);
+    FN(i, T_STRING, substr, 3, &twoNumString);
+
     return i;
 }
 
@@ -54,40 +79,21 @@ int freeInterpret(Interpret *i) {
 
 
 int evalMain(Interpret *i) {
-
     assert(i != NULL);
-
-
-    Node *mainFn = table_lookup(&i->symTable, "Main.run");
-
-
     symGlob = &(i->symTable);
     GlobalStack = createLocalStack(NULL);
 
-    interpretNode(GlobalStack, mainFn);
+    Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
-    free(GlobalStack);
+    assert(mainFn != NULL);
 
-    return 0;
-}
-
-int interpretNode(Stack *stack, Node *node){
-
-    assert(stack != NULL);
-    assert(node != NULL);
-
-    switch(node->type){
-        N_CLASS:
-            dPrintf("%s %d","Unexpected happened with node!",node->type);
-            break;
-        N_FUNCTION:
-            interpretFunc(stack, node);
-            break;
-        N_VALUE:
-            dPrintf("%s %d","Unexpected happened with node!", node->type);
-            break;
+    if (mainFn->type == N_FUNCTION) {
+        interpretFunc(GlobalStack, mainFn);
+    } else {
+        dPrintf("%s %d","Unexpected happened with node!",mainFn->type);
     }
 
+    free(GlobalStack);
     return 0;
 }
 
@@ -135,6 +141,8 @@ int interpretFunc(Stack *stack, Node *node){
 }
 
 int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
+    (void) symTable;
+    (void) stack;
 
     switch(cmd->type){
         case(C_DECLARE):
@@ -254,7 +262,6 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             ;
             break;
     }
-
 
     return 0;
 }
@@ -438,8 +445,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean == right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -456,8 +462,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean != right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -475,8 +480,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean < right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -494,8 +498,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean <= right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -513,8 +516,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean > right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -532,8 +534,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_BOOLEAN):
                     result->data.boolean = (left->data.boolean >= right->data.boolean);
                     break;
-                case(T_STRING):
-                case(T_VOID):
+                default:
                     break;
             }
 
@@ -548,9 +549,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_DOUBLE):
                     result->data.dbl = (left->data.dbl * right->data.dbl);
                     break;
-                case(T_STRING):
-                case(T_VOID):
-                case(T_BOOLEAN):
+                default:
                     break;
             }
             break;
@@ -564,17 +563,13 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                     }
                     result->data.integer = (left->data.integer / right->data.integer);
                     break;
-
                 case(T_DOUBLE):
                     if (result->data.dbl == 0){
                         ERROR(ERR_RUNTIME_DIV_BY_ZERO);
                     }
                     result->data.dbl = (left->data.dbl / right->data.dbl);
                     break;
-
-                case(T_STRING):
-                case(T_VOID):
-                case(T_BOOLEAN):
+                default:
                     break;
             }
             break;
@@ -591,8 +586,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_STRING):
                     result->data.str = str_cat(left->data.str, right->data.str);
                     break;
-                case(T_VOID):
-                case(T_BOOLEAN):
+                default:
                     break;
             }
             break;
@@ -606,9 +600,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                 case(T_DOUBLE):
                     result->data.dbl = (left->data.dbl - right->data.dbl);
                     break;
-                case(T_STRING):
-                case(T_VOID):
-                case(T_BOOLEAN):
+                default:
                     break;
             }
             break;
@@ -624,8 +616,6 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
 
 Value *evalStaticExpression(Expression *e) {
-    Value *left, *right;
-
     switch (e->type) {
         case E_FUNCALL:
         case E_REFERENCE:
@@ -633,18 +623,15 @@ Value *evalStaticExpression(Expression *e) {
         case E_VALUE:
             return e->data.value;
         case E_BINARY:
-            left = evalStaticExpression(e->data.binary.left);
-            right = evalStaticExpression(e->data.binary.right);
-            return evalBinaryExpression(e->data.binary.op, left, right);
+            return evalBinaryExpression(e->data.binary.op,
+                                        evalStaticExpression(e->data.binary.left),
+                                        evalStaticExpression(e->data.binary.right));
     }
     return NULL; //Just to pacify the compiler...
 }
 
 
 ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
-
-    // (void*) left;
-    // (void*) right; // turn off compiler warnings for arguments
 
     assert(left != NULL);
     assert(right != NULL);
@@ -688,8 +675,6 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
             else{
                 returnType = T_BOOLEAN;
             }
-
-
             break;
 
         case EB_DIVIDE:

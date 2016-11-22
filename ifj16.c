@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     }
     fclose(f);
 
-    printSymbolTable(&i->symTable);
     runSemanticAnalysis(i);
 
     evalMain(i);
