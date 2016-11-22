@@ -127,6 +127,7 @@ int interpretFunc(Stack *stack, Node *node){
         evalCommand(localTable, localStack, current);
         current = current->next;
     }
+    evalCommand(localTable, localStack, current);
 
 
 
@@ -137,23 +138,96 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
 
     switch(cmd->type){
         case(C_DECLARE):
-            ;
+            //  insert declaration into table
+            table_insert_dummy(symTable, cmd->data.declare);
             break;
 
         case(C_DEFINE):
-            ;
+
+            // insert dec into table
+            table_insert_dummy(symTable, cmd->data.define.declaration);
+
+            // find node and evaluate expression
+            Node *node = table_lookup(symTable, cmd->data.define.declaration.name);
+
+            Value *val = evalStaticExpression(cmd->data.define.expr);
+
+            if(val == NULL || node == NULL)
+                PERROR("Interpret: CMD: Define: node or value not found.");
+
+            // assign value
+            node->data.value = val;
+
             break;
 
         case(C_ASSIGN):
-            ;
+
+            // find node in symTable and evaluate expr
+            Node *node = table_lookup(symTable, cmd->data.assign.name);
+
+            if(node == NULL){
+                node = table_lookup(symGlob, cmd->data.assign.name);
+            }
+
+            if(node == NULL)
+                PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
+
+            Value *val = evalStaticExpression(cmd->data.assign.expr);
+
+            if(val == NULL)
+                PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
+
+            // assign
+            node->data.value = val;
+
             break;
 
         case(C_BLOCK):
-            ;
+            //FIXME add this to a function
+            //
+            Command *head = cmd->data.block->head;
+            Command *tail = cmd->data.block->tail;
+
+            while(head != tail){
+                evalCommand(symTable, stack, head);
+                head = head->next;
+            }
+
+            evalCommand(symTable, stack, head);
+
             break;
 
         case(C_IF):
-            ;
+            Value *val = evalStaticExpression(cmd->data.ifC.cond);
+            PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
+
+            if(valueIsZero(val)){
+
+                //FIXME add this to a function
+                Command *head = cmd->data.ifc.thenBlock->head;
+                Command *tail = cmd->data.ifc.thenBlock->tail;
+
+                while(head != tail){
+                    evalCommand(symTable, stack, head);
+                    head = head->next;
+                }
+
+                evalCommand(symTable, stack, head);
+            }
+            else{
+
+                //FIXME add this to a function
+                Command *head = cmd->data.ifc.elseBlock->head;
+                Command *tail = cmd->data.ifc.elseBlock->tail;
+
+                while(head != tail){
+                    evalCommand(symTable, stack, head);
+                    head = head->next;
+                }
+
+                evalCommand(symTable, stack, head);
+            }
+
             break;
 
         case(C_WHILE):

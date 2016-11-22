@@ -1,5 +1,6 @@
 CC=gcc
 #Werror add?
+#-DNDEBUG for release !
 CPPFLAGS=-pedantic -Wall -Wextra -g
 CFLAGS=-std=c99
 LDFLAGS=-L.

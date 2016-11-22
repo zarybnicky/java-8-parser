@@ -14,6 +14,7 @@
 #include "ir.h"
 #include "parser.h"
 #include "interpret.h"
+#include "int_memory_management.h"
 #include "sanity.h"
 
 Lexer *l;
@@ -21,6 +22,7 @@ Interpret *i;
 void freeGlobalResources() {
     freeLexer(l);
     freeInterpret(i);
+    free_c_all();
 }
 
 int main(int argc, char *argv[])

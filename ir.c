@@ -42,6 +42,29 @@ void printValue(Value *v) {
     printf(")");
 }
 
+int valueIsZero(Value *val){
+
+    switch(value->type){
+        case(T_STRING):
+            return value->data.str[0] != '\0';
+            break;
+        case(T_INTEGER):
+            return value->data.integer != 0;
+            break;
+        case(T_DOUBLE):
+            return value->data.dbl != 0.0;
+            break;
+        case(T_BOOLEAN):
+            return !value->data.boolean;
+            break;
+        case(T_VOID):
+            return 1;
+            break;
+    }
+
+    return 0;
+}
+
 /* EXPRESSION */
 Expression *createExpression(ExpressionType type) {
     Expression *e = malloc(sizeof(Expression));
