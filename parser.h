@@ -192,6 +192,7 @@ Expression *parseArgListCall(Lexer *l, int *argCount);
 char *parseSimpleId(Lexer *l);
 char *parseAndQualifySimpleId(Lexer *l);
 char *parseAndQualifyId(Lexer *l);
+char *parseAnyId(Lexer *l);
 ValueType parseType(Lexer *l);
 ValueType parseReturnType(Lexer *l);
 

@@ -83,6 +83,7 @@ void table_balance( SymbolTable * );
   */
 void table_insert( SymbolTable *, Node * );
 void table_insert_dummy(SymbolTable *, Declaration);
+void table_insert_function(SymbolTable *, Function *);
 
 /**
  * Removes the Node referenced by `symbol` and returns the deleted node.

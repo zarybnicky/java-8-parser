@@ -36,11 +36,10 @@ static SymbolTable *symGlob = NULL;
 static Stack *GlobalStack = NULL;
 
 #define FN(i, ret, fnName, count, arg) do {                             \
-        static Function fnName = { .body = { .head = NULL, .tail = NULL }, \
-                                   .name = #fnName, .returnType = ret,  \
-                                   .argCount = count, .argHead = arg    \
-        };                                                              \
-        table_insert(&i->symTable, createFunctionNode(#fnName, &fnName)); \
+        char *name = strdup_("ifj16." #fnName);                         \
+        Function *f = createFunction(name, ret, count, arg);            \
+        f->builtin = true;                                              \
+        table_insert_function(&i->symTable, f);                         \
     } while (0);
 
 Interpret *createInterpret(void) {
@@ -48,21 +47,33 @@ Interpret *createInterpret(void) {
     CHECK_ALLOC(i);
     i->symTable.root = NULL;
 
-    static Declaration oneString = { .type = T_STRING, .name = "x", .next = NULL };
-    static Declaration twoStrings = { .type = T_STRING, .name = "y", .next = &oneString };
-    static Declaration numString = { .type = T_INTEGER, .name = "i", .next = &oneString };
-    static Declaration twoNumString = { .type = T_INTEGER, .name = "n", .next = &numString };
+    Declaration *printArg = createDeclaration(T_STRING, strdup_("x"));
+    Declaration *sortArg = createDeclaration(T_STRING, strdup_("x"));
+    Declaration *lengthArg = createDeclaration(T_STRING, strdup_("x"));
 
-    table_insert(&i->symTable, createClassNode("ifj16"));
+    Declaration *findArg1 = createDeclaration(T_STRING, strdup_("x"));
+    Declaration *findArg2 = createDeclaration(T_STRING, strdup_("y"));
+    findArg2->next = findArg1;
+    Declaration *compareArg1 = createDeclaration(T_STRING, strdup_("x"));
+    Declaration *compareArg2 = createDeclaration(T_STRING, strdup_("y"));
+    compareArg2->next = compareArg1;
+    Declaration *substrArg1 = createDeclaration(T_STRING, strdup_("x"));
+    Declaration *substrArg2 = createDeclaration(T_INTEGER, strdup_("n"));
+    Declaration *substrArg3 = createDeclaration(T_INTEGER, strdup_("l"));
+    substrArg2->next = substrArg1;
+    substrArg3->next = substrArg2;
+
+    table_insert(&i->symTable, createClassNode(strdup_("ifj16")));
+
     FN(i, T_INTEGER, readInt, 0, NULL);
     FN(i, T_DOUBLE, readDouble, 0, NULL);
     FN(i, T_STRING, readString, 0, NULL);
-    FN(i, T_VOID, print, 1, &oneString);
-    FN(i, T_STRING, sort, 2, &oneString);
-    FN(i, T_INTEGER, length, 2, &twoStrings);
-    FN(i, T_INTEGER, find, 2, &twoStrings);
-    FN(i, T_INTEGER, compare, 2, &twoStrings);
-    FN(i, T_STRING, substr, 3, &twoNumString);
+    FN(i, T_VOID, print, 1, printArg);
+    FN(i, T_STRING, sort, 2, sortArg);
+    FN(i, T_INTEGER, length, 2, lengthArg);
+    FN(i, T_INTEGER, find, 2, findArg2);
+    FN(i, T_INTEGER, compare, 2, compareArg2);
+    FN(i, T_STRING, substr, 3, substrArg3);
 
     return i;
 }
@@ -144,6 +155,10 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
     (void) symTable;
     (void) stack;
 
+    Node *node;
+    Value *val;
+    Command *head, *tail;
+
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
@@ -156,9 +171,9 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             table_insert_dummy(symTable, cmd->data.define.declaration);
 
             // find node and evaluate expression
-            Node *node = table_lookup(symTable, cmd->data.define.declaration.name);
+            node = table_lookup(symTable, cmd->data.define.declaration.name);
 
-            Value *val = evalStaticExpression(cmd->data.define.expr);
+            val = evalStaticExpression(cmd->data.define.expr);
 
             if(val == NULL || node == NULL)
                 PERROR("Interpret: CMD: Define: node or value not found.");
@@ -171,7 +186,7 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
         case(C_ASSIGN):
 
             // find node in symTable and evaluate expr
-            Node *node = table_lookup(symTable, cmd->data.assign.name);
+            node = table_lookup(symTable, cmd->data.assign.name);
 
             if(node == NULL){
                 node = table_lookup(symGlob, cmd->data.assign.name);
@@ -180,7 +195,7 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
 
-            Value *val = evalStaticExpression(cmd->data.assign.expr);
+            val = evalStaticExpression(cmd->data.assign.expr);
 
             if(val == NULL)
                 PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
@@ -193,8 +208,8 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
         case(C_BLOCK):
             //FIXME add this to a function
             //
-            Command *head = cmd->data.block->head;
-            Command *tail = cmd->data.block->tail;
+            head = cmd->data.block.head;
+            tail = cmd->data.block.tail;
 
             while(head != tail){
                 evalCommand(symTable, stack, head);
@@ -206,14 +221,14 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             break;
 
         case(C_IF):
-            Value *val = evalStaticExpression(cmd->data.ifC.cond);
+            val = evalStaticExpression(cmd->data.ifC.cond);
             PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
 
             if(valueIsZero(val)){
 
                 //FIXME add this to a function
-                Command *head = cmd->data.ifc.thenBlock->head;
-                Command *tail = cmd->data.ifc.thenBlock->tail;
+                head = cmd->data.ifC.thenBlock.head;
+                tail = cmd->data.ifC.thenBlock.tail;
 
                 while(head != tail){
                     evalCommand(symTable, stack, head);
@@ -225,8 +240,8 @@ int evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
             else{
 
                 //FIXME add this to a function
-                Command *head = cmd->data.ifc.elseBlock->head;
-                Command *tail = cmd->data.ifc.elseBlock->tail;
+                head = cmd->data.ifC.elseBlock.head;
+                tail = cmd->data.ifC.elseBlock.tail;
 
                 while(head != tail){
                     evalCommand(symTable, stack, head);
@@ -283,9 +298,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     }
     else if(!strcmp(str, "ifj16.readInt") ){
         // FIXME pushnut do stacku?
-        Value *val = malloc_c(sizeof(Value));
-
-        val->type = T_INTEGER;
+        Value *val = createValue(T_INTEGER);
         val->data.integer = readInt();
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -293,10 +306,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.readDouble") ){
-
-        Value *val = malloc_c(sizeof(Value));
-
-        val->type = T_INTEGER;
+        Value *val = createValue(T_DOUBLE);
         val->data.dbl = readDouble();
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -304,10 +314,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.readString") ){
-
-        Value *val = malloc_c(sizeof(Value));
-
-        val->type = T_INTEGER;
+        Value *val = createValue(T_STRING);
         val->data.str = readString();
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -423,13 +430,7 @@ int pushParamsToStack(SymbolTable *symTable, Stack *stack, Function *fn){
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
-    // memory allocation for result
-    Value *result = malloc(sizeof(Value));
-    CHECK_ALLOC(result);
-
-    // calculate result data type
-    result->type = evalReturnType(op, left, right);
-
+    Value *result = createValue(evalReturnType(op, left, right));
     result->undefined = true;
 
     // switch to right operation
@@ -774,9 +775,6 @@ Value *popFromStack(Stack *stack){
 
 Value *reTypeFromDeclToVal(Declaration *dec){
 
-    Value *val = (Value*)malloc_c(sizeof(Value));
-    val->undefined = 0;
-
     // Integer
     //
     errno = 0;
@@ -784,8 +782,8 @@ Value *reTypeFromDeclToVal(Declaration *dec){
     long tmp_i = strtol(dec->name, &rubbish, 10);
 
     if(rubbish == NULL && errno != ERANGE){
+        Value *val = createValue(T_INTEGER);
         val->data.integer = tmp_i;
-        val->type = T_INTEGER;
         return val;
     }
 
@@ -797,8 +795,8 @@ Value *reTypeFromDeclToVal(Declaration *dec){
     double tmp_d = strtof(dec->name, &rubbish);
 
     if(rubbish == NULL && errno != ERANGE){
+        Value *val = createValue(T_DOUBLE);
         val->data.dbl = tmp_d;
-        val->type = T_DOUBLE;
         return val;
     }
 
@@ -808,12 +806,12 @@ Value *reTypeFromDeclToVal(Declaration *dec){
     char *fl = "FALSE";
 
     if(!strcmp(dec->name,tr)){
+        Value *val = createValue(T_BOOLEAN);
         val->data.boolean = 1;
-        val->type = T_BOOLEAN;
         return val;
     }
     else if(!strcmp(dec->name,fl)){
-        val->data.boolean = 0;
+        Value *val = createValue(T_BOOLEAN);
         val->type = T_BOOLEAN;
         return val;
     }

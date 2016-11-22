@@ -120,12 +120,14 @@ bool parseStaticDefinition(Lexer *l) {
     PARSE_EXPRESSION(e, l);
 
     Value *v = evalStaticExpression(e);
+    free(e);
     if (v->type != type) {
-        free(v), free(e);
+        free(v);
         FERROR(ERR_SEM_TYPECHECK,
                "Type error: variable has type %s but assigned expression has evaluated to %s\n",
                showValueType(type), showValueType(type));
     }
+    expectSymbol(l, SYM_SEMI);
     table_insert(&l->interpret->symTable, createValueNode(name, v));
     return true;
 }
@@ -162,7 +164,7 @@ bool parseLocalDeclaration(Lexer *l, Block *b) {
     if (!parseDeclaration(l, &dPtr)) {
         return false;
     }
-    trySymbol(l, SYM_SEMI, false);
+    trySymbol(l, SYM_SEMI, (free(d.name), false));
     appendToBlock(b, createCommandDeclare(d));
     return true;
 }
@@ -491,7 +493,7 @@ bool parseExpressionVar(Lexer *l, Expression **e) {
     Token *t = peekToken(l);
     if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
         return false;
-    char *name = parseAndQualifyId(l);
+    char *name = parseAnyId(l);
     *e = createExpression(E_REFERENCE);
     (*e)->data.reference = name;
     return true;
@@ -519,17 +521,19 @@ Declaration *parseArgListDecl(Lexer *l, int *argCount) {
         return NULL;
 
     (*argCount)++;
-    Declaration **e = &d->next;
+    Declaration *head = d;
+    d = NULL;
     while (1) {
-        trySymbol(l, SYM_COMMA, d);
-        if (!parseDeclaration(l, e)) {
+        trySymbol(l, SYM_COMMA, head);
+        if (!parseDeclaration(l, &d)) {
             Token *t = peekToken(l);
             FERROR(ERR_SYNTAX,
                    "Expected a type on line %d:%d, received '%s'.\n",
                    t->lineNum, t->lineChar, t->original);
         }
         (*argCount)++;
-        e = &(*e)->next;
+        d->next = head;
+        head = d;
     }
 }
 

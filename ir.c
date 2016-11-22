@@ -20,7 +20,7 @@ Value *createValue(ValueType type) {
 }
 void freeValue(Value *v) {
     if (v != NULL) {
-        if (v->type == T_STRING) {
+        if (v->type == T_STRING && v->data.str != NULL && !v->undefined) {
             free(v->data.str);
         }
         free(v);
@@ -29,6 +29,10 @@ void freeValue(Value *v) {
 void printValue(Value *v) {
     if (v == NULL) {
         printf("Value(NULL)");
+        return;
+    }
+    if (v->undefined) {
+        printf("Value(undefined)");
         return;
     }
     printf("Value(");
@@ -369,6 +373,7 @@ Function *createFunction(char *name, ValueType type, int argCount, Declaration *
     f->argCount = argCount;
     f->argHead = argHead;
     f->body.head = f->body.tail = NULL;
+    f->builtin = false;
     return f;
 }
 void freeFunction(Function *f) {
@@ -392,39 +397,39 @@ void printFunction(Function *f) {
     printf(")\n");
 }
 void traverseCommandsC(Function *f, Command *c, void (*fn)(Function *, Command *), void (*onForExit)(Command *)) {
-    if (c == NULL)
-        return;
-    fn(f, c);
-    switch (c->type) {
-    case C_DECLARE:
-    case C_DEFINE:
-    case C_ASSIGN:
-    case C_EXPRESSION:
-    case C_RETURN:
-    case C_CONTINUE:
-    case C_BREAK:
-        break;
-    case C_BLOCK:
-        traverseCommandsC(f, c->data.block.head, fn, onForExit);
-        break;
-    case C_IF:
-        traverseCommandsC(f, c->data.ifC.thenBlock.head, fn, onForExit);
-        traverseCommandsC(f, c->data.ifC.elseBlock.head, fn, onForExit);
-        break;
-    case C_WHILE:
-        traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn, onForExit);
-        break;
-    case C_DO_WHILE:
-        traverseCommandsC(f, c->data.doWhileC.bodyBlock.head, fn, onForExit);
-        break;
-    case C_FOR:
-        traverseCommandsC(f, c->data.forC.iter, fn, onForExit);
-        traverseCommandsC(f, c->data.forC.bodyBlock.head, fn, onForExit);
-        if (onForExit != NULL)
-            onForExit(c);
-        break;
+    while (c != NULL) {
+        fn(f, c);
+        switch (c->type) {
+        case C_DECLARE:
+        case C_DEFINE:
+        case C_ASSIGN:
+        case C_EXPRESSION:
+        case C_RETURN:
+        case C_CONTINUE:
+        case C_BREAK:
+            break;
+        case C_BLOCK:
+            traverseCommandsC(f, c->data.block.head, fn, onForExit);
+            break;
+        case C_IF:
+            traverseCommandsC(f, c->data.ifC.thenBlock.head, fn, onForExit);
+            traverseCommandsC(f, c->data.ifC.elseBlock.head, fn, onForExit);
+            break;
+        case C_WHILE:
+            traverseCommandsC(f, c->data.whileC.bodyBlock.head, fn, onForExit);
+            break;
+        case C_DO_WHILE:
+            traverseCommandsC(f, c->data.doWhileC.bodyBlock.head, fn, onForExit);
+            break;
+        case C_FOR:
+            traverseCommandsC(f, c->data.forC.iter, fn, onForExit);
+            traverseCommandsC(f, c->data.forC.bodyBlock.head, fn, onForExit);
+            if (onForExit != NULL)
+                onForExit(c);
+            break;
+        }
+        c = c->next;
     }
-    traverseCommandsC(f, c->next, fn, onForExit);
 }
 void traverseCommands(Function *f, void (*fn)(Function *, Command *), void (*onForExit)(Command *)) {
     if (f->body.head != NULL) {

@@ -127,6 +127,7 @@ typedef struct {
     int argCount;
     Declaration *argHead;
     Block body;
+    bool builtin;
 } Function;
 
 Value *createValue(ValueType);

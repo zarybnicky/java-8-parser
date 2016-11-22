@@ -20,8 +20,9 @@ void runSemanticAnalysis(Interpret *i) {
     symTable = &i->symTable;
     Node *root = symTable->root;
 
-    table_iterate(root, checkReturnType);
     checkMainRun(&i->symTable);
+    table_iterate(root, checkReturnPresence);
+    table_iterate(root, checkTopLevel);
     // maybe create global variables
     //table_iterate(root, checkAllStatic);
     table_iterate(root, checkOperatorAssignmentType);
@@ -33,61 +34,22 @@ void runSemanticAnalysis(Interpret *i) {
 //----- Check return type -----
 
 
-void checkReturnCommand(Function *f, Command *c) {
-    if (c->type != C_RETURN) {
-        return;
-    }
-    hasReturnCommand = true;
-
-    if (f->returnType == T_VOID) {
-        if (c->data.expr != NULL)
-            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value from a void function");
-        return;
-    }
-    Node *n; char *name;
-    switch (c->data.expr->type) {
-    case E_VALUE:
-        if (f->returnType != c->data.expr->data.value->type)
-            //FIXME: implicit conversions
-            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value with an incompatible type.");
-        break;
-    case E_FUNCALL:
-        name = c->data.expr->data.funcall.name;
-        n = table_lookup(symTable, name);
-        if (n == NULL)
-            FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", name);
-        if (n->type == N_VALUE)
-            FERROR(ERR_SEM_TYPECHECK, "Trying to call a variable '%s'.", name);
-        if (n->data.function->returnType != f->returnType)
-            //FIXME: implicit conversions
-            MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
-        break;
-    case E_REFERENCE:
-        name = c->data.expr->data.funcall.name;
-        n = table_lookup(symTable, name);
-        if (n == NULL)
-            FERROR(ERR_SEM_UNDEFINED, "Trying to return an undefined variable %s", name);
-        if (n->type == N_FUNCTION)
-            MERROR(ERR_SEM_TYPECHECK, "Trying to return a function.");
-        if (n->data.value->type != f->returnType)
-            //FIXME: implicit conversions
-            MERROR(ERR_SEM_TYPECHECK, "Trying to return a variable with an incompatible type.");
-        break;
-    case E_BINARY:
-        //FIXME
-        MERROR(ERR_INTERNAL, "Not yet implemented.");
-        break;
+void checkReturnPresenceC(Function *f, Command *c) {
+    (void) f;
+    if (c->type == C_RETURN) {
+        hasReturnCommand = true;
     }
 }
-void checkReturnType(Node *node) {
+void checkReturnPresence(Node *node) {
     if (node->type != N_FUNCTION) {
         return;
     }
     Function *f = node->data.function;
     hasReturnCommand = false;
 
-    traverseCommands(f, checkReturnCommand, NULL);
+    traverseCommands(f, checkReturnPresenceC, NULL);
     if (f->returnType != T_VOID && !hasReturnCommand) {
+        fprintf(stderr, "In function %s:\n", f->name);
         MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
     }
 }
@@ -99,7 +61,7 @@ void checkBinaryReference_(char *name, char *typeM){
     //end of filter
     Node *n=table_lookup_either(symTable, localTable, className, look);
     if (n == NULL)
-        FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.",typeM,name);
+        FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.", typeM, name);
 }
 
 void checkBinaryCond_(Expression *e){
@@ -142,7 +104,7 @@ void checkCondition_(Command *c){
     case E_FUNCALL:
         name = e->data.funcall.name;
         n=table_lookup_either(symTable, localTable, className, name);
-        if (n == NULL || (c->type != C_DECLARE && c->type != C_DEFINE) )
+        if (n == NULL || (c->type != C_DECLARE && c->type != C_DEFINE))
             FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined function '%s'.", name);
         break;
     case E_REFERENCE:
@@ -165,21 +127,28 @@ void checkFnExpression(Function *f, Command *c){
         return;
     char *look;
     Node *n;
+    ValueType ltype, rtype;
     switch(c->type){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
         break;
     case C_DEFINE:
-        checkAssignCompatible(c->data.define.declaration.type,
-        getExpressionType(c->data.define.expr));
+        ltype = c->data.define.declaration.type;
+        rtype = getExpressionType(c->data.define.expr);
+        if (!checkAssignCompatible(ltype, rtype)) {
+            FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
+                   showValueType(rtype), showValueType(ltype));
+        }
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
     case C_ASSIGN:
         look = strchr(c->data.assign.name,'.');
         ++look;
         n = table_lookup_either(symTable, localTable, className, look);
-        if (n == NULL)
+        if (n == NULL) {
+            fprintf(stderr, "In function %s:\n", f->name);
             FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", look);
+        }
         break;
     case C_IF:
     case C_WHILE:
@@ -199,14 +168,16 @@ void checkFnExpression(Function *f, Command *c){
     }
 }
 
-void checkAllStatic (Node *node){
+void checkAllStatic(Node *node){
     if (node->type == N_FUNCTION){
         int i = 0;
         Function *f = node->data.function;
         while (f->name[i] != '.' && f->name[i] != '\0')
             i++;
-        if (f->name[i] == '\0')
+        if (f->name[i] == '\0') {
+            fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
+        }
         className = malloc(sizeof(char) * (i + 1));
         strncpy(className, f->name, i);
         className[i] = '\0';
@@ -277,19 +248,18 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
     FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
           showBinaryOperation(op), showValueType(left), showValueType(right));
 }
-void checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
+bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     if ((lvalue == T_INTEGER || lvalue == T_DOUBLE) &&
         (rvalue == T_INTEGER || rvalue == T_DOUBLE)) {
-        return;
+        return true;
     }
     if (lvalue == T_STRING) {
-        return;
+        return true;
     }
     if (lvalue == T_BOOLEAN && rvalue == T_BOOLEAN) {
-        return;
+        return true;
     }
-    FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
-           showValueType(rvalue), showValueType(lvalue));
+    return false;
 }
 
 ValueType getExpressionType(Expression *e) {
@@ -307,6 +277,9 @@ ValueType getExpressionType(Expression *e) {
         return n->data.function->returnType;
     case E_REFERENCE:
         n = table_lookup_either(symTable, localTable, className, e->data.reference);
+        if (n == NULL)
+            FERROR(ERR_SEM_TYPECHECK, "Trying to reference a nonesistent variable %s",
+                   e->data.reference);
         if (n->type != N_VALUE)
             MERROR(ERR_SEM_TYPECHECK, "Trying to reference a function");
         return n->data.value->type;
@@ -321,51 +294,79 @@ ValueType getExpressionType(Expression *e) {
 }
 void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     Node *n;
+    ValueType ltype, rtype;
     switch (c->type) {
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
         break;
     case C_DEFINE:
-        checkAssignCompatible(c->data.define.declaration.type,
-        getExpressionType(c->data.define.expr));
+        ltype = c->data.define.declaration.type;
+        rtype = getExpressionType(c->data.define.expr);
+        if (!checkAssignCompatible(ltype, rtype)) {
+            FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
+                   showValueType(rtype), showValueType(ltype));
+        }
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
     case C_ASSIGN:
         n = table_lookup_either(symTable, localTable, className, c->data.assign.name);
-        if (n->type != N_VALUE)
+        if (n->type != N_VALUE) {
+            fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_SEM_TYPECHECK, "Can't assign to a function");
-        checkAssignCompatible(n->data.value->type,
-        getExpressionType(c->data.assign.expr));
+        }
+        ltype = n->data.value->type;
+        rtype = getExpressionType(c->data.assign.expr);
+        if (!checkAssignCompatible(ltype, rtype)) {
+            FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
+                   showValueType(rtype), showValueType(ltype));
+        }
         break;
     case C_IF:
-        checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.ifC.cond));
+        if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.ifC.cond))) {
+            MERROR(ERR_SEM_TYPECHECK, "'if' condition requires a boolean expression\n");
+        }
         break;
     case C_WHILE:
-        checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.whileC.cond));
+        if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.whileC.cond))) {
+            MERROR(ERR_SEM_TYPECHECK, "'while' condition requires a boolean expression\n");
+        }
         break;
     case C_DO_WHILE:
-        checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.doWhileC.cond));
+        if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.doWhileC.cond))) {
+            MERROR(ERR_SEM_TYPECHECK, "'do-while' condition requires a boolean expression\n");
+        }
         break;
     case C_FOR:
-        checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.forC.initial));
+        ltype = c->data.forC.var.type;
+        rtype = getExpressionType(c->data.doWhileC.cond);
+        if (!checkAssignCompatible(ltype, rtype)) {
+            FERROR(ERR_SEM_TYPECHECK, "Can't assign %s to %s in 'for' initialization",
+                   showValueType(ltype), showValueType(rtype));
+        }
         table_insert_dummy(localTable, c->data.forC.var);
-        checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.forC.cond));
+        if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.forC.cond))) {
+            MERROR(ERR_SEM_TYPECHECK, "'for' condition requires a boolean expression\n");
+        }
         break;
     case C_EXPRESSION:
-        checkAssignCompatible(T_STRING, getExpressionType(c->data.expr)); //universal type
         break;
     case C_RETURN:
         if (f->returnType == T_VOID) {
             if (c->data.expr != NULL) {
-                MERROR(ERR_SEM_TYPECHECK,
-                       "Returning a value from a void function");
+                fprintf(stderr, "In function %s:\n", f->name);
+                MERROR(ERR_SEM_TYPECHECK, "Returning a value from a void function");
             }
         } else {
             if (c->data.expr == NULL) {
-                MERROR(ERR_SEM_TYPECHECK,
-                       "Not returning a value from a non-void function");
+                fprintf(stderr, "In function %s:\n", f->name);
+                MERROR(ERR_SEM_TYPECHECK, "Not returning a value from a non-void function");
             }
-            checkAssignCompatible(f->returnType, getExpressionType(c->data.expr));
+            ltype = f->returnType;
+            rtype = getExpressionType(c->data.expr);
+            if (!checkAssignCompatible(ltype, rtype)) {
+                FERROR(ERR_SEM_TYPECHECK, "Can't return a %s from a function returning %s\n",
+                       showValueType(rtype), showValueType(ltype));
+            }
         }
         break;
     case C_BLOCK:
@@ -387,16 +388,20 @@ void checkOperatorAssignmentType(Node *node) {
     int i = 0;
     while (f->name[i] != '.' && f->name[i] != '\0')
         i++;
-    if (f->name[i] == '\0')
+    if (f->name[i] == '\0') {
+        fprintf(stderr, "In function %s:\n", f->name);
         MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
+    }
     className = malloc(sizeof(char) * (i + 1));
     strncpy(className, f->name, i);
     className[i] = '\0';
 
     localTable = createSymbolTable();
     Declaration *arg = f->argHead;
+    printDeclaration(arg);
     while (arg != NULL) {
         table_insert_dummy(localTable, *arg);
+        arg = arg->next;
     }
     traverseCommands(f, checkOperatorAssignmentTypeC,
                      checkOperatorAssignmentTypeF);
@@ -406,90 +411,79 @@ void checkOperatorAssignmentType(Node *node) {
     className = NULL;
 }
 
-void checkInnerC_decdef(Command *c){
-// Ve vnitrnim i pro tail?
-    switch (c->type) {
+void checkTopLevelInner(Function *f, Command *c) {
+    while (c != NULL) {
+        switch (c->type) {
         case C_DECLARE:
+            fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_INTERNAL, "C_DECLARE located out of top-level of command");
             break;
         case C_DEFINE:
+            fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_INTERNAL, "C_DEFINE located out of top-level of command");
             break;
         case C_ASSIGN:
             break;
         case C_IF:
-            checkInnerC_decdef(c->data.ifC.thenBlock.head);
-            checkInnerC_decdef(c->data.ifC.elseBlock.head);
+            checkTopLevelInner(f, c->data.ifC.thenBlock.head);
+            checkTopLevelInner(f, c->data.ifC.elseBlock.head);
             break;
         case C_WHILE:
-            checkInnerC_decdef(c->data.whileC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.whileC.bodyBlock.head);
             break;
         case C_DO_WHILE:
-            checkInnerC_decdef(c->data.doWhileC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head);
             break;
         case C_FOR:
-            checkInnerC_decdef(c->data.forC.iter);
-            checkInnerC_decdef(c->data.forC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.forC.iter);
+            checkTopLevelInner(f, c->data.forC.bodyBlock.head);
             break;
         case C_EXPRESSION:
             break;
         case C_RETURN:
             break;
         case C_BLOCK:
-            checkInnerC_decdef(c->data.block.head);
+            checkTopLevelInner(f, c->data.block.head);
             break;
         case C_CONTINUE:
         case C_BREAK:
             break;
         }
-
-    if (c->next != NULL){
-        checkInnerC_decdef(c->next);
+        c = c->next;
     }
-
 }
 
 // Aplikace v pruchodu stromu
-void checkC_decdef(Node *node){
-    if (node->type == N_FUNCTION) {
-       
-        for (Command *c = node->data.function->body.head; c != NULL; c = c->next){
-
-            switch (c->type) {
-                case C_DECLARE:
-                    break;
-                case C_DEFINE:
-                    break;
-                case C_ASSIGN:
-                    break;
-                case C_IF:
-                    checkInnerC_decdef(c->data.ifC.thenBlock.head);
-                    checkInnerC_decdef(c->data.ifC.elseBlock.head);
-                    break;
-                case C_WHILE:
-                    checkInnerC_decdef(c->data.whileC.bodyBlock.head);
-                    break;
-                case C_DO_WHILE:
-                    checkInnerC_decdef(c->data.doWhileC.bodyBlock.head);
-                    break;
-                case C_FOR:
-                    checkInnerC_decdef(c->data.forC.iter);
-                    checkInnerC_decdef(c->data.forC.bodyBlock.head);
-                    break;
-                case C_EXPRESSION:
-                    break;
-                case C_RETURN:
-                    break;
-                case C_BLOCK:
-                    checkInnerC_decdef(c->data.block.head);
-                    break;
-                case C_CONTINUE:
-                case C_BREAK:
-                    break;
-            }
-
-        } 
-
+void checkTopLevel(Node *node) {
+    if (node->type != N_FUNCTION) {
+        return;
     }
-
+    Function *f = node->data.function;
+    for (Command *c = f->body.head; c != NULL; c = c->next) {
+        switch (c->type) {
+        case C_IF:
+            checkTopLevelInner(f, c->data.ifC.thenBlock.head);
+            checkTopLevelInner(f, c->data.ifC.elseBlock.head);
+            break;
+        case C_WHILE:
+            checkTopLevelInner(f, c->data.whileC.bodyBlock.head);
+            break;
+        case C_DO_WHILE:
+            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head);
+            break;
+        case C_FOR:
+            checkTopLevelInner(f, c->data.forC.iter);
+            checkTopLevelInner(f, c->data.forC.bodyBlock.head);
+            break;
+        case C_BLOCK:
+        case C_DECLARE:
+        case C_DEFINE:
+        case C_ASSIGN:
+        case C_EXPRESSION:
+        case C_RETURN:
+        case C_CONTINUE:
+        case C_BREAK:
+            break;
+        }
+    }
 }

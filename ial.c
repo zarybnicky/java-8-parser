@@ -291,17 +291,15 @@ void table_insert(SymbolTable *tree, Node *object){
     table_balance(tree);
 }
 void table_insert_dummy(SymbolTable *t, Declaration var) {
-    Node *n = malloc(sizeof(Node));
-    Value *v = malloc(sizeof(Value));;
-    CHECK_ALLOC(n);
-    v->type = var.type;
+    Value *v = createValue(var.type);
     v->undefined = true;
-    n->symbol = strdup_(var.name);
-    n->type = N_VALUE;
-    n->data.value = v;
-    n->left = n->right = NULL;
+    if (v->type == T_STRING)
+        v->data.str = NULL;
 
-    table_insert(t, n);
+    table_insert(t, createValueNode(strdup_(var.name), v));
+}
+void table_insert_function(SymbolTable *t, Function *f) {
+    table_insert(t, createFunctionNode(strdup_(f->name), f));
 }
 
 Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
@@ -342,7 +340,9 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
     qualified[classLength] = '.';
     strcpy(qualified + classLength + 1, var);
     qualified[classLength + 1 + idLength] = '\0';
-    return table_lookup(global, qualified);
+    n = table_lookup(global, qualified);
+    free(qualified);
+    return n;
 }
 
 Node *table_remove(SymbolTable *table, char *symbol){
@@ -352,12 +352,10 @@ Node *table_remove(SymbolTable *table, char *symbol){
 
     Node **localRootPtr = table_lookup_ptr(table, symbol);
     if (localRootPtr == NULL) {
-        printf("not found\n");
         return NULL;
     }
 
     Node *deleted = *localRootPtr;
-    printNode(deleted);
 
     //remove the node from the tree
     if (deleted->left == NULL) {
@@ -485,5 +483,7 @@ void table_iterate(Node *object, void (*fn)(Node *object)){
     if (object->right != NULL)
         table_iterate(object->right,fn);
 
-    fn (object);
+    if (object->type == N_FUNCTION && object->data.function->builtin)
+        return;
+    fn(object);
 }

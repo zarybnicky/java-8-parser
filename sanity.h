@@ -19,6 +19,8 @@
 
 void runSemanticAnalysis(Interpret *);
 
+void checkReturnPresenceC(Function *, Command *);
+void checkReturnPresence(Node *);
 void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
@@ -34,12 +36,12 @@ void checkAllStatic (Node *);
 void checkMainRun(SymbolTable *);
 
 ValueType coerceBinary(BinaryOperation, ValueType, ValueType);
-void checkAssignCompatible(ValueType, ValueType);
+bool checkAssignCompatible(ValueType, ValueType);
 ValueType getExpressionType(Expression *);
 void checkOperatorAssignmentTypeC(Function *, Command *);
 void checkOperatorAssignmentTypeF(Command *);
 void checkOperatorAssignmentType(Node *);
-void checkInnerC_decdef(Command *c);
-void checkC_decdef(Node *);
+void checkTopLevelInner(Function *, Command *);
+void checkTopLevel(Node *);
 
 #endif /* IFJ_SANITY_H */
