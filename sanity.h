@@ -39,5 +39,7 @@ ValueType getExpressionType(Expression *);
 void checkOperatorAssignmentTypeC(Function *, Command *);
 void checkOperatorAssignmentTypeF(Command *);
 void checkOperatorAssignmentType(Node *);
+void checkInnerC_decdef(Command *c);
+void checkC_decdef(Node *);
 
 #endif /* IFJ_SANITY_H */

@@ -412,3 +412,91 @@ void checkOperatorAssignmentType(Node *node) {
     free(className);
     className = NULL;
 }
+
+void checkInnerC_decdef(Command *c){
+// Ve vnitrnim i pro tail?
+    switch (c->type) {
+        case C_DECLARE:
+            MERROR(ERR_INTERNAL, "C_DECLARE located out of top-level of command");
+            break;
+        case C_DEFINE:
+            MERROR(ERR_INTERNAL, "C_DEFINE located out of top-level of command");
+            break;
+        case C_ASSIGN:
+            break;
+        case C_IF:
+            checkInnerC_decdef(c->data.ifC.thenBlock.head);
+            checkInnerC_decdef(c->data.ifC.elseBlock.head);
+            break;
+        case C_WHILE:
+            checkInnerC_decdef(c->data.whileC.bodyBlock.head);
+            break;
+        case C_DO_WHILE:
+            checkInnerC_decdef(c->data.doWhileC.bodyBlock.head);
+            break;
+        case C_FOR:
+            checkInnerC_decdef(c->data.forC.iter);
+            checkInnerC_decdef(c->data.forC.bodyBlock.head);
+            break;
+        case C_EXPRESSION:
+            break;
+        case C_RETURN:
+            break;
+        case C_BLOCK:
+            checkInnerC_decdef(c->data.block.head);
+            break;
+        case C_CONTINUE:
+        case C_BREAK:
+            break;
+        }
+
+    if (c->next != NULL){
+        checkInnerC_decdef(c->next);
+    }
+
+}
+
+// Aplikace v pruchodu stromu
+void checkC_decdef(Node *node){
+    if (node->type == N_FUNCTION) {
+       
+        for (Command *c = node->data.function->body.head; c != NULL; c = c->next){
+
+            switch (c->type) {
+                case C_DECLARE:
+                    break;
+                case C_DEFINE:
+                    break;
+                case C_ASSIGN:
+                    break;
+                case C_IF:
+                    checkInnerC_decdef(c->data.ifC.thenBlock.head);
+                    checkInnerC_decdef(c->data.ifC.elseBlock.head);
+                    break;
+                case C_WHILE:
+                    checkInnerC_decdef(c->data.whileC.bodyBlock.head);
+                    break;
+                case C_DO_WHILE:
+                    checkInnerC_decdef(c->data.doWhileC.bodyBlock.head);
+                    break;
+                case C_FOR:
+                    checkInnerC_decdef(c->data.forC.iter);
+                    checkInnerC_decdef(c->data.forC.bodyBlock.head);
+                    break;
+                case C_EXPRESSION:
+                    break;
+                case C_RETURN:
+                    break;
+                case C_BLOCK:
+                    checkInnerC_decdef(c->data.block.head);
+                    break;
+                case C_CONTINUE:
+                case C_BREAK:
+                    break;
+            }
+
+        } 
+
+    }
+
+}
