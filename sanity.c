@@ -24,7 +24,7 @@ void runSemanticAnalysis(Interpret *i) {
     table_iterate(root, checkReturnPresence);
     table_iterate(root, checkTopLevel);
     // maybe create global variables
-    //table_iterate(root, checkAllStatic);
+    table_iterate(root, checkAllStatic);
     table_iterate(root, checkOperatorAssignmentType);
 
     //free global variables
