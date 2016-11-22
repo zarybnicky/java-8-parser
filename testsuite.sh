@@ -26,9 +26,10 @@ assert_raises "./ifj16 test/4_equals.java" 4
 assert_raises "./ifj16 test/4_plus.java" 4
 assert_raises "./ifj16 test/8_undefined_variable.java" 8
 #assert_raises "./ifj16 test/9_division_by_zero.java" 9
-#assert_raises "./ifj16 test/10_substr_start_over.java" 10
-#assert_raises "./ifj16 test/11_substr_read_over.java" 10
-#assert_raises "./ifj16 test/12_substr_ok.java" 0
+
+assert_raises "./ifj16 test/10_substr_start_over.java" 10
+assert_raises "./ifj16 test/10_substr_read_over.java" 10
+
 assert_raises "./ifj16" 99
 #assert_raises "./ifj16 test/0_fact_iter.java" 0
 #exclude test
