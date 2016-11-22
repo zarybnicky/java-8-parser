@@ -44,18 +44,18 @@ void printValue(Value *v) {
 
 int valueIsZero(Value *val){
 
-    switch(value->type){
+    switch(val->type){
         case(T_STRING):
-            return value->data.str[0] != '\0';
+            return val->data.str[0] != '\0';
             break;
         case(T_INTEGER):
-            return value->data.integer != 0;
+            return val->data.integer != 0;
             break;
         case(T_DOUBLE):
-            return value->data.dbl != 0.0;
+            return val->data.dbl != 0.0;
             break;
         case(T_BOOLEAN):
-            return !value->data.boolean;
+            return !val->data.boolean;
             break;
         case(T_VOID):
             return 1;
