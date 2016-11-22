@@ -25,7 +25,7 @@ void runSemanticAnalysis(Interpret *i) {
     table_iterate(root, checkTopLevel);
     // maybe create global variables
     table_iterate(root, checkAllStatic);
-    //table_iterate(root, checkOperatorAssignmentType);
+    table_iterate(root, checkOperatorAssignmentType);
 
     //free global variables
     symTable = NULL;
@@ -159,8 +159,6 @@ void checkCondition_(Expression *e, Function *f){
         return;
     /* initialization of name */
 
-    //printExpression(e);
-    //printf("\n\n");
     switch(e->type){
     case E_FUNCALL:
         name = changeFunctionName(e);
