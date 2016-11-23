@@ -26,7 +26,7 @@ T_HTable test_table_asd;
 
 void test_mem(){
     ht_init (&test_table_asd);
-    printf("\n\n-------------\n%s\n-------------\n", "1. prazdna tab" );
+    //printf("\n\n-------------\n%s\n-------------\n", "1. prazdna tab" );
     print_htTable(&test_table_asd);
 
 
@@ -128,28 +128,35 @@ void free_c(T_HTable *tab, void *addr) {
     printf("index: %u\n", index);
 
     T_HTItem *item = (*tab)[index];
-    T_HTItem *prv = NULL;
 
-    if(item == NULL)
+    if(item != NULL && item->addr == addr){
+        (*tab)[index] = item->next;
+        free(addr);
+        free(item);
+        return;
+    }
+    else
         return;
 
-    while(item->addr != addr){
-        prv = item;
+    // loop
+    T_HTItem *prv = item;
+    while(item != NULL){
         item = item->next;
-        if(item == NULL)
+        if (item->addr == addr){
+            prv->next = item->next;
+            free(addr);
+            free(item);
             return;
+        }
     }
 
 
-    if(prv != NULL){
-        prv->next = item->next;
-    }
-    else{
-        (*tab)[index] = item->next;
-    }
-
-    free(item);
-
+    //if(prv != NULL){
+    //    prv->next = item->next;
+   // }
+   // else{
+     //   (*tab)[index] = item->next;
+    //}
 }
 
 void free_c_all(T_HTable *tab) {
@@ -159,8 +166,8 @@ void free_c_all(T_HTable *tab) {
 
     for(unsigned i = 0; i < HTAB_SIZE; i++){
         T_HTItem *item = (*tab)[i];
-        while(item != NULL){
-            free_c(tab, (*tab)[i]->addr);
+        if(item != NULL){
+            free_c(tab, item->addr);
         }
     }
 
