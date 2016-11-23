@@ -32,8 +32,8 @@
 
 #include "interpret.h"
 
-#define TRUE 0
-#define FALSE 1
+#define TRUE true
+#define FALSE false
 
 static SymbolTable *symGlob = NULL;
 static Stack *GlobalStack = NULL;
@@ -175,6 +175,10 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
     bool cycle = TRUE;
 
+    #ifndef NDEBUG
+        printCommand(cmd);
+    #endif
+
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
@@ -201,12 +205,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
         case(C_ASSIGN):
 
-            // find node in symTable and evaluate expr FIXME table_lookup_either
-            node = table_lookup(symTable, cmd->data.assign.name);
-
-            if(node == NULL){
-                node = table_lookup(symGlob, cmd->data.assign.name);
-            }
+            node = table_lookup_either(symGlob, symTable, funcName, cmd->data.assign.name);
 
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
@@ -425,7 +424,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
     char *str = fn->name;
 
-    //  TODO push params to stack;
     if(!strcmp(str, "ifj16.print")){
         pushParamsToStack(symTable, stack, fn);
         Value *term = popFromStack(stack);
@@ -435,7 +433,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.readInt") ){
-        // FIXME pushnut do stacku?
         Value *val = createValue(T_INTEGER);
         val->data.integer = readInt();
 
