@@ -11,9 +11,6 @@
 /*--------------------------------LIBRARIES---------------------------------*/
 
 
-/**
- returny su 99 ak su chyba
-**/
 // System libraries
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,6 +150,7 @@ int interpretFunc(Stack *stack, Node *node){
     while(current != tail){
         evalCommand(localTable, localStack, current, node->data.function->name);
         current = current->next;
+        printSymbolTable(localTable);
     }
     evalCommand(localTable, localStack, current, node->data.function->name);
 
@@ -177,6 +175,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
     #ifdef DEBUG
         printCommand(cmd);
+        printf("\n\n");
     #endif
 
     switch(cmd->type){
@@ -390,7 +389,7 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName)
     return 0;
 }
 
-Value *evalFunction(char *name, int argCount, Expression *argHead){
+Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, int argCount, Expression *argHead){
     (void) argCount;
     (void) argHead;
 
@@ -399,10 +398,6 @@ Value *evalFunction(char *name, int argCount, Expression *argHead){
     Node *node = table_lookup(symGlob, name);
 
     Function *fn = node->data.function;
-
-    Stack *localStack = createLocalStack(GlobalStack);
-
-    SymbolTable *localSymTable = createSymbolTable();
 
     if(fn->builtin == TRUE){
         builtInFunc(localSymTable, localStack, node->data.function);
@@ -421,11 +416,11 @@ Value *evalFunction(char *name, int argCount, Expression *argHead){
  * Look for builtin functions
  */
 int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
+    (void) symTable;
 
     char *str = fn->name;
 
     if(!strcmp(str, "ifj16.print")){
-        pushParamsToStack(symTable, stack, fn);
         Value *term = popFromStack(stack);
 
         print(term);
@@ -457,7 +452,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.length") ){
-        pushParamsToStack(symTable, stack, fn);
 
         Value *val = popFromStack(stack);
         char *s = val->data.str;
@@ -470,7 +464,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.substr") ){
-        pushParamsToStack(symTable, stack, fn);
 
         Value *val = popFromStack(stack);
         char *s = val->data.str;
@@ -489,13 +482,26 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.compare") ){
-        pushParamsToStack(symTable, stack, fn);
+
+        if(fn->argCount != 2)
+            PERROR("Bad number of arguments! Exiting");
 
         Value *val = popFromStack(stack);
-        char *s1 = val->data.str;
+        char *s1, *s2;
+        if(val->type == T_STRING)
+            s1 = val->data.str;
+        else{
+            dPrintf("%s, [%s], <%s>","Is not string", showValueType(val->type), val->data.str);
+        }
 
         val = popFromStack(stack);
-        char *s2 = val->data.str;
+        if(val->type == T_STRING)
+            s2 = val->data.str;
+        else{
+            dPrintf("%s, [%s] <%s>","Is not string", showValueType(val->type), val->data.str);
+        }
+
+        dPrintf("s1: '%s',\n s2: '%s'", s1, s2);
 
         val->type = T_INTEGER;
         val->data.integer = compare(s1, s2);
@@ -505,7 +511,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.sort") ){
-        pushParamsToStack(symTable, stack, fn);
 
         Value *val = popFromStack(stack);
         char *s = val->data.str;
@@ -518,7 +523,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.find") ){
-        pushParamsToStack(symTable, stack, fn);
 
         Value *val = popFromStack(stack);
         char *s1 = val->data.str;
@@ -537,26 +541,11 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return -1;
 }
 
-int pushParamsToStack(SymbolTable *symTable, Stack *stack, Function *fn){
+int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e){
 
-    for(Declaration *dec = fn->argHead; dec != NULL; dec = dec->next){
+    Value *val = evalExpression(symTable, stack, funcName, e);
 
-        //find in local table
-        Node *tmp = table_lookup(symTable, dec->name);
-        //find in global
-        if(tmp == NULL){
-            tmp = table_lookup(symGlob, dec->name);
-        }
-
-        // if not found error
-        if(tmp == NULL){
-            PERROR("variable not found");
-        }
-
-        // push to stack
-        pushToStack(stack, tmp->data.value);
-
-    }
+    pushToStack(stack, val);
 
     return 0;
 }
@@ -774,11 +763,27 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
     Value *returnValue = NULL;
     Node *node = NULL;
     char *className = NULL;
-
+    Stack *localStack;
+    SymbolTable *localSymTable;
+    Expression *exp;
+    int argCount;
     switch (e->type) {
         case E_FUNCALL:
 
-            evalFunction(e->data.funcall.name,
+            localStack = createLocalStack(GlobalStack);
+            localSymTable = createSymbolTable();
+
+            argCount = e->data.funcall.argCount;
+            exp= e->next;
+            while(argCount){
+                pushParamToStack(localSymTable, localStack, funcName, exp);
+                argCount--;
+                exp = exp->next;
+            }
+
+            evalFunction(localStack,
+                         localSymTable,
+                         e->data.funcall.name,
                          e->data.funcall.argCount,
                          e->data.funcall.argHead);
 
@@ -897,6 +902,8 @@ Stack *createLocalStack(Stack *stack){
     tmp->size = -1;
     tmp->cap = 5;
 
+    assert(tmp != NULL);
+
     return tmp;
 }
 
@@ -912,8 +919,8 @@ Stack *deleteLocaleStack(Stack *stack){
 }
 
 int pushToStack(Stack *stack, Value *val){
-    assert(stack == NULL);
-    assert(val == NULL);
+    assert(stack != NULL);
+    assert(val != NULL);
 
     stack->size++;
 
@@ -929,7 +936,7 @@ int pushToStack(Stack *stack, Value *val){
 }
 
 Value *popFromStack(Stack *stack){
-    assert(stack == NULL);
+    assert(stack != NULL);
 
     if(stack->size == -1){
         return NULL;

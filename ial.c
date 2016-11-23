@@ -32,6 +32,11 @@ char *getClassName(char *funcName){
     return className;
 }
 
+char *getFunctionName(char* funcName){
+    char *name = strchr(funcName, '.');
+    return ++name;
+}
+
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
     CHECK_ALLOC(array);

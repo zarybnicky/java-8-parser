@@ -81,7 +81,8 @@ Stack *deleteLocaleStack(Stack *);
 
 int pushToStack(Stack *, Value *);
 Value *popFromStack(Stack *);
-int pushParamsToStack(SymbolTable *, Stack *, Function *);
+int pushParamToStack(SymbolTable *, Stack *, char *, Expression *);
+
 
 Value *reTypeFromDeclToVal(Declaration *);
 
