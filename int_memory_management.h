@@ -22,6 +22,7 @@ typedef struct T_HTItem{
 typedef T_HTItem* T_HTable[HTAB_SIZE];
 
 T_HTable alloc_tab;
+T_HTable test_table_asd;
 
 void *malloc_c (size_t size);
 void *calloc_c (unsigned num, size_t size);

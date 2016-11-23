@@ -5,7 +5,7 @@ class Main{
     int a;
     int b;
     a=5;
-    if (a+b+a<abc()){
+    if (a+b+a>5){
       b=5;
       abc();
     }

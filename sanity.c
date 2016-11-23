@@ -548,7 +548,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
             break;
         case C_BLOCK:
             checkTopLevelInner(f, c->data.block.head, cycle);
-            break;            
+            break;
         case C_ASSIGN:
         case C_EXPRESSION:
         case C_RETURN:

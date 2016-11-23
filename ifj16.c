@@ -27,6 +27,7 @@ void freeGlobalResources() {
 
 int main(int argc, char *argv[])
 {
+
     if (argc != 2) {
         FERROR(ERR_INTERNAL,
                "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);

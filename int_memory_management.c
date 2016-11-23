@@ -22,21 +22,21 @@
 
 #include "int_memory_management.h"
 
-T_HTable test_table_asd;
+
 
 void test_mem(){
-    ht_init (&test_table_asd);
+    ht_init (&alloc_tab);
     //printf("\n\n-------------\n%s\n-------------\n", "1. prazdna tab" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
 
     char *a = malloc_c(sizeof(char));
     char *b = malloc_c(sizeof(char));
 
-    // printf("p: %p", (void*)(*test_table_asd)[16644].addr);
+    // printf("p: %p", (void*)(*alloc_tab)[16644].addr);
 
     printf("\n\n-------------\n%s\n-------------\n", "2. dva prvky" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
 
     *a = '2';
@@ -46,11 +46,11 @@ void test_mem(){
     (void) b;
 
     printf("\n\n-------------\n%s\n-------------\n", "3. dva prvky" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
-    free_c(&test_table_asd, a);
+    free_c(&alloc_tab, a);
     printf("\n\n-------------\n%s\n-------------\n", "4. jeden vymazem" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
     a = malloc_c(sizeof(char));
     a = malloc_c(sizeof(char));
@@ -59,13 +59,13 @@ void test_mem(){
     a = malloc_c(sizeof(char));
 
     printf("\n\n-------------\n%s\n-------------\n", "5. 6 prvkou" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
 
 
-    free_c_all(&test_table_asd);
+    free_c_all(&alloc_tab);
     printf("\n\n-------------\n%s\n-------------\n", "6. prazdna tab" );
-    print_htTable(&test_table_asd);
+    print_htTable(&alloc_tab);
 
     printf("\n\n----------%s----------", "koniec" );
 
@@ -128,50 +128,43 @@ void free_c(T_HTable *tab, void *addr) {
     // printf("index: %u\n", index);
 
     T_HTItem *item = (*tab)[index];
-
-    if(item != NULL && item->addr == addr){
-        (*tab)[index] = item->next;
-        free(addr);
-        free(item);
+    T_HTItem *prv = NULL;
+    // First item hit
+    if (item == NULL)
         return;
-    }
-    else
-        return;
-
-    // loop
-    T_HTItem *prv = item;
-    while(item != NULL){
-        item = item->next;
+    //loop between items find exact address for 1 table-item
+    while(item->addr != addr){
+        prv = item;
+        prv->next = item->next;
         if (item->addr == addr){
-            prv->next = item->next;
             free(addr);
             free(item);
             return;
         }
+        item=item->next;
     }
-
-
-    //if(prv != NULL){
-    //    prv->next = item->next;
-   // }
-   // else{
-     //   (*tab)[index] = item->next;
-    //}
+    // first node
+    (*tab)[index] = item->next;
+    free(addr);
+    free(item);
 }
 
 void free_c_all(T_HTable *tab) {
     if (tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
-
-    for(unsigned i = 0; i < HTAB_SIZE; i++){
-        T_HTItem *item = (*tab)[i];
-        if(item != NULL){
-            free_c(tab, item->addr);
-            if(item == NULL) printf("%s\n", "je null");
+    printf("\n\nabc\n\n");
+    T_HTItem *tmp;
+    T_HTItem *item=(*tab)[0];
+    for(unsigned i = 0; i < HTAB_SIZE; i++,item=(*tab)[i]){
+        while(item != NULL){
+            tmp = item->next;
+            free(item->addr);
+            free(item);
+            item= tmp;
         }
+        (*tab)[i]=NULL;
     }
-
 }
 
 void ht_init ( T_HTable *tab ) {
@@ -233,18 +226,13 @@ unsigned hash_function(const void *addr, unsigned htab_size){
 
     unsigned int h=0;
 
-    // dPrintf("addr: %p",addr);
     char str[42];
     sprintf(str, "%p", addr);
 
-    // dPrintf("str: %s",str);
     char *p;
 
     for( p=(char*)str; *p!='\0'; p++ )
         h = 65599 * h + (*p);
-
-    // printf("(%u)/(%u)\n", h, htab_size);
-    // printf("%u\n", h%htab_size);
 
     return (h % htab_size);
 }
