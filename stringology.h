@@ -17,6 +17,7 @@
 #include <limits.h>
 #include "error.h"
 #include "ir.h"
+#include "int_memory_management.h"
 
 int readInt();
 double readDouble();

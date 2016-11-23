@@ -36,6 +36,8 @@ double readDouble() { // TODO
     char *Str = malloc(Len);
     CHECK_ALLOC(Str);
 
+    ht_insert(&alloc_tab, Str);
+
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len += MAX_LEN;
@@ -126,7 +128,7 @@ double readDouble() { // TODO
         vysledek = vysledek + pom;
     }
 
-    free(Str);
+    free_c(&alloc_tab,Str);
     return vysledek;
 } // function end
 
@@ -137,6 +139,8 @@ char *readString() {
 
     char *Str = malloc(Len);
     CHECK_ALLOC(Str);
+
+    ht_insert(&alloc_tab,Str);
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
@@ -171,6 +175,8 @@ char *substr(char *s,int i, int n) {
 
     char *pom = malloc(sLen);
     CHECK_ALLOC(pom);
+
+    ht_insert(&alloc_tab,pom);
 
     strncpy(pom, s+i, n);
 
