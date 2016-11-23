@@ -363,8 +363,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             else if ((c>='A' && c<='z') || c == '_' || c == '$')
                 state = AUT_IDEN;
 
-            else if (c == '0')  //pokracujeme na stav cisla
-                state = AUT_BIN;
+            //else if (c == '0')  //pokracujeme na stav cisla
+                //state = AUT_BIN;
 
             else if ((isdigit(c))) //&& (c!='0'))  //pokracujeme na stav cisla
                 state = AUT_NUM;
