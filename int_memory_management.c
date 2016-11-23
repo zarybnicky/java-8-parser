@@ -10,8 +10,6 @@
 
 // Mini garbage collector
 
-// FIXME this ING file has so MANY errors
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "error.h"
@@ -22,7 +20,50 @@
 #include "int_memory_management.h"
 
 
+void test(){
+    T_HTable test;
+    ht_init (&test);
+    print_htTable(&test);
+    char *a = malloc_c(sizeof(char));
+    char *b = malloc_c(sizeof(char));
 
+    a = '\0';
+    b = '\0';
+
+    (void) a;
+    (void) b;
+
+    print_htTable(&test);
+    free_c(&test, &a);
+    print_htTable(&test);
+    a = malloc_c(sizeof(char));
+    a = malloc_c(sizeof(char));
+    a = malloc_c(sizeof(char));
+    a = malloc_c(sizeof(char));
+    a = malloc_c(sizeof(char));
+
+    print_htTable(&test);
+
+    free_c_all(&test);
+
+}
+
+void print_htTable(T_HTable *t){
+    for(unsigned i = 0; i < HTAB_SIZE; i++){
+        if((*t)[i] != NULL){
+            printf("[%d] : ", i);
+
+            T_HTItem *item = (*t)[i];
+            while(item != NULL){
+                printf(" - [%p]", (void*)&item);
+                item = item->next;
+            }
+            printf("\n");
+        }
+        else
+            continue;
+    }
+}
 
 void *malloc_c(size_t size){
     if (alloc_tab == NULL) {
@@ -53,14 +94,14 @@ void *calloc_c(unsigned num, size_t size){
 
 }
 
-void free_c(void *addr) {
-    if (addr == NULL || alloc_tab == NULL) {
+void free_c(T_HTable *tab, void *addr) {
+    if (addr == NULL || tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
     int index = hash_function(addr, HTAB_SIZE);
 
-    T_HTItem *item = &(*alloc_tab)[index];
+    T_HTItem *item = (*tab)[index];
     T_HTItem *prv = NULL;
 
     if(item == NULL)
@@ -78,21 +119,22 @@ void free_c(void *addr) {
         prv->next = item->next;
     }
     else{
-        alloc_tab[index] = item->next;
+        (*tab)[index] = item->next;
     }
 
     free(item);
 
 }
 
-void free_c_all(void) {
-    if (alloc_tab == NULL) {
+void free_c_all(T_HTable *tab) {
+    if (tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
-    for(int i = 0; i < HTAB_SIZE; i++){
-        while(alloc_tab[i] != NULL){
-            free_c(alloc_tab[i]->addr);
+    for(unsigned i = 0; i < HTAB_SIZE; i++){
+        T_HTItem *item = (*tab)[i];
+        while(item != NULL){
+            free_c(tab, (*tab)[i]->addr);
         }
     }
 
@@ -101,7 +143,7 @@ void free_c_all(void) {
 void ht_init ( T_HTable *tab ) {
 
     // tab = NULL;
-    for(int i = 0; i < HTAB_SIZE; i++){
+    for(unsigned i = 0; i < HTAB_SIZE; i++){
         (*tab)[i] = NULL;
     }
 }
@@ -134,10 +176,11 @@ void ht_insert ( T_HTable* tab, void *addr ) {
     }
 
     // vars
-    unsigned int index = hash_function(addr, HTAB_SIZE);
+    unsigned index = hash_function(addr, HTAB_SIZE);
 
     // create new item
     T_HTItem *item = malloc(sizeof(T_HTItem));
+    CHECK_ALLOC(item);
     item->addr = addr;
 
     item->next = (*tab)[index];
@@ -151,13 +194,13 @@ unsigned int hash_function(const void *addr, unsigned htab_size){
 
     unsigned int h=0;
 
-    dPrintf("addr: %p",addr);
+    // dPrintf("addr: %p",addr);
 
     char str[42];
     sprintf(str, "%p", addr);
 
 
-    dPrintf("str: %s",str);
+    // dPrintf("str: %s",str);
 
     const unsigned char *p;
 

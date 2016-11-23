@@ -22,11 +22,15 @@ Interpret *i;
 void freeGlobalResources() {
     freeLexer(l);
     freeInterpret(i);
-    free_c_all();
+    free_c_all(&alloc_tab);
 }
 
 int main(int argc, char *argv[])
 {
+
+    // test();
+    // return 1;
+
     if (argc != 2) {
         FERROR(ERR_INTERNAL,
                "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
