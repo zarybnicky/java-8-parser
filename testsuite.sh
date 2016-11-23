@@ -31,7 +31,6 @@ assert_raises "./ifj16 test/10_substr_start_over.java" 10
 assert_raises "./ifj16 test/10_substr_read_over.java" 10
 
 assert_raises "./ifj16" 99
-#assert_raises "./ifj16 test/0_fact_iter.java" 0
 #exclude test
 assert_raises "./test/symbol-table" 0
 assert_raises "./test/parser" 0
