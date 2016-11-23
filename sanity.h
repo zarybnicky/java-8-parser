@@ -41,9 +41,7 @@ ValueType getExpressionType(Expression *);
 void checkOperatorAssignmentTypeC(Function *, Command *);
 void checkOperatorAssignmentTypeF(Command *);
 void checkOperatorAssignmentType(Node *);
-void checkTopLevelInner(Function *, Command *);
+void checkTopLevelInner(Function *, Command *, bool cycle);
 void checkTopLevel(Node *);
-void checkInterruptsInner(Function *f, Command *c);
-void checkInterruptsTop(Node *node);
 
 #endif /* IFJ_SANITY_H */

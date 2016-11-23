@@ -511,7 +511,7 @@ void checkOperatorAssignmentType(Node *node) {
     className = NULL;
 }
 
-void checkTopLevelInner(Function *f, Command *c) {
+void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     while (c != NULL) {
         switch (c->type) {
         case C_DECLARE:
@@ -522,28 +522,38 @@ void checkTopLevelInner(Function *f, Command *c) {
             fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_INTERNAL, "C_DEFINE located out of top-level of command");
             break;
+        case C_CONTINUE:
+            if (cycle == false){
+                fprintf(stderr, "In function %s:\n", f->name);
+                MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
+            }
+            break;
+        case C_BREAK:
+            if (cycle == false){
+                fprintf(stderr, "In function %s:\n", f->name);
+                MERROR(ERR_INTERNAL, "C_DEFINE located out of cycle of command");
+            }
+            break;
         case C_IF:
-            checkTopLevelInner(f, c->data.ifC.thenBlock.head);
-            checkTopLevelInner(f, c->data.ifC.elseBlock.head);
+            checkTopLevelInner(f, c->data.ifC.thenBlock.head, cycle);
+            checkTopLevelInner(f, c->data.ifC.elseBlock.head, cycle);
             break;
         case C_WHILE:
-            checkTopLevelInner(f, c->data.whileC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.whileC.bodyBlock.head, true);
             break;
         case C_DO_WHILE:
-            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head, true);
             break;
         case C_FOR:
-            checkTopLevelInner(f, c->data.forC.iter);
-            checkTopLevelInner(f, c->data.forC.bodyBlock.head);
+            checkTopLevelInner(f, c->data.forC.iter, false); //for(;;break/continue) no way
+            checkTopLevelInner(f, c->data.forC.bodyBlock.head, true);
             break;
         case C_BLOCK:
-            checkTopLevelInner(f, c->data.block.head);
-            break;
+            checkTopLevelInner(f, c->data.block.head, cycle);
+            break;            
         case C_ASSIGN:
         case C_EXPRESSION:
         case C_RETURN:
-        case C_CONTINUE:
-        case C_BREAK:
             break;
         }
         c = c->next;
@@ -558,36 +568,6 @@ void checkTopLevel(Node *node) {
     Function *f = node->data.function;
     for (Command *c = f->body.head; c != NULL; c = c->next) {
         switch (c->type) {
-        case C_IF:
-            checkTopLevelInner(f, c->data.ifC.thenBlock.head);
-            checkTopLevelInner(f, c->data.ifC.elseBlock.head);
-            break;
-        case C_WHILE:
-            checkTopLevelInner(f, c->data.whileC.bodyBlock.head);
-            break;
-        case C_DO_WHILE:
-            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head);
-            break;
-        case C_FOR:
-            checkTopLevelInner(f, c->data.forC.iter);
-            checkTopLevelInner(f, c->data.forC.bodyBlock.head);
-            break;
-        case C_BLOCK:
-        case C_DECLARE:
-        case C_DEFINE:
-        case C_ASSIGN:
-        case C_EXPRESSION:
-        case C_RETURN:
-        case C_CONTINUE:
-        case C_BREAK:
-            break;
-        }
-    }
-}
-
-void checkInterruptsInner(Function *f, Command *c) {
-    while (c != NULL) {
-        switch (c->type) {
         case C_CONTINUE:
             fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
@@ -597,55 +577,28 @@ void checkInterruptsInner(Function *f, Command *c) {
             MERROR(ERR_INTERNAL, "C_DEFINE located out of cycle of command");
             break;
         case C_IF:
-            checkInterruptsInner(f, c->data.ifC.thenBlock.head);
-            checkInterruptsInner(f, c->data.ifC.elseBlock.head);
-            break;
-        case C_BLOCK:
-            checkInterruptsInner(f, c->data.block.head);
+            checkTopLevelInner(f, c->data.ifC.thenBlock.head, false);
+            checkTopLevelInner(f, c->data.ifC.elseBlock.head, false);
             break;
         case C_WHILE:
+            checkTopLevelInner(f, c->data.whileC.bodyBlock.head, true);
+            break;
         case C_DO_WHILE:
+            checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head, true);
+            break;
         case C_FOR:
+            checkTopLevelInner(f, c->data.forC.iter, false);
+            checkTopLevelInner(f, c->data.forC.bodyBlock.head, true);
+            break;
+        case C_BLOCK:
+        case C_DECLARE:
+        case C_DEFINE:
         case C_ASSIGN:
         case C_EXPRESSION:
         case C_RETURN:
-        case C_DECLARE:
-        case C_DEFINE:
             break;
         }
-        c = c->next;
     }
 }
 
-void checkInterruptsTop(Node *node) {
-    if (node->type != N_FUNCTION) {
-        return;
-    }
-    Function *f = node->data.function;
-    for (Command *c = f->body.head; c != NULL; c = c->next) {
-        switch (c->type) {
-        case C_CONTINUE:
-            fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
-            break;
-        case C_BREAK:
-            fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DEFINE located out of cycle of command");
-            break;
-        case C_IF:
-            checkInterruptsInner(f, c->data.ifC.thenBlock.head);
-            checkInterruptsInner(f, c->data.ifC.elseBlock.head);
-            break;
-        case C_BLOCK:
-        case C_WHILE:
-        case C_DO_WHILE:
-        case C_FOR:
-        case C_DECLARE:
-        case C_DEFINE:
-        case C_ASSIGN:
-        case C_EXPRESSION:
-        case C_RETURN:
-            break;
-        }
-    }
-}
+
