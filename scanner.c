@@ -366,7 +366,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             else if (c == '0')  //pokracujeme na stav cisla
                 state = AUT_BIN;
 
-            else if ((isdigit(c)) && (c!='0'))  //pokracujeme na stav cisla
+            else if ((isdigit(c))) //&& (c!='0'))  //pokracujeme na stav cisla
                 state = AUT_NUM;
 
             else if (c == '+') {
@@ -814,7 +814,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  return ERROR_OR;
             }
             break;
-         case AUT_BIN:
+        /* case AUT_BIN:
          //printf("%c",c);
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
@@ -836,7 +836,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  state = Start_state;
                  return EXT_BASE;
             }
-            break;
+            break; */
         }
     }
 }
