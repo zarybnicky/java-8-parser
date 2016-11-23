@@ -758,6 +758,9 @@ Value *evalStaticExpression(Expression *e) {
 
 Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expression *e) {
 
+    if(e == NULL)
+        return NULL;
+
     (void) stack;
 
     Value *returnValue = NULL;
