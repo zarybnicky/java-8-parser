@@ -27,12 +27,12 @@ void *malloc_c (size_t size);
 void *calloc_c (unsigned num, size_t size);
 void free_c (T_HTable *, void *addr);
 void free_c_all(T_HTable *);
-unsigned int hash_function(const void *addr, unsigned htab_size);
+unsigned hash_function(const void *, unsigned);
 void ht_init ( T_HTable *tab );
 T_HTItem* ht_search ( T_HTable* tab, void *addr );
 void ht_insert ( T_HTable* tab, void *addr );
 
-void test();
+void test_mem();
 void print_htTable(T_HTable *);
 
 #endif

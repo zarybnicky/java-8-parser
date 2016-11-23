@@ -28,8 +28,8 @@ void freeGlobalResources() {
 int main(int argc, char *argv[])
 {
 
-    // test();
-    // return 1;
+    test_mem();
+    return 1;
 
     if (argc != 2) {
         FERROR(ERR_INTERNAL,

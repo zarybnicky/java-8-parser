@@ -12,39 +12,65 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+
 #include "error.h"
 #include "ir.h"
 #include "ial.h"
 #include "int_debug.h"
+#include "assert.h"
 
 #include "int_memory_management.h"
 
+T_HTable test_table_asd;
 
-void test(){
-    T_HTable test;
-    ht_init (&test);
-    print_htTable(&test);
+void test_mem(){
+    ht_init (&test_table_asd);
+    printf("\n\n-------------\n%s\n-------------\n", "1. prazdna tab" );
+    print_htTable(&test_table_asd);
+
+
     char *a = malloc_c(sizeof(char));
     char *b = malloc_c(sizeof(char));
 
-    a = '\0';
-    b = '\0';
+    // printf("p: %p", (void*)(*test_table_asd)[16644].addr);
+
+    printf("\n\n-------------\n%s\n-------------\n", "2. dva prvky" );
+    print_htTable(&test_table_asd);
+
+
+    *a = '2';
+    *b = '2';
 
     (void) a;
     (void) b;
 
-    print_htTable(&test);
-    free_c(&test, &a);
-    print_htTable(&test);
+    printf("\n\n-------------\n%s\n-------------\n", "3. dva prvky" );
+    print_htTable(&test_table_asd);
+
+    free_c(&test_table_asd, a);
+    printf("\n\n-------------\n%s\n-------------\n", "4. jeden vymazem" );
+    print_htTable(&test_table_asd);
+
     a = malloc_c(sizeof(char));
     a = malloc_c(sizeof(char));
     a = malloc_c(sizeof(char));
     a = malloc_c(sizeof(char));
     a = malloc_c(sizeof(char));
 
-    print_htTable(&test);
+    printf("\n\n-------------\n%s\n-------------\n", "5. 6 prvkou" );
+    print_htTable(&test_table_asd);
 
-    free_c_all(&test);
+
+
+    free_c_all(&test_table_asd);
+    printf("\n\n-------------\n%s\n-------------\n", "6. prazdna tab" );
+    print_htTable(&test_table_asd);
+
+    printf("\n\n----------%s----------", "koniec" );
+
+
+
 
 }
 
@@ -55,18 +81,16 @@ void print_htTable(T_HTable *t){
 
             T_HTItem *item = (*t)[i];
             while(item != NULL){
-                printf(" - [%p]", (void*)&item);
+                printf(" -> [%p]", (void*)(item->addr));
                 item = item->next;
             }
             printf("\n");
         }
-        else
-            continue;
     }
 }
 
 void *malloc_c(size_t size){
-    if (alloc_tab == NULL) {
+    if (test_table_asd == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
@@ -74,7 +98,7 @@ void *malloc_c(size_t size){
 
     CHECK_ALLOC(tmp);
 
-    ht_insert(&alloc_tab, &tmp);
+    ht_insert(&test_table_asd, tmp);
 
     return tmp;
 }
@@ -88,18 +112,20 @@ void *calloc_c(unsigned num, size_t size){
 
     CHECK_ALLOC(tmp);
 
-    ht_insert(&alloc_tab, &tmp);
+    ht_insert(&alloc_tab, tmp);
 
     return tmp;
 
 }
 
 void free_c(T_HTable *tab, void *addr) {
+    printf("free_c\naddr: %p\n", addr);
     if (addr == NULL || tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
-    int index = hash_function(addr, HTAB_SIZE);
+    unsigned index = hash_function(addr, HTAB_SIZE);
+    printf("index: %u\n", index);
 
     T_HTItem *item = (*tab)[index];
     T_HTItem *prv = NULL;
@@ -150,7 +176,7 @@ void ht_init ( T_HTable *tab ) {
 
 T_HTItem* ht_search ( T_HTable* tab, void *addr ) {
 
-    int index = hash_function(addr, HTAB_SIZE);
+    unsigned index = hash_function(addr, HTAB_SIZE);
 
     if(tab != NULL){
         T_HTItem *ptr = (*tab)[index];
@@ -169,11 +195,11 @@ T_HTItem* ht_search ( T_HTable* tab, void *addr ) {
 void ht_insert ( T_HTable* tab, void *addr ) {
 
     //check for update
-    T_HTItem *tmp = ht_search(tab, addr);
-    if (tmp != NULL){
-        tmp->addr = addr;
-        return;
-    }
+    // T_HTItem *tmp = ht_search(tab, addr);
+    // if (tmp != NULL){
+    //     // tmp->addr = addr;
+    //     return;
+    // }
 
     // vars
     unsigned index = hash_function(addr, HTAB_SIZE);
@@ -186,28 +212,33 @@ void ht_insert ( T_HTable* tab, void *addr ) {
     item->next = (*tab)[index];
 
     (*tab)[index] = item;
+
+    // printf("NULL: %p, p: %p, index: %u\n", NULL, (void*)(*tab)[index], index);
+
     return;
 
 }
 
-unsigned int hash_function(const void *addr, unsigned htab_size){
+unsigned hash_function(const void *addr, unsigned htab_size){
+
+    assert(addr != NULL);
 
     unsigned int h=0;
 
     // dPrintf("addr: %p",addr);
-
     char str[42];
     sprintf(str, "%p", addr);
 
-
     // dPrintf("str: %s",str);
+    char *p;
 
-    const unsigned char *p;
+    for( p=(char*)str; *p!='\0'; p++ )
+        h = 65599 * h + (*p);
 
-    for( p=(const unsigned char*)str; *p!='\0'; p++ )
-        h = 65599*h + *p;
+    // printf("(%u)/(%u)\n", h, htab_size);
+    // printf("%u\n", h%htab_size);
 
-    return h % htab_size;
+    return (h % htab_size);
 }
 
 // Mini garbage collector

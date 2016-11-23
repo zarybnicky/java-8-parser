@@ -4,7 +4,7 @@
 #ifdef NDEBUG
     #define dPrintf(s,...)
 #else
-    #define dPrintf(s,...) fprintf(stderr, __FILE__":%d:" s "\n",__LINE__,__VA_ARGS__)
+    #define dPrintf(s,...) fprintf(stderr, __FILE__": %d: " s "\n",__LINE__,__VA_ARGS__)
 #endif
 
 #endif
