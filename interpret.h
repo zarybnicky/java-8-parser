@@ -65,7 +65,7 @@ int interpretFunc(Stack *, Node *);
 int builtInFunc(SymbolTable *, Stack *, Function *);
 
 Value *evalStaticExpression(Expression *);
-Value *evalExpression(Expression *e);
+Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *);
 int evalBlock(SymbolTable *, Stack *, Block *);
 

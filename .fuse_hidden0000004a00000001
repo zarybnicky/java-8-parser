@@ -40,8 +40,6 @@ static Stack *GlobalStack = NULL;
 
 static bool continueFlag = FALSE;
 static bool breakFlag = FALSE;
-static bool returnFlag = FALSE;
-
 
 
 #define FN(i, ret, fnName, count, arg) do {                             \
@@ -151,29 +149,25 @@ int interpretFunc(Stack *stack, Node *node){
     Command *tail = node->data.function->body.tail;
 
     while(current != tail){
-        evalCommand(localTable, localStack, current, node->data.function->name);
+        evalCommand(localTable, localStack, current);
         current = current->next;
     }
-    evalCommand(localTable, localStack, current, node->data.function->name);
+    evalCommand(localTable, localStack, current);
 
 
 
     return 0;
 }
 
-Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *funcName){
+Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd){
     (void) symTable;
     (void) stack;
-    Node *node;
-    Value *val = NULL;
 
+    Node *node;
+    Value *val;
     Command *current, *tail;
 
-    continueFlag = FALSE;
-    breakFlag = FALSE;
-    returnFlag = FALSE;
-
-    bool cycle = TRUE;
+    continueFlag = 0;
 
     switch(cmd->type){
         case(C_DECLARE):
@@ -201,7 +195,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
         case(C_ASSIGN):
 
-            // find node in symTable and evaluate expr FIXME table_lookup_either
+            // find node in symTable and evaluate expr
             node = table_lookup(symTable, cmd->data.assign.name);
 
             if(node == NULL){
@@ -288,18 +282,15 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_EXPRESSION):
-            val = evalExpression(symTable, stack, cmd->data.expr);
+            val = evalExpression(cmd->data.expr);
             break;
 
         case(C_RETURN):
-            val = evalExpression(symTable, stack, cmd->data.expr);
-            pushToStack(GlobalStack, val);
-            returnFlag = TRUE;
+            ;
             break;
 
         case(C_FOR):
-            dPrintf("%s", "Interpret: C_FOR: not implemented yet.");
-            PERROR("exiting");
+            ;
             break;
 
         case(C_CONTINUE):
@@ -322,25 +313,25 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
             do{
 
-                while(cycle == TRUE){
+                while(current != tail){
 
                     if(continueFlag)
                         continueFlag = FALSE;
 
-                    val = evalCommand(symTable, stack, current);
+                    evalCommand(symTable, stack, current);
 
                     if(continueFlag == TRUE){
-                        current = cmd->data.doWhileC.bodyBlock.head;
+                        current = cmd->data.whileC.bodyBlock.head;
                         break;
                     }
                     else if(breakFlag == TRUE){
                         break;
                     }
                     else{
-                        if(current == tail){
-                            cycle = FALSE;
-                        }
                         current = current->next;
+                        if(current == tail){
+                            evalCommand(symTable, stack, current);
+                        }
                     }
                 }
 
@@ -355,7 +346,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
     }
 
-    return val;
+    return 0;
 }
 
 int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
@@ -363,27 +354,8 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
     Command *tail = block->tail;
 
     while(current != tail){
-        if(continueFlag)
-            continueFlag = FALSE;
-
         evalCommand(symTable, stack, current);
-
-        if(continueFlag == TRUE){
-            current = cmd->data.whileC.bodyBlock.head;
-            break;
-        }
-        else if(breakFlag == TRUE){
-            break;
-        }
-        else if(returnFlag == TRUE){
-            break;
-        }
-        else{
-            current = current->next;
-            if(current == tail){
-                evalCommand(symTable, stack, current);
-            }
-        }
+        current = current->next;
     }
 
     evalCommand(symTable, stack, current);
@@ -391,37 +363,8 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
     return 0;
 }
 
-Value *evalFunction(char *name, int argCount, Expression *argHead){
-    Value *val = NULL;
-
-    Node *node = table_lookup(symGlob, name);
-
-    Function *fn = node->data.function;
-
-    Stack *localStack = createLocalStack(GlobalStack);
-
-    SymbolTable localSymTable = createSymbolTable();
-
-    if(fn->builtin == TRUE){
-        builtInFunc(localTable, localStack, node->data.function);
-        return popFromStack(localStack);
-    }
-
-    // if fn type was built-in function return
-    if(fn_type == 0)
-        return 0;
-
-    val = createValue(fn->returnType);
-    ht_insert(alloc_tab,val);
-
-    evalBlock(localSymTable, localStack, fn->body)
-
-    return val;
-}
-
-/**
- * Look for builtin functions
- */
+//  Look for builtin functions
+//
 int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
     char *str = fn->name;
@@ -690,7 +633,6 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
                     result->data.dbl = (left->data.dbl * right->data.dbl);
                     break;
                 default:
-                // FIXME
                     break;
             }
             break;
@@ -699,13 +641,13 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             // return left->data / right->data
             switch(result->type){
                 case(T_INTEGER):
-                    if (right->data.integer == 0){
+                    if (result->data.integer == 0){
                         ERROR(ERR_RUNTIME_DIV_BY_ZERO);
                     }
                     result->data.integer = (left->data.integer / right->data.integer);
                     break;
                 case(T_DOUBLE):
-                    if (right->data.dbl == 0){
+                    if (result->data.dbl == 0){
                         ERROR(ERR_RUNTIME_DIV_BY_ZERO);
                     }
                     result->data.dbl = (left->data.dbl / right->data.dbl);
@@ -771,58 +713,24 @@ Value *evalStaticExpression(Expression *e) {
     return NULL; //Just to pacify the compiler...
 }
 
-Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expression *e) {
-
-    Value *returnValue = NULL;
-    Node *node = NULL;
-    char *className = NULL;
-
+Value *evalExpression(Expression *e) {
     switch (e->type) {
         case E_FUNCALL:
-
-            evalFunction(e->data.funcall.name,
-                         e->data.funcall.argCount,
-                         e->data.funcall.argHead);
-
-            return popFromStack(GlobalStack);
-
+        dPrintf("%s","Evaluation of Funcall not implemented");
+            break;
         case E_REFERENCE:
-
-            className = getClassName(funcName);
-            node = table_lookup_either(symGlob, symTable, className, e->reference);
-
-            return node->data.value;
-
+            dPrintf("%s","Evaluation of reference not implemented");
+            break;
         case E_VALUE:
             return e->data.value;
-
         case E_BINARY:
             return evalBinaryExpression(e->data.binary.op,
                                         evalStaticExpression(e->data.binary.left),
                                         evalStaticExpression(e->data.binary.right));
     }
-    return returnValue; //Just to pacify the compiler...
+    return NULL; //Just to pacify the compiler...
 }
 
-// TODO daj to do .h nech sa zdiela tato fcia
-char *getClassName(char *funcName){
-    int i = 0;
-    char *className;
-
-    while (funcName[i] != '.' && funcName[i] != '\0')
-        i++;
-
-    if (funcName[i] == '\0') {
-        fprintf(stderr, "In function %s:\n", funcName);
-        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
-    }
-
-    className = malloc_c(sizeof(char) * (i + 1));
-    strncpy(className, funcName, i);
-    className[i] = '\0';
-
-    return className;
-}
 
 ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
 
