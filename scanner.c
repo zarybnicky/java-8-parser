@@ -28,6 +28,7 @@ Token *getNextToken(FILE *f) {
     int lineNum, lineCol;
     int c = Get_Token(f, &str, &reserved, &symbol, &lineNum, &lineCol);
     Token *t = NULL;
+    char *endptr = NULL;
 
     t = malloc(sizeof(Token));
     t->lineNum = lineNum;
@@ -55,6 +56,9 @@ Token *getNextToken(FILE *f) {
         str+=2;
         t->type = LIT_INTEGER;
         t->val.intVal = strtol(str,&endptr,2);
+        if(endptr != NULL){
+            FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
+        }
         break;
     case FLOAT:
         t->type = LIT_DOUBLE;
@@ -356,7 +360,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             }
 
             // POZOR CISLA PRVE BRAT NEMOZE --DONE
-            else if ((c>='A' && c<='z') || c == '_' || c == '$') 
+            else if ((c>='A' && c<='z') || c == '_' || c == '$')
                 state = AUT_IDEN;
 
             else if (c == '0')  //pokracujeme na stav cisla
@@ -820,7 +824,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  state = AUT_NUM;;
             }
             break;
-            
+
          case AUT_BIN2:
          //printf("%c",c);
          string_end(string, c, &stringLength, &stringAlloc);

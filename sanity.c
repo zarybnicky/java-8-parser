@@ -590,7 +590,7 @@ void checkInterruptsInner(Function *f, Command *c) {
         switch (c->type) {
         case C_CONTINUE:
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");        
+            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
             break;
         case C_BREAK:
             fprintf(stderr, "In function %s:\n", f->name);
@@ -626,7 +626,7 @@ void checkInterruptsTop(Node *node) {
         switch (c->type) {
         case C_CONTINUE:
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");        
+            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
             break;
         case C_BREAK:
             fprintf(stderr, "In function %s:\n", f->name);
@@ -636,10 +636,10 @@ void checkInterruptsTop(Node *node) {
             checkInterruptsInner(f, c->data.ifC.thenBlock.head);
             checkInterruptsInner(f, c->data.ifC.elseBlock.head);
             break;
-        case C_BLOCK:            
+        case C_BLOCK:
         case C_WHILE:
         case C_DO_WHILE:
-        case C_FOR;
+        case C_FOR:
         case C_DECLARE:
         case C_DEFINE:
         case C_ASSIGN:
