@@ -4,6 +4,6 @@ class Main{
     return a;
   }
   static void run(){
-    abc();
+    int a = abc();
   }
 }

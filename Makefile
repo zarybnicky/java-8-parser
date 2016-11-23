@@ -13,7 +13,7 @@ all: ifj16
 debug: CFLAGS += -DDEBUG -g3
 debug: all
 
-test: all test/parser test/symbol-table
+test: debug test/parser test/symbol-table
 	bash testsuite.sh
 
 clean:

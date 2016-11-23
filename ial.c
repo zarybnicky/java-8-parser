@@ -346,11 +346,12 @@ Node *table_lookup(SymbolTable *tree, char *symbol) {
         return NULL;
     return *n;
 }
-Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
+
+void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var){
+    int match = 0;
     Node *n = table_lookup(local, var);
-    if (n != NULL) {
-        return n;
-    }
+    if (n != NULL)
+        match = 1;
     int classLength = strlen(class);
     int idLength = strlen(var);
     char *qualified = malloc((classLength + 1 + idLength + 1));
@@ -359,6 +360,33 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
     qualified[classLength] = '.';
     strcpy(qualified + classLength + 1, var);
     qualified[classLength + 1 + idLength] = '\0';
+
+    n = table_lookup(global, qualified);
+    // 2 times match so its localy and globaly same node lets return ERROR
+    if (n != NULL && match == 1)
+        FERROR(ERR_SEM_UNDEFINED, "Variable is defined staticaly and inside function '%s'",var);
+    free(qualified);
+    return;
+}
+
+Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
+    //check for static and inside function definition
+    checkStaticDefinition(global,local,class,var);
+
+    Node *n = table_lookup(local, var);
+    if (n != NULL) {
+        return n;
+    }
+
+    int classLength = strlen(class);
+    int idLength = strlen(var);
+    char *qualified = malloc((classLength + 1 + idLength + 1));
+    CHECK_ALLOC(qualified);
+    strcpy(qualified, class);
+    qualified[classLength] = '.';
+    strcpy(qualified + classLength + 1, var);
+    qualified[classLength + 1 + idLength] = '\0';
+
     n = table_lookup(global, qualified);
     free(qualified);
     return n;

@@ -45,6 +45,7 @@ void printNode(Node *);
 char *showNodeType(NodeType);
 
 char *getClassName(char *);
+void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var);
 
 SymbolTable *createSymbolTable();
 void freeSymbolTable(SymbolTable *);

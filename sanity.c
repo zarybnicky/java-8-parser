@@ -170,9 +170,10 @@ void checkCondition_(Expression *e, Function *f){
         n=table_lookup_either(symTable, localTable, className, name);
         if (n == NULL){
             //check for ifj16 class
+            printf("%s\n", name);
             n=table_lookup_either(symTable, NULL, "ifj16", name);
             if (n == NULL)
-                FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", name);
+                FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", e->data.funcall.name);
             //TODO if (n->data.function->returnType != f->returnType)
                 //FIXME: implicit conversions
              //   MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
@@ -182,12 +183,12 @@ void checkCondition_(Expression *e, Function *f){
            // MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
         break;
     case E_REFERENCE:
-        name = e->data.reference;
+        //name = e->data.reference;
         if (e != NULL)
             checkCondition_(e->next,f);
-        n=table_lookup_either(symTable, localTable, className, name);
+        n=table_lookup_either(symTable, localTable, className, e->data.reference);
         if (n == NULL)
-            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined reference '%s'.", name);
+            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined reference '%s'.", e->data.reference);
         break;
     case E_BINARY:
         checkBinaryCond_(e);
@@ -231,7 +232,7 @@ void checkFnExpression(Function *f, Command *c){
         n = table_lookup_either(symTable, localTable, className, look);
         if (n == NULL) {
             fprintf(stderr, "In function %s:\n", f->name);
-            FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", look);
+            FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", c->data.assign.name);
         }
         break;
     case C_IF:
@@ -262,18 +263,9 @@ void checkFnExpression(Function *f, Command *c){
 //----- Check return type all variables/functions -----
 void checkAllStatic (Node *node){
     if (node->type == N_FUNCTION){
-        int i = 0;
         Function *f = node->data.function;
         hasReturnCommand = false;
-        while (f->name[i] != '.' && f->name[i] != '\0')
-            i++;
-        if (f->name[i] == '\0') {
-            fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
-        }
-        className = malloc(sizeof(char) * (i + 1));
-        strncpy(className, f->name, i);
-        className[i] = '\0';
+        className = getClassName(f->name);
 
         localTable = createSymbolTable();
         //insert arguments to table
@@ -282,6 +274,7 @@ void checkAllStatic (Node *node){
             table_insert_dummy(localTable, *arg);
             arg = arg->next;
         }
+        printSymbolTable(localTable);
         //traverse commands
         traverseCommands(f, checkFnExpression, checkOperatorAssignmentTypeF);
         /* dealocation of local sym table */
@@ -392,7 +385,10 @@ ValueType getExpressionType(Expression *e) {
 }
 void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     Node *n;
+    char *name;
     ValueType ltype, rtype;
+    if (c == NULL || f == NULL)
+        return;
     switch (c->type) {
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
@@ -407,7 +403,9 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
     case C_ASSIGN:
-        n = table_lookup_either(symTable, localTable, className, c->data.assign.name);
+        name = strchr(c->data.assign.name,'.');
+        name++;
+        n = table_lookup_either(symTable, localTable, className,name);
         if (n->type != N_VALUE) {
             fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_SEM_TYPECHECK, "Can't assign to a function");
