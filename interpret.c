@@ -189,7 +189,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             // find node and evaluate expression
             node = table_lookup(symTable, cmd->data.define.declaration.name);
 
-            val = evalExpression(cmd->data.define.expr);
+            val = evalExpression(symTable, stack, funcName, cmd->data.define.expr);
 
             if(val == NULL || node == NULL)
                 PERROR("Interpret: CMD: Define: node or value not found.");
@@ -211,7 +211,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
 
-            val = evalExpression(cmd->data.assign.expr);
+            val = evalExpression(symTable, stack, funcName, cmd->data.assign.expr);
 
             if(val == NULL)
                 PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
@@ -223,29 +223,29 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
         case(C_BLOCK):
 
-            evalBlock(symTable, stack, &(cmd->data.block));
+            evalBlock(symTable, stack, &(cmd->data.block), funcName);
 
             break;
 
         case(C_IF):
-            val = evalExpression(cmd->data.ifC.cond);
+            val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
             if(val == NULL)
                 PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
 
             if(valueIsZero(val)){
 
-                evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock));
+                evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock), funcName);
             }
             else{
 
-                evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock));
+                evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock), funcName);
 
             }
 
             break;
 
         case(C_WHILE):
-            val = evalExpression(cmd->data.whileC.cond);
+            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
             if(val == NULL)
                 PERROR("Interpret: CMD: whileC: Evaluation of condition was not successful.")
 
@@ -261,7 +261,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
                     if(continueFlag)
                         continueFlag = FALSE;
 
-                    evalCommand(symTable, stack, current);
+                    evalCommand(symTable, stack, current, funcName);
 
                     if(continueFlag == TRUE){
                         current = cmd->data.whileC.bodyBlock.head;
@@ -272,7 +272,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
                     else{
                         current = current->next;
                         if(current == tail){
-                            evalCommand(symTable, stack, current);
+                            evalCommand(symTable, stack, current, funcName);
                         }
                     }
                 }
@@ -281,18 +281,18 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
                         break;
                 }
 
-                val = evalExpression(cmd->data.ifC.cond);
+                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
 
             }
 
             break;
 
         case(C_EXPRESSION):
-            val = evalExpression(symTable, stack, cmd->data.expr);
+            val = evalExpression(symTable, stack, funcName, cmd->data.expr);
             break;
 
         case(C_RETURN):
-            val = evalExpression(symTable, stack, cmd->data.expr);
+            val = evalExpression(symTable, stack, funcName, cmd->data.expr);
             pushToStack(GlobalStack, val);
             returnFlag = TRUE;
             break;
@@ -311,7 +311,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_DO_WHILE):
-            val = evalExpression(cmd->data.whileC.cond);
+            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
             if(val == NULL)
                 PERROR("Interpret: CMD: doWhile: Evaluation of condition was not successful.")
 
@@ -327,7 +327,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
                     if(continueFlag)
                         continueFlag = FALSE;
 
-                    val = evalCommand(symTable, stack, current);
+                    val = evalCommand(symTable, stack, current, funcName);
 
                     if(continueFlag == TRUE){
                         current = cmd->data.doWhileC.bodyBlock.head;
@@ -348,7 +348,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
                         break;
                 }
 
-                val = evalExpression(cmd->data.ifC.cond);
+                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
 
             }while(valueIsZero(val));
 
@@ -358,7 +358,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
     return val;
 }
 
-int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
+int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName){
     Command *current = block->head;
     Command *tail = block->tail;
 
@@ -366,10 +366,10 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
         if(continueFlag)
             continueFlag = FALSE;
 
-        evalCommand(symTable, stack, current);
+        evalCommand(symTable, stack, current, funcName);
 
         if(continueFlag == TRUE){
-            current = cmd->data.whileC.bodyBlock.head;
+            current = block->head;
             break;
         }
         else if(breakFlag == TRUE){
@@ -381,17 +381,20 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block){
         else{
             current = current->next;
             if(current == tail){
-                evalCommand(symTable, stack, current);
+                evalCommand(symTable, stack, current, funcName);
             }
         }
     }
 
-    evalCommand(symTable, stack, current);
+    evalCommand(symTable, stack, current, funcName);
 
     return 0;
 }
 
 Value *evalFunction(char *name, int argCount, Expression *argHead){
+    (void) argCount;
+    (void) argHead;
+
     Value *val = NULL;
 
     Node *node = table_lookup(symGlob, name);
@@ -400,21 +403,17 @@ Value *evalFunction(char *name, int argCount, Expression *argHead){
 
     Stack *localStack = createLocalStack(GlobalStack);
 
-    SymbolTable localSymTable = createSymbolTable();
+    SymbolTable *localSymTable = createSymbolTable();
 
     if(fn->builtin == TRUE){
-        builtInFunc(localTable, localStack, node->data.function);
+        builtInFunc(localSymTable, localStack, node->data.function);
         return popFromStack(localStack);
     }
 
-    // if fn type was built-in function return
-    if(fn_type == 0)
-        return 0;
-
     val = createValue(fn->returnType);
-    ht_insert(alloc_tab,val);
+    ht_insert(&alloc_tab,val);
 
-    evalBlock(localSymTable, localStack, fn->body)
+    evalBlock(localSymTable, localStack, &(fn->body), fn->name);
 
     return val;
 }
@@ -773,6 +772,8 @@ Value *evalStaticExpression(Expression *e) {
 
 Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expression *e) {
 
+    (void) stack;
+
     Value *returnValue = NULL;
     Node *node = NULL;
     char *className = NULL;
@@ -789,7 +790,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
         case E_REFERENCE:
 
             className = getClassName(funcName);
-            node = table_lookup_either(symGlob, symTable, className, e->reference);
+            node = table_lookup_either(symGlob, symTable, className, e->data.reference);
 
             return node->data.value;
 
@@ -804,25 +805,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
     return returnValue; //Just to pacify the compiler...
 }
 
-// TODO daj to do .h nech sa zdiela tato fcia
-char *getClassName(char *funcName){
-    int i = 0;
-    char *className;
-
-    while (funcName[i] != '.' && funcName[i] != '\0')
-        i++;
-
-    if (funcName[i] == '\0') {
-        fprintf(stderr, "In function %s:\n", funcName);
-        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
-    }
-
-    className = malloc_c(sizeof(char) * (i + 1));
-    strncpy(className, funcName, i);
-    className[i] = '\0';
-
-    return className;
-}
 
 ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
 

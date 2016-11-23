@@ -13,6 +13,25 @@
 
 #include "ial.h"
 
+char *getClassName(char *funcName){
+    int i = 0;
+    char *className;
+
+    while (funcName[i] != '.' && funcName[i] != '\0')
+        i++;
+
+    if (funcName[i] == '\0') {
+        fprintf(stderr, "In function %s:\n", funcName);
+        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
+    }
+
+    className = malloc_c(sizeof(char) * (i + 1));
+    strncpy(className, funcName, i);
+    className[i] = '\0';
+
+    return className;
+}
+
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
     CHECK_ALLOC(array);

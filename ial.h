@@ -15,6 +15,7 @@
 #include "error.h"
 #include "ir.h"
 #include "scanner.h"
+#include "int_memory_management.h"
 
 typedef enum {
     N_VALUE,
@@ -42,6 +43,8 @@ Node *createClassNode(char *);
 void freeNode(Node *);
 void printNode(Node *);
 char *showNodeType(NodeType);
+
+char *getClassName(char *);
 
 SymbolTable *createSymbolTable();
 void freeSymbolTable(SymbolTable *);

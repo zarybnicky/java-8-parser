@@ -66,8 +66,8 @@ int builtInFunc(SymbolTable *, Stack *, Function *);
 
 Value *evalStaticExpression(Expression *);
 Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
-Value *evalCommand(SymbolTable *, Stack *, Command *);
-int evalBlock(SymbolTable *, Stack *, Block *);
+Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
+int evalBlock(SymbolTable *, Stack *, Block *, char *);
 
 Value *evalBinaryExpression(BinaryOperation op, Value *, Value *);
 ValueType evalReturnType(BinaryOperation op, Value *, Value *);
