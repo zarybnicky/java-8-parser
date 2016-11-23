@@ -90,7 +90,7 @@ void print_htTable(T_HTable *t){
 }
 
 void *malloc_c(size_t size){
-    if (test_table_asd == NULL) {
+    if (alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
@@ -98,7 +98,7 @@ void *malloc_c(size_t size){
 
     CHECK_ALLOC(tmp);
 
-    ht_insert(&test_table_asd, tmp);
+    ht_insert(&alloc_tab, tmp);
 
     return tmp;
 }
@@ -119,13 +119,13 @@ void *calloc_c(unsigned num, size_t size){
 }
 
 void free_c(T_HTable *tab, void *addr) {
-    printf("free_c\naddr: %p\n", addr);
+    // printf("free_c\naddr: %p\n", addr);
     if (addr == NULL || tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
     unsigned index = hash_function(addr, HTAB_SIZE);
-    printf("index: %u\n", index);
+    // printf("index: %u\n", index);
 
     T_HTItem *item = (*tab)[index];
 
@@ -168,6 +168,7 @@ void free_c_all(T_HTable *tab) {
         T_HTItem *item = (*tab)[i];
         if(item != NULL){
             free_c(tab, item->addr);
+            if(item == NULL) printf("%s\n", "je null");
         }
     }
 

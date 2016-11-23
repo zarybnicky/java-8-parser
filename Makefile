@@ -1,7 +1,6 @@
 CC=gcc
 #Werror add?
-#-DNDEBUG for release !
-CPPFLAGS=-pedantic -Wall -Wextra -g
+CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99
 LDFLAGS=-L.
 
@@ -10,6 +9,9 @@ LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memo
 .PHONY: all test clean
 
 all: ifj16
+
+debug: CFLAGS += -DDEBUG -g3
+debug: all
 
 test: all test/parser test/symbol-table
 	bash testsuite.sh

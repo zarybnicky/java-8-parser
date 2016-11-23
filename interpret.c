@@ -175,7 +175,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
     bool cycle = TRUE;
 
-    #ifndef NDEBUG
+    #ifdef DEBUG
         printCommand(cmd);
     #endif
 

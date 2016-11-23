@@ -27,10 +27,6 @@ void freeGlobalResources() {
 
 int main(int argc, char *argv[])
 {
-
-    test_mem();
-    return 1;
-
     if (argc != 2) {
         FERROR(ERR_INTERNAL,
                "Invalid arguments, usage: %s <FILENAME>\n", argv[0]);
