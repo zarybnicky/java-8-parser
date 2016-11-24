@@ -41,6 +41,9 @@ Lexer *createLexer(FILE *f, Interpret *i) {
 }
 void freeLexer(Lexer *l) {
     if (l != NULL) {
+        if (l->file != NULL) {
+            fclose(l->file);
+        }
         Token *t;
         while (l->start != NULL) {
             t = l->start->next;

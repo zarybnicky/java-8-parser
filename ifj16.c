@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
         parseClass(l);
     }
     fclose(f);
+    l->file = NULL;
 
     runSemanticAnalysis(i);
 
