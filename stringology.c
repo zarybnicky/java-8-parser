@@ -12,8 +12,6 @@
 
 #include "stringology.h"
 
-#define MAX_LEN 10
-
 int readInt() { // Int celé nezáporné číslo (3.1)
     int c; // Urceno dle max delky int
     unsigned vysledek = 0;

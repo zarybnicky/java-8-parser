@@ -11,20 +11,16 @@
 #ifndef IFJ_STRINGOLOGY_H
 #define IFJ_STRINGOLOGY_H
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include "error.h"
-#include "ir.h"
 #include "int_memory_management.h"
+
+#define MAX_LEN 10
 
 int readInt();
 double readDouble();
 char *readString();
-void print(Value *term);
+void print(Value *v);
 int length(char *s);
-char *substr(char *s, int i, int n);
+char *substr(char *s, int where, int howmany);
 int compare(char *s1, char *s2);
 
 #endif /* IFJ_STRINGOLOGY_H */

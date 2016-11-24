@@ -12,8 +12,6 @@
 #define IFJ_IAL_H
 
 #include "stringology.h"
-#include "error.h"
-#include "ir.h"
 #include "scanner.h"
 #include "int_memory_management.h"
 
@@ -43,11 +41,6 @@ Node *createClassNode(char *);
 void freeNode(Node *);
 void printNode(Node *);
 char *showNodeType(NodeType);
-
-//IR.H
-char *getReferenceName(char *);
-char *getClassName(char *);
-char *getFunctionName(char*);
 
 void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var);
 SymbolTable *createSymbolTable();

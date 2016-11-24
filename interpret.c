@@ -8,24 +8,6 @@
  *          xzales12 - Záleský Jiří
  */
 
-/*--------------------------------LIBRARIES---------------------------------*/
-
-
-// System libraries
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-#include <assert.h>
-#include <limits.h>
-#include <errno.h>
-
-// Local libraries
-#include "error.h"
-#include "ial.h"
-#include "ir.h"
-#include "int_memory_management.h"
-#include "int_debug.h"
 
 #include "interpret.h"
 

@@ -11,11 +11,10 @@
 #include "sanity.h"
 
 static SymbolTable *symTable;
-static bool hasReturnCommand;
 static SymbolTable *localTable;
+static bool hasReturnCommand;
 static char *className;
 //----- Global variables ------
-
 void runSemanticAnalysis(Interpret *i) {
     symTable = &i->symTable;
     Node *root = symTable->root;
@@ -23,11 +22,9 @@ void runSemanticAnalysis(Interpret *i) {
     checkMainRun(&i->symTable);
     table_iterate(root, checkReturnPresence);
     table_iterate(root, checkTopLevel);
-    // maybe create global variables
     table_iterate(root, checkAllStatic);
     table_iterate(root, checkOperatorAssignmentType);
 
-    //free global variables
     symTable = NULL;
 }
 
@@ -52,22 +49,17 @@ void checkReturnPresence(Node *node) {
     }
 }
 
-
-char *changeFunctionName(Expression *e){
-    char *name=e->data.funcall.name;
-    name = strchr(name,'.');
-    return ++name;
-}
-
 //----- Check Binary reference/function ------
 void checkBinaryReference_(char *name, char *typeM){
     Node *n=table_lookup_either(symTable, localTable, className, name);
     if (n == NULL)
         FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.", typeM, name);
 }
-
+/**
+  * Check whether binary condition does not cointain not defined references
+  * or undefined functions
+  */
 void checkBinaryCond_(Expression *e){
-    //BOTH, TODO traverse through binary exp
     if (e == NULL)
         return;
     char *name;
@@ -75,18 +67,18 @@ void checkBinaryCond_(Expression *e){
     case E_FUNCALL:
         switch(e->data.binary.right->type){
         case E_FUNCALL:
-            name =changeFunctionName(e->data.binary.left);
+            name =getFunctionName(e->data.binary.left->data.funcall.name);
             checkBinaryReference_(name,"function");
-            name =changeFunctionName(e->data.binary.right);
+            name =getFunctionName(e->data.binary.right->data.funcall.name);
             checkBinaryReference_(name, "function");
             break;
         case E_REFERENCE:
-            name =changeFunctionName(e->data.binary.left);
+            name =getFunctionName(e->data.binary.left->data.funcall.name);
             checkBinaryReference_(name,"function");
             checkBinaryReference_(e->data.binary.right->data.reference, "reference");
             break;
         case E_BINARY:
-            name =changeFunctionName(e->data.binary.left);
+            name =getFunctionName(e->data.binary.left->data.funcall.name);
             checkBinaryReference_(name,"function");
             //RECURSION
             checkBinaryCond_(e->data.binary.right);
@@ -99,7 +91,7 @@ void checkBinaryCond_(Expression *e){
         //Function call on right expression
         switch(e->data.binary.right->type){
         case E_FUNCALL:
-            name =changeFunctionName(e->data.binary.right);
+            name =getFunctionName(e->data.binary.right->data.funcall.name);
             checkBinaryReference_(e->data.binary.left->data.reference,"reference");
             checkBinaryReference_(name, "function");
             break;
@@ -116,9 +108,23 @@ void checkBinaryCond_(Expression *e){
         }
         break;
     case E_BINARY:
+        break;
     case E_VALUE:
-        //more binary operators allow?!?
-        //checkBinaryCond_(e->data.binary.left);
+    //FIXME?!? || && operands
+        switch(e->data.binary.right->type){
+        case E_FUNCALL:
+            name =getFunctionName(e->data.binary.right->data.funcall.name);
+            checkBinaryReference_(name, "function");
+            break;
+        case E_REFERENCE:
+            checkBinaryReference_(e->data.binary.right->data.reference,"reference");
+            break;
+        case E_BINARY:
+            checkBinaryCond_(e->data.binary.right);
+            break;
+        case E_VALUE:
+            break;
+        }
         break;
     }
 }
@@ -180,14 +186,11 @@ void checkCondition_(Expression *e, Function *f){
             n=table_lookup_either(symTable, NULL, "ifj16", name);
             if (n == NULL)
                 FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", e->data.funcall.name);
-
-            //TODO if (n->data.function->returnType != f->returnType)
-                //FIXME: implicit conversions
-             //   MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
+            //TODO
         }
         //if (n->data.function->returnType != f->returnType)
             //FIXME: implicit conversions
-           // MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
+            //MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
         break;
     case E_REFERENCE:
         className = getReferenceName(e->data.reference);
@@ -276,8 +279,6 @@ void checkFnExpression(Function *f, Command *c){
     }
 }
 
-
-//TODO vycistit lokalni tabulku sym pri chybe
 //----- Check return type all variables/functions -----
 void checkAllStatic (Node *node){
     if (node->type == N_FUNCTION){

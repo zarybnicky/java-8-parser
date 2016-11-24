@@ -489,3 +489,46 @@ char *showCommandType(CommandType x) {
     }
     return "Unknown CommandType"; //Just to pacify the compiler...
 }
+
+char *getReferenceName(char *reference){
+    int i = 0;
+    char *className;
+
+    while (reference[i] != '.' && reference[i] != '\0')
+        i++;
+    if (reference[i] == '\0')
+        return reference;
+    className = malloc_c(sizeof(char) * (i + 1));
+    strncpy(className, reference, i);
+    className[i] = '\0';
+
+    return className;
+}
+
+char *getClassName(char *funcName){
+    int i = 0;
+    char *className;
+
+    while (funcName[i] != '.' && funcName[i] != '\0')
+        i++;
+
+    if (funcName[i] == '\0') {
+        fprintf(stderr, "In function %s:\n", funcName);
+        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
+    }
+
+    className = malloc_c(sizeof(char) * (i + 1));
+    strncpy(className, funcName, i);
+    className[i] = '\0';
+
+    return className;
+}
+
+char *getFunctionName(char* funcName){
+    char *name = strchr(funcName, '.');
+    //No dot found
+    if (name == NULL)
+        return funcName;
+    return ++name;
+}
+

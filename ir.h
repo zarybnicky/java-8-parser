@@ -14,7 +14,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "error.h"
+#include "int_memory_management.h"
 
 typedef enum {
     T_STRING,
@@ -175,5 +177,10 @@ char *showValueType(ValueType);
 char *showExpressionType(ExpressionType);
 char *showBinaryOperation(BinaryOperation);
 char *showCommandType(CommandType);
+
+//IR.H
+char *getReferenceName(char *);
+char *getClassName(char *);
+char *getFunctionName(char*);
 
 #endif /* IFJ_IR_H */

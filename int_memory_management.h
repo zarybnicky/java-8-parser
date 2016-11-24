@@ -11,10 +11,15 @@
 #ifndef INT_MEM_MANAGEMET
 #define INT_MEM_MANAGEMET
 
+#include <limits.h>
+
+#include "ir.h"
+#include "int_debug.h"
+#include "assert.h"
+
 #define HTAB_SIZE 49157
 
 typedef struct T_HTItem{
-    ValueType type;
     void *addr;
     struct T_HTItem *next;
 } T_HTItem;

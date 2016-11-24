@@ -8,10 +8,6 @@
  *          xzales12 - Záleský Jiří
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "error.h"
-#include "ir.h"
 #include "parser.h"
 #include "interpret.h"
 #include "int_memory_management.h"
@@ -47,7 +43,7 @@ int main(int argc, char *argv[])
 
     runSemanticAnalysis(i);
 
-    //evalMain(i);
+    evalMain(i);
     freeGlobalResources();
     return 0;
 }

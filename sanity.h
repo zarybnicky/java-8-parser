@@ -26,7 +26,6 @@ void checkReturnCommand(Function *, Command *);
 void checkReturnType(Node *);
 
 //support function for fnExpression definition??!
-char *changeFunctionName(Expression *);
 void checkBinaryReference_(char *,char *);
 void checkBinaryCond_(Expression *);
 Expression *expLoopSwitch(Command *);

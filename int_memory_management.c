@@ -9,20 +9,7 @@
  */
 
 // Mini garbage collector
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-
-#include "error.h"
-#include "ir.h"
-#include "ial.h"
-#include "int_debug.h"
-#include "assert.h"
-
 #include "int_memory_management.h"
-
-
 
 void test_mem(){
     ht_init (&alloc_tab);

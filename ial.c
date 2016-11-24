@@ -13,48 +13,6 @@
 
 #include "ial.h"
 
-char *getReferenceName(char *reference){
-    int i = 0;
-    char *className;
-
-    while (reference[i] != '.' && reference[i] != '\0')
-        i++;
-    if (reference[i] == '\0')
-        return reference;
-    className = malloc_c(sizeof(char) * (i + 1));
-    strncpy(className, reference, i);
-    className[i] = '\0';
-
-    return className;
-}
-
-char *getClassName(char *funcName){
-    int i = 0;
-    char *className;
-
-    while (funcName[i] != '.' && funcName[i] != '\0')
-        i++;
-
-    if (funcName[i] == '\0') {
-        fprintf(stderr, "In function %s:\n", funcName);
-        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
-    }
-
-    className = malloc_c(sizeof(char) * (i + 1));
-    strncpy(className, funcName, i);
-    className[i] = '\0';
-
-    return className;
-}
-
-char *getFunctionName(char* funcName){
-    char *name = strchr(funcName, '.');
-    //No dot found
-    if (name == NULL)
-        return funcName;
-    return ++name;
-}
-
 int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
     int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
     CHECK_ALLOC(array);
@@ -370,28 +328,6 @@ Node *table_lookup(SymbolTable *tree, char *symbol) {
     return *n;
 }
 
-void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var){
-    int match = 0;
-    Node *n = table_lookup(local, var);
-    if (n != NULL)
-        match = 1;
-    int classLength = strlen(class);
-    int idLength = strlen(var);
-    char *qualified = malloc((classLength + 1 + idLength + 1));
-    CHECK_ALLOC(qualified);
-    strcpy(qualified, class);
-    qualified[classLength] = '.';
-    strcpy(qualified + classLength + 1, var);
-    qualified[classLength + 1 + idLength] = '\0';
-
-    n = table_lookup(global, qualified);
-    // 2 times match so its localy and globaly same node lets return ERROR
-    if (n != NULL && match == 1)
-        FERROR(ERR_SEM_UNDEFINED, "Variable is defined staticaly and inside function '%s'",var);
-    free(qualified);
-    return;
-}
-
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
     //check for static and inside function definition
     if (local != NULL || global != NULL)
@@ -557,4 +493,26 @@ void table_iterate(Node *object, void (*fn)(Node *object)){
     if (object->type == N_FUNCTION && object->data.function->builtin)
         return;
     fn(object);
+}
+
+void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var){
+    int match = 0;
+    Node *n = table_lookup(local, var);
+    if (n != NULL)
+        match = 1;
+    int classLength = strlen(class);
+    int idLength = strlen(var);
+    char *qualified = malloc((classLength + 1 + idLength + 1));
+    CHECK_ALLOC(qualified);
+    strcpy(qualified, class);
+    qualified[classLength] = '.';
+    strcpy(qualified + classLength + 1, var);
+    qualified[classLength + 1 + idLength] = '\0';
+
+    n = table_lookup(global, qualified);
+    // 2 times match so its localy and globaly same node lets return ERROR
+    if (n != NULL && match == 1)
+        FERROR(ERR_SEM_UNDEFINED, "Variable is defined staticaly and inside function '%s'",var);
+    free(qualified);
+    return;
 }
