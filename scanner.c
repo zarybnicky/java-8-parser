@@ -494,7 +494,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 ;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
-             else if (((c >='!') && (c >= '/')) || ((c >=':') &&
+             else if (((c >='!') && (c <= '/')) || ((c >='<') && // este si musim dat pozor na znak ':' ktory este berie v pohode
 					(c <= 'D'))|| ((c >='F') && (c <= 'd')) ||
 					((c >='f') && (c <= '~') ) )
                   {   // OSETRTI CHYBU 5.5a -------- DONEEEE
