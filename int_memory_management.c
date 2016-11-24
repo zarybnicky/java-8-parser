@@ -105,6 +105,54 @@ void *calloc_c(unsigned num, size_t size){
 
 }
 
+void *realloc_c (void *ptr, size_t size){
+    if (alloc_tab == NULL) {
+        ERROR(ERR_INTERNAL);
+    }
+
+    ht_del_item(&alloc_tab, ptr);
+
+    ptr = realloc(ptr, size);
+
+    CHECK_ALLOC(ptr);
+
+    ht_insert(&alloc_tab, ptr);
+
+    return ptr;
+}
+
+void ht_del_item(T_HTable *tab, void *addr){
+
+    unsigned index = hash_function(addr, HTAB_SIZE);
+
+    if(tab != NULL){
+        T_HTItem *ptr = (*tab)[index];
+        T_HTItem *tmp = ptr;
+
+        while (ptr != NULL){
+
+            if (ptr->addr == addr){
+
+                // First in order
+                if (ptr == tmp){
+                    (*tab)[index] = ptr->next;
+                    free(ptr);
+                    return;
+                }
+
+                tmp->next = ptr->next;
+                free(ptr);
+                return;
+            }
+
+            tmp = ptr;
+            ptr = ptr->next;
+        }
+
+    }
+
+}
+
 void free_c(T_HTable *tab, void *addr) {
     // printf("free_c\naddr: %p\n", addr);
     if (addr == NULL || tab == NULL) {
