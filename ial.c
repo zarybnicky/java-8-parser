@@ -13,6 +13,21 @@
 
 #include "ial.h"
 
+char *getReferenceName(char *reference){
+    int i = 0;
+    char *className;
+
+    while (reference[i] != '.' && reference[i] != '\0')
+        i++;
+    if (reference[i] == '\0')
+        return reference;
+    className = malloc_c(sizeof(char) * (i + 1));
+    strncpy(className, reference, i);
+    className[i] = '\0';
+
+    return className;
+}
+
 char *getClassName(char *funcName){
     int i = 0;
     char *className;
@@ -34,6 +49,9 @@ char *getClassName(char *funcName){
 
 char *getFunctionName(char* funcName){
     char *name = strchr(funcName, '.');
+    //No dot found
+    if (name == NULL)
+        return funcName;
     return ++name;
 }
 
@@ -376,7 +394,8 @@ void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,c
 
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
     //check for static and inside function definition
-    checkStaticDefinition(global,local,class,var);
+    if (local != NULL || global != NULL)
+        checkStaticDefinition(global,local,class,var);
 
     Node *n = table_lookup(local, var);
     if (n != NULL) {

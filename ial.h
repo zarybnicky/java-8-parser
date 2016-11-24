@@ -44,10 +44,12 @@ void freeNode(Node *);
 void printNode(Node *);
 char *showNodeType(NodeType);
 
+//IR.H
+char *getReferenceName(char *);
 char *getClassName(char *);
-void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var);
 char *getFunctionName(char*);
 
+void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var);
 SymbolTable *createSymbolTable();
 void freeSymbolTable(SymbolTable *);
 void printSymbolTable(SymbolTable *);

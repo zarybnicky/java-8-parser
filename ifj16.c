@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
     runSemanticAnalysis(i);
 
-    evalMain(i);
+    //evalMain(i);
     freeGlobalResources();
     return 0;
 }

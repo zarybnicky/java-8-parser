@@ -16,6 +16,7 @@
 #include "ir.h"
 #include "ial.h"
 #include "interpret.h"
+#include "int_memory_management.h"
 
 void runSemanticAnalysis(Interpret *);
 

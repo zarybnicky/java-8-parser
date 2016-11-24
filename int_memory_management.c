@@ -153,7 +153,6 @@ void free_c_all(T_HTable *tab) {
     if (tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
-    printf("\n\nabc\n\n");
     T_HTItem *tmp;
     T_HTItem *item=(*tab)[0];
     for(unsigned i = 0; i < HTAB_SIZE; i++,item=(*tab)[i]){
