@@ -47,7 +47,7 @@ void freeLexer(Lexer *l) {
         Token *t;
         while (l->start != NULL) {
             t = l->start->next;
-            free(l->start);
+            freeToken(l->start);
             l->start = t;
         }
         free(l->stack);
