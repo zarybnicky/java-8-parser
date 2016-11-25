@@ -260,7 +260,6 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName)
         evalCommand(symTable, stack, current, funcName);
 
         if(continueFlag){
-            current = block->head;
             break;
         }
         else if(breakFlag){

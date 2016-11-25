@@ -8,29 +8,26 @@
  *          xzales12 - Záleský Jiří
  */
 
-// TODO - List-Merge sort, tab. sym. binarnim vyhledavacim stromem, vyhledavani podretezce Knuth-Morris-Pratt
-// Merge-sort - nutno upravit dle inplementace stringu
-
 #include "ial.h"
 
-int *Prefixcreator(char *search, int seaLen){ // Pomocna funkce pro find
-    int *array = malloc(sizeof(int)*seaLen); // Prefixove pole
+int *Prefixcreator(char *search, int seaLen){ // Auxiliary function of find
+    int *array = malloc(sizeof(int)*seaLen);
     CHECK_ALLOC(array);
 
     int a = -1;
     array[0] = a;
 
-    for (int i = 1; i < seaLen; i++){ // Pruchod stringem
-        while (a > -1 && search[a+1] != search[i]){ // Neni shoda
+    for (int i = 1; i < seaLen; i++){
+        while (a > -1 && search[a+1] != search[i]){ // Match not found
             a = array[a];
         }
-        if (search[a+1] == search[i]){ // Zvyseni pri shodnosti
+        if (search[a+1] == search[i]){ // Match found -> increase
             a++;
         }
-        array[i] = a; // Zapis hodnoty shodnych
+        array[i] = a; // Match position
     }
     return array;
-} // Funkce Prefixcreator
+}
 
 int find(char *s, char *search) {
     int sLen = strlen(s);
@@ -39,33 +36,33 @@ int find(char *s, char *search) {
         return 0;
     }
 
-    int *Parray = Prefixcreator(search, seaLen); // Volani pomocne funkce (viz. vyse)
+    int *Parray = Prefixcreator(search, seaLen); // Call auxiliary function
     int a = -1;
 
     for (int i = 0; i < sLen; i++){
-        while (a > -1 && search[a+1] != s[i]){ // Neni shoda
+        while (a > -1 && search[a+1] != s[i]){ // Match not found
             a = Parray[a];
         }
-        if (search[a+1] == s[i]){ // Zvyseni pri shodnosti
+        if (search[a+1] == s[i]){ // Match found -> increase
             a++;
         }
-        if (a == seaLen-1){ // Nalezeni shody
+        if (a == seaLen-1){ // Match found
             free(Parray);
             return i - a;
         }
     }
     free(Parray);
     return -1;
-} // Funkce find
+}
 
 char *sort(char *s)
 {
     unsigned len = strlen(s);
 
-    if (len != 1) {  // Rozdeleni na mensi stringy
+    if (len != 1) {  // Split to smaller strings
         unsigned x = 0;
         unsigned y = 0;
-        unsigned count = 0; // Pocitadlo prvku pole
+        unsigned count = 0; // Array counter
         unsigned half = len / 2;
         unsigned top;
 
@@ -73,7 +70,7 @@ char *sort(char *s)
         char *right;
 
 
-        if (len % 2 == 0) { // char *sudy X lichy pocet clenu
+        if (len % 2 == 0) { // char *even X odd of members
             right = substr(s, half, 0);
             top = half;
         } else {
@@ -81,10 +78,10 @@ char *sort(char *s)
             top = half+1;
         }
 
-        left = sort(left);  // Rekurzivni volani fce.
+        left = sort(left);
         right = sort(right);
 
-        while (x < half && y < top) {  // Sort -> Pocitam u obou retezcu od 0 - top muze byt ichy nebo sudy (viz. vyse)
+        while (x < half && y < top) {  // Sort -> Counting from 0 to top - even X odd
             if (left[x] <= right[y]){
                 s[count] = left[x];
                 x++;
@@ -95,12 +92,13 @@ char *sort(char *s)
             count++;
         }   // while
 
-        while (x < half){   // Doplneni zbyvajicich znaku
+        // Adding the remaining characters
+        while (x < half){
             s[count] = left[x];
             count++;
             x++;
         }
-        while (y < top){   // Doplneni zbyvajicich znaku
+        while (y < top){
             s[count] = right[y];
             count++;
             y++;

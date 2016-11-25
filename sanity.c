@@ -624,7 +624,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     }
 }
 
-// Aplikace v pruchodu stromu
+// Use table_iterator to work
 void checkTopLevel(Node *node) {
     if (node->type != N_FUNCTION) {
         return;
