@@ -10,7 +10,7 @@ class Main
 	          comp = ifj16.compare(b, ifj16.sort(a));
 
             if (comp != 0){
-    	          ifj16.print("Stringy jsou ruzne! Zkousim hledat zadane jako podretezec.\n);
+    	          ifj16.print("Stringy jsou ruzne! Zkousim hledat zadane jako podretezec.\n");
     		        comp = ifj16.find(b, a);
 
         		    if (comp < 1){

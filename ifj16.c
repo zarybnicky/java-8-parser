@@ -17,9 +17,7 @@ Lexer *l;
 Interpret *i;
 void freeGlobalResources() {
     freeLexer(l);
-    l=NULL;
     freeInterpret(i);
-    i=NULL;
     free_c_all(&alloc_tab);
 }
 

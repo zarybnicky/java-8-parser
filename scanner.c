@@ -57,7 +57,8 @@ Token *getNextToken(FILE *f) {
         t->type = LIT_INTEGER;
         t->val.intVal = strtol(str,&endptr,2);
         if(endptr != NULL){
-            freeToken(t);
+            free(t->original);
+            free(t);
             FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
         }
         break;
@@ -74,10 +75,12 @@ Token *getNextToken(FILE *f) {
         t->val.symbol = symbol;
         break;
     case END_OF_FILE:
-        freeToken(t);
+        free(t->original);
+        free(t);
         return NULL;
     default:
-        freeToken(t);
+        free(t->original);
+        free(t);
         FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
     }
     return t;

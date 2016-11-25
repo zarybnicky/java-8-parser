@@ -496,9 +496,10 @@ char *getReferenceName(char *reference){
 
     while (reference[i] != '.' && reference[i] != '\0')
         i++;
-    if (reference[i] == '\0')
+    if (reference[i] == '\0'){
         return reference;
-    className = malloc_c(sizeof(char) * (i + 1));
+    }
+    className = malloc(sizeof(char) * (i + 1));
     strncpy(className, reference, i);
     className[i] = '\0';
 
@@ -517,7 +518,7 @@ char *getClassName(char *funcName){
         MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
     }
 
-    className = malloc_c(sizeof(char) * (i + 1));
+    className = malloc(sizeof(char) * (i + 1));
     strncpy(className, funcName, i);
     className[i] = '\0';
 
@@ -527,8 +528,9 @@ char *getClassName(char *funcName){
 char *getFunctionName(char* funcName){
     char *name = strchr(funcName, '.');
     //No dot found
-    if (name == NULL)
+    if (name == NULL){
         return funcName;
+    }
     return ++name;
 }
 

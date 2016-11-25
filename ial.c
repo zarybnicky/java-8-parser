@@ -333,6 +333,7 @@ Node *table_lookup(SymbolTable *tree, char *symbol) {
 
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
     //check for static and inside function definition
+    //printf("%s\n",var );
     if (local != NULL || global != NULL)
         checkStaticDefinition(global,local,class,var);
 
@@ -514,8 +515,12 @@ void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,c
 
     n = table_lookup(global, qualified);
     // 2 times match so its localy and globaly same node lets return ERROR
-    if (n != NULL && match == 1)
+    if (n != NULL && match == 1){
+        free(class);
+        free(qualified);
+        freeSymbolTable(local);
         FERROR(ERR_SEM_UNDEFINED, "Variable is defined staticaly and inside function '%s'",var);
+    }
     free(qualified);
     return;
 }
