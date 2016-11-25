@@ -76,7 +76,6 @@ int freeInterpret(Interpret *i) {
     return 0;
 }
 
-
 int evalMain(Interpret *i) {
     assert(i != NULL);
     symTableGlob = &(i->symTable);
@@ -85,18 +84,15 @@ int evalMain(Interpret *i) {
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
     assert(mainFn != NULL);
+    assert(mainFn->type == N_FUNCTION);
 
-    if (mainFn->type == N_FUNCTION) {
-        interpretFunc(GlobalStack, mainFn);
-    } else {
-        dPrintf("%s %d","Unexpected happened with node!",mainFn->type);
-    }
+    interpretFunc(GlobalStack, mainFn);
 
     free(GlobalStack);
     return 0;
 }
 
-int interpretFunc(Stack *stack, Node *node){
+int interpretFunc(Stack *stack, Node *node) {
 
     // if is node
     Stack *localStack = NULL;
@@ -121,38 +117,50 @@ int interpretFunc(Stack *stack, Node *node){
     assert(localTable != NULL);
 
     Command *current = node->data.function->body.head;
+
     Command *tail = node->data.function->body.tail;
 
     for(;current != tail; current = current->next){
-        evalCommand(localTable, localStack, current, node->data.function->name);
+        evalCommand(localTable, localStack, current, getClassName(node->data.function->name));
     }
-    evalCommand(localTable, localStack, current, node->data.function->name);
+    evalCommand(localTable, localStack, current, getClassName(node->data.function->name));
 
-    printSymbolTable(localTable);
 
-    Node *n = table_lookup(localTable, "a");
-    printf("\n");
-
+    Node *n = table_lookup_either(symTableGlob, localTable, getClassName(mainFn->symbol),"b");
     printValue(n->data.value);
 
     return 0;
 }
 
-Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *funcName){
-    (void) symTable;
-    (void) stack;
+#define CYCLE_INNER(symTable, stack, funcName, body, end)       \
+    do {                                                        \
+        Command *c = body.head;                                 \
+        while (c != NULL) {                                     \
+            evalCommand(symTable, stack, c, funcName);          \
+            if (breakFlag) {                                    \
+                breakFlag = false;                              \
+                goto end;                                       \
+            }                                                   \
+            if (continueFlag) {                                 \
+                continueFlag = false;                           \
+                break;                                          \
+            }                                                   \
+            c = c->next;                                        \
+        }                                                       \
+    } while (0);
+
+
+Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *className){
     Node *node;
     Value *val = NULL;
-
-    Command *current, *tail;
 
     continueFlag = FALSE;
     breakFlag = FALSE;
     returnFlag = FALSE;
 
+
     bool cycle = TRUE;
 
-    char *className = getClassName(funcName);
     char *dataName = NULL;
 
     switch(cmd->type){
@@ -162,32 +170,20 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_DEFINE):
-
-            // insert dec into table
-            table_insert_dummy(symTable, cmd->data.define.declaration);
-
-            // find node and evaluate expression
-            node = table_lookup(symTable, cmd->data.define.declaration.name);
-
-            val = evalExpression(symTable, stack, funcName, cmd->data.define.expr);
-
-            if(val == NULL || node == NULL)
-                PERROR("Interpret: CMD: Define: node or value not found.");
-
-            // assign value
-            node->data.value = val;
-
+            val = evalExpression(symTable, stack, className, cmd->data.define.expr);
+            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, val));
             break;
 
         case(C_ASSIGN):
-            printf("data.assign.name: %s\n",cmd->data.assign.name);
+
+
             dataName = getFunctionName(cmd->data.assign.name);
             node = table_lookup_either(symTableGlob, symTable, className, dataName);
 
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
 
-            val = evalExpression(symTable, stack, funcName, cmd->data.assign.expr);
+            val = evalExpression(symTable, stack, className, cmd->data.assign.expr);
 
             if(val == NULL)
                 PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
@@ -198,179 +194,105 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_BLOCK):
-
-            evalBlock(symTable, stack, &(cmd->data.block), funcName);
-
+            evalBlock(symTable, stack, &(cmd->data.block), className);
             break;
 
         case(C_IF):
-
-            val = evalExpression(symTable, stack, className, cmd->data.ifC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
-
-            if(valueIsZero(val)){
-                printf("%s\n", "som tu");
+            if (evalCondition(symTable, stack, className, cmd->data.ifC.cond)) {
                 evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock), className);
-            }
-            else{
-
+            } else {
                 evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock), className);
-
             }
-
-            break;
-
-        case(C_WHILE):
-            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: whileC: Evaluation of condition was not successful.")
-
-            current = cmd->data.whileC.bodyBlock.head;
-            tail = cmd->data.whileC.bodyBlock.tail;
-
-            continueFlag = FALSE;
-
-            while(valueIsZero(val)){
-
-                while(current != tail){
-
-                    if(continueFlag)
-                        continueFlag = FALSE;
-
-                    evalCommand(symTable, stack, current, funcName);
-
-                    if(continueFlag == TRUE){
-                        current = cmd->data.whileC.bodyBlock.head;
-                        break;
-                    }else if(breakFlag == TRUE){
-                        break;
-                    }
-                    else{
-                        current = current->next;
-                        if(current == tail){
-                            evalCommand(symTable, stack, current, funcName);
-                        }
-                    }
-                }
-
-                if(breakFlag == TRUE){
-                        break;
-                }
-
-                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
-
-            }
-
             break;
 
         case(C_EXPRESSION):
-            val = evalExpression(symTable, stack, funcName, cmd->data.expr);
+            val = evalExpression(symTable, stack, className, cmd->data.expr);
             break;
 
         case(C_RETURN):
-            val = evalExpression(symTable, stack, funcName, cmd->data.expr);
+            val = evalExpression(symTable, stack, className, cmd->data.expr);
             pushToStack(GlobalStack, val);
-            returnFlag = TRUE;
-            break;
-
-        case(C_FOR):
-            dPrintf("%s", "Interpret: C_FOR: not implemented yet.");
-            PERROR("exiting");
+            returnFlag = true;
             break;
 
         case(C_CONTINUE):
-            continueFlag = TRUE;
+            continueFlag = true;
             break;
 
         case(C_BREAK):
-            breakFlag = TRUE;
+            breakFlag = true;
+            break;
+
+        case(C_FOR):
+            node = createValueNode(cmd->data.forC.var.name,
+                                   evalExpression(symTable, stack, className, cmd->data.forC.initial));
+            table_insert(symTable, node);
+
+            while (evalCondition(symTable, stack, className, cmd->data.forC.cond)){
+                CYCLE_INNER(symTable, stack, className, cmd->data.forC.bodyBlock, for_end);
+
+                node->data.value = evalCommand(symTable, stack, cmd->data.forC.iter, className);
+            }
+    for_end:
+            table_remove(symTable, cmd->data.forC.var.name);
+            break;
+
+        case(C_WHILE):
+            while (evalCondition(symTable, stack, className, cmd->data.whileC.cond)) {
+                CYCLE_INNER(symTable, stack, className, cmd->data.whileC.bodyBlock, while_end);
+            }
+    while_end:
             break;
 
         case(C_DO_WHILE):
-            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: doWhile: Evaluation of condition was not successful.")
-
-            current = cmd->data.whileC.bodyBlock.head;
-            tail = cmd->data.whileC.bodyBlock.tail;
-
-            continueFlag = FALSE;
-
-            do{
-
-                while(cycle == TRUE){
-
-                    if(continueFlag)
-                        continueFlag = FALSE;
-
-                    val = evalCommand(symTable, stack, current, funcName);
-
-                    if(continueFlag == TRUE){
-                        current = cmd->data.doWhileC.bodyBlock.head;
-                        break;
-                    }
-                    else if(breakFlag == TRUE){
-                        break;
-                    }
-                    else{
-                        if(current == tail){
-                            cycle = FALSE;
-                        }
-                        current = current->next;
-                    }
-                }
-
-                if(breakFlag == TRUE){
-                        break;
-                }
-
-                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
-
-            }while(valueIsZero(val));
-
+            do {
+                CYCLE_INNER(symTable, stack, className, cmd->data.doWhileC.bodyBlock, doWhile_end);
+            } while (evalCondition(symTable, stack, className, cmd->data.doWhileC.cond));
+    doWhile_end:
             break;
     }
 
     return val;
 }
 
-int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName){
-    Command *current = block->head;
-    Command *tail = block->tail;
+bool evalCondition(SymbolTable *symTable, Stack *stack, char *funcName, Expression *cond) {
+    Value *val = evalExpression(symTable, stack, funcName, cond);
+    if (val == NULL)
+        MERROR(ERR_RUNTIME_MISC, "Interpret: CMD: evalCondition: Evaluation was unsuccessful.");
+    if (val->type != T_BOOLEAN)
+        MERROR(ERR_RUNTIME_MISC, "Interpret: CMD: evalCondition: Condition is not a boolean expression");
+    return val->data.boolean;
+}
 
-    while(current != tail){
+int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className){
+    Command *current = block->head;
+
+    while (current != NULL) {
         if(continueFlag)
             continueFlag = FALSE;
 
-        evalCommand(symTable, stack, current, funcName);
+        evalCommand(symTable, stack, current, className);
 
-        if(continueFlag == TRUE){
+        if(continueFlag){
             current = block->head;
             break;
         }
-        else if(breakFlag == TRUE){
+        else if(breakFlag){
             break;
         }
-        else if(returnFlag == TRUE){
+        else if(returnFlag){
             break;
         }
-        else{
-            current = current->next;
-            if(current == tail){
-                evalCommand(symTable, stack, current, funcName);
-            }
-        }
+
+        current = current->next;
     }
-
-    evalCommand(symTable, stack, current, funcName);
-
     return 0;
 }
 
 Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, int argCount, Expression *argHead){
     (void) argCount;
     (void) argHead;
+
 
     Value *val = NULL;
 
@@ -432,10 +354,8 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     }
     else if(!strcmp(str, "ifj16.length") ){
 
-        Value *val = popFromStack(stack);
-        char *s = val->data.str;
-
-        val->type = T_INTEGER;
+        char *s = popFromStack(stack)->data.str;
+        Value *val = createValue(T_INTEGER);
         val->data.integer = length(s);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -443,46 +363,24 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.substr") ){
+        char *s = popFromStack(stack)->data.str;
+        int i = popFromStack(stack)->data.integer;
+        int n = popFromStack(stack)->data.integer;
 
-        Value *val = popFromStack(stack);
-        char *s = val->data.str;
-
-        val = popFromStack(stack);
-        int i = val->data.integer;
-
-        val = popFromStack(stack);
-        int n = val->data.integer;
-
-        val->type = T_STRING;
+        Value *val = createValue(T_STRING);
         val->data.str = substr(s, i, n);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
 
         return 0;
     }
-    else if(!strcmp(str, "ifj16.compare") ){
-
-        if(fn->argCount != 2)
-            PERROR("Bad number of arguments! Exiting");
-
-        Value *val = popFromStack(stack);
-        char *s1, *s2;
-        if(val->type == T_STRING)
-            s1 = val->data.str;
-        else{
-            dPrintf("%s, [%s], <%s>","Is not string", showValueType(val->type), val->data.str);
-        }
-
-        val = popFromStack(stack);
-        if(val->type == T_STRING)
-            s2 = val->data.str;
-        else{
-            dPrintf("%s, [%s] <%s>","Is not string", showValueType(val->type), val->data.str);
-        }
+    else if (!strcmp(str, "ifj16.compare")) {
+        char *s1 = popFromStack(stack)->data.str;
+        char *s2 = popFromStack(stack)->data.str;
 
         dPrintf("s1: '%s',\n s2: '%s'", s1, s2);
 
-        val->type = T_INTEGER;
+        Value *val = createValue(T_INTEGER);
         val->data.integer = compare(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -513,213 +411,377 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         val->data.integer = find(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
-
         return 0;
     }
     else
         return -1;
 }
 
-int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e){
-
-    Value *val = evalExpression(symTable, stack, funcName, e);
-
-    pushToStack(stack, val);
-
+int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e) {
+    pushToStack(stack, evalExpression(symTable, stack, funcName, e));
     return 0;
 }
 
-
-
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
-    Value *result = createValue(evalReturnType(op, left, right));
-    result->undefined = true;
+    Value *result = NULL;
 
-    // switch to right operation
-    switch (op) {
-        case EB_EQUAL:
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer == right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl == right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean == right->data.boolean);
-                    break;
-                default:
-                    break;
+    switch(left->type){
+    case(T_INTEGER):
+        switch(right->type){
+        case(T_INTEGER):
+            result = evalOperation(op,left,right);
+            result->type = T_INTEGER;
+            if(result->undefined == true){
+                freeValue(result);
+                result = evalBool(op, left, right);
             }
-
-            break;
-
-        case EB_NOT_EQUAL:
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer != right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl != right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean != right->data.boolean);
-                    break;
-                default:
-                    break;
+            return result;
+        case(T_DOUBLE):
+            result = evalOperation(op,left,right);
+            result->type = T_DOUBLE;
+            if(result->undefined == true){
+                freeValue(result);
+                result = evalBool(op, left, right);
             }
-
+            return result;
+        case(T_STRING):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            result = createValue(T_VOID);
             break;
-
-        case EB_LESS:
-            // return left->data < right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer < right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl < right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean < right->data.boolean);
-                    break;
-                default:
-                    break;
+        }
+        break;
+    case(T_DOUBLE):
+        switch(right->type){
+        case(T_INTEGER):
+        case(T_DOUBLE):
+            result = evalOperation(op,left,right);
+            result->type = T_DOUBLE;
+            if(result->undefined == true){
+                freeValue(result);
+                result = evalBool(op, left, right);
             }
-
+            return result;
+        case(T_STRING):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            result = createValue(T_VOID);
             break;
-
-        case EB_LESS_EQUAL:
-            // return left->data <= right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer <= right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl <= right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean <= right->data.boolean);
-                    break;
-                default:
-                    break;
+        }
+        break;
+    case(T_STRING):
+        switch(right->type){
+        case(T_STRING):
+            result = evalOperation(op,left,right);
+            result->type = T_STRING;
+            if(result->undefined == true){
+                freeValue(result);
+                result = evalBool(op, left, right);
             }
-
+            return result;
+        case(T_INTEGER):
+        case(T_DOUBLE):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            result = createValue(T_VOID);
             break;
-
-        case EB_GREATER:
-            // return left->data > right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    printf("l: %d, r: %d, result: %d\n", left->data.integer, right->data.integer, left->data.integer > right->data.integer);
-                    result->data.integer = (left->data.integer > right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl > right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean > right->data.boolean);
-                    break;
-                default:
-                    break;
-            }
-
+        }
+        break;
+    case(T_VOID):
+        result = createValue(T_VOID);
+        break;
+    case(T_BOOLEAN):
+        switch(right->type){
+        case(T_INTEGER):
+        case(T_DOUBLE):
+        case(T_STRING):
+        case(T_VOID):
+            result = createValue(T_VOID);
             break;
-
-        case EB_GREATER_EQUAL:
-            // return left->data >= right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer >= right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl >= right->data.dbl);
-                    break;
-                case(T_BOOLEAN):
-                    result->data.boolean = (left->data.boolean >= right->data.boolean);
-                    break;
-                default:
-                    break;
-            }
-
-            break;
-
-        case EB_MULTIPLY:
-            // return left->data * right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer * right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl * right->data.dbl);
-                    break;
-                default:
-                // FIXME
-                    break;
-            }
-            break;
-
-        case EB_DIVIDE:
-            // return left->data / right->data
-            switch(result->type){
-                case(T_INTEGER):
-                    if (right->data.integer == 0){
-                        ERROR(ERR_RUNTIME_DIV_BY_ZERO);
-                    }
-                    result->data.integer = (left->data.integer / right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    if (right->data.dbl == 0){
-                        ERROR(ERR_RUNTIME_DIV_BY_ZERO);
-                    }
-                    result->data.dbl = (left->data.dbl / right->data.dbl);
-                    break;
-                default:
-                    break;
-            }
-            break;
-
-        case EB_ADD:
-            // return left->data + right->data or concatenate strings
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer + right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl + right->data.dbl);
-                    break;
-                case(T_STRING):
-                    result->data.str = str_cat(left->data.str, right->data.str);
-                    break;
-                default:
-                    break;
-            }
-            break;
-
-        case EB_SUBTRACT:
-            // return left->data - right->data;
-            switch(result->type){
-                case(T_INTEGER):
-                    result->data.integer = (left->data.integer - right->data.integer);
-                    break;
-                case(T_DOUBLE):
-                    result->data.dbl = (left->data.dbl - right->data.dbl);
-                    break;
-                default:
-                    break;
-            }
-            break;
-
+        case(T_BOOLEAN):
+            result = evalBool(op,left,right);
+            result->type = T_BOOLEAN;
+            return result;
+        }
+        break;
     }
 
     result->undefined = false;
 
-    // printf("%s\n", "~~~~~~~~~~~~~~\n\tNot fully implemented!\n~~~~~~~~~~~~~~");
-
-    return result; //Just to pacify the compiler...
+    return result;
 }
 
+Value *evalBool(BinaryOperation op, Value *left, Value *right){
+
+    Value *result = createValue(T_BOOLEAN);
+
+
+    switch(left->type){
+    case(T_INTEGER):
+        switch(right->type){
+        case(T_INTEGER):
+            switch(op){
+                case(EB_EQUAL):
+                    result->data.boolean=left->data.integer == right->data.integer;
+                    return result;
+                case(EB_NOT_EQUAL):
+                    result->data.boolean=left->data.integer != right->data.integer;
+                    return result;
+                case(EB_LESS):
+                    result->data.boolean=left->data.integer < right->data.integer;
+                    return result;
+                case(EB_LESS_EQUAL):
+                    result->data.boolean=left->data.integer <= right->data.integer;
+                    return result;
+                case(EB_GREATER):
+                    result->data.boolean=left->data.integer > right->data.integer;
+                    return result;
+                case(EB_GREATER_EQUAL):
+                    result->data.boolean=left->data.integer >= right->data.integer;
+                    return result;
+                default:
+                    break;
+            }
+            break;
+        case(T_DOUBLE):
+            switch(op){
+                case(EB_EQUAL):
+                    result->data.boolean=left->data.integer == right->data.dbl;
+                    return result;
+                case(EB_NOT_EQUAL):
+                    result->data.boolean=left->data.integer != right->data.dbl;
+                    return result;
+                case(EB_LESS):
+                    result->data.boolean=left->data.integer < right->data.dbl;
+                    return result;
+                case(EB_LESS_EQUAL):
+                    result->data.boolean=left->data.integer <= right->data.dbl;
+                    return result;
+                case(EB_GREATER):
+                    result->data.boolean=left->data.integer > right->data.dbl;
+                    return result;
+                case(EB_GREATER_EQUAL):
+                    result->data.boolean=left->data.integer >= right->data.dbl;
+                    return result;
+                default:
+                    break;
+            }
+            break;
+        case(T_STRING):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            break;
+        }
+        break;
+    case(T_DOUBLE):
+        switch(right->type){
+        case(T_INTEGER):
+            switch(op){
+                case(EB_EQUAL):
+                    result->data.boolean=left->data.dbl == right->data.integer;
+                    return result;
+                case(EB_NOT_EQUAL):
+                    result->data.boolean=left->data.dbl != right->data.integer;
+                    return result;
+                case(EB_LESS):
+                    result->data.boolean=left->data.dbl < right->data.integer;
+                    return result;
+                case(EB_LESS_EQUAL):
+                    result->data.boolean=left->data.dbl <= right->data.integer;
+                    return result;
+                case(EB_GREATER):
+                    result->data.boolean=left->data.dbl > right->data.integer;
+                    return result;
+                case(EB_GREATER_EQUAL):
+                    result->data.boolean=left->data.dbl >= right->data.integer;
+                    return result;
+                default:
+                    break;
+            }
+            break;
+        case(T_DOUBLE):
+            switch(op){
+                case(EB_EQUAL):
+                    result->data.boolean=left->data.dbl == right->data.dbl;
+                    return result;
+                case(EB_NOT_EQUAL):
+                    result->data.boolean=left->data.dbl != right->data.dbl;
+                    return result;
+                case(EB_LESS):
+                    result->data.boolean=left->data.dbl < right->data.dbl;
+                    return result;
+                case(EB_LESS_EQUAL):
+                    result->data.boolean=left->data.dbl <= right->data.dbl;
+                    return result;
+                case(EB_GREATER):
+                    result->data.boolean=left->data.dbl > right->data.dbl;
+                    return result;
+                case(EB_GREATER_EQUAL):
+                    result->data.boolean=left->data.dbl >= right->data.dbl;
+                    return result;
+                default:
+                    break;
+            }
+            break;
+        case(T_STRING):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            break;
+        }
+        break;
+    case(T_STRING):
+        switch(right->type){
+        case(T_STRING):
+            switch(op){
+                case(EB_EQUAL):
+                case(EB_NOT_EQUAL):
+                case(EB_LESS):
+                case(EB_GREATER):
+                    result->data.boolean= strcmp(left->data.str,right->data.str);
+                    return result;
+                default:
+                    break;
+            }
+            break;
+        case(T_INTEGER):
+        case(T_DOUBLE):
+        case(T_VOID):
+        case(T_BOOLEAN):
+            break;
+        }
+        break;
+    case(T_VOID):
+        break;
+    case(T_BOOLEAN):
+        switch(right->type){
+        case(T_INTEGER):
+        case(T_DOUBLE):
+        case(T_STRING):
+        case(T_VOID):
+            break;
+        case(T_BOOLEAN):
+            switch(op){
+                case(EB_EQUAL):
+                    result->data.boolean=left->data.boolean == right->data.boolean;
+                    return result;
+                case(EB_NOT_EQUAL):
+                    result->data.boolean=left->data.boolean != right->data.boolean;
+                    return result;
+                case(EB_LESS):
+                case(EB_LESS_EQUAL):
+                case(EB_GREATER):
+                case(EB_GREATER_EQUAL):
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        break;
+    }
+
+    result->undefined = true;
+    return result;
+
+}
+
+Value *evalOperation(BinaryOperation op, Value *left, Value *right){
+
+
+    if(left->undefined || right->undefined)
+        ERROR(ERR_RUNTIME_UNINITIALIZED);
+
+    Value *result = createValue(evalReturnType(op,left,right));
+
+    // TODO BOOLOP
+
+    switch(op){
+    case(EB_MULTIPLY):
+        switch(result->type){
+            case(T_INTEGER):
+                result->data.integer = left->data.integer * right->data.integer;
+                return result;
+            case(T_DOUBLE):
+                result->data.dbl = toDouble(left) * toDouble(right);
+                return result;
+            default:
+            break;
+        }
+        break;
+    case(EB_DIVIDE):
+        switch(result->type){
+            case(T_INTEGER):
+
+                if(right->data.integer == 0)
+                    ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+
+                result->data.integer = left->data.integer / right->data.integer;
+                return result;
+
+            case(T_DOUBLE):
+
+                if(toDouble(right) == 0.0)
+                    ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+
+                result->data.dbl = toDouble(left) / toDouble(right);
+                return result;
+
+            default:
+            break;
+        }
+        break;
+    case(EB_ADD):
+        switch(result->type){
+            case(T_INTEGER):
+                result->data.integer = left->data.integer + right->data.integer;
+                return result;
+
+            case(T_DOUBLE):
+                result->data.dbl = toDouble(left) + toDouble(right);
+                return result;
+            case(T_STRING):
+                result->data.str = str_cat(left->data.str, right->data.str);
+                return result;
+
+            default:
+            break;
+        }
+        break;
+    case(EB_SUBTRACT):
+        switch(result->type){
+            case(T_INTEGER):
+                result->data.integer = left->data.integer - right->data.integer;
+                return result;
+
+            case(T_DOUBLE):
+                result->data.dbl = toDouble(left) - toDouble(right);
+                return result;
+
+            default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+
+    result->undefined = true;
+
+    return result;
+}
+
+double toDouble(Value *val){
+
+    if(val->type == T_DOUBLE){
+        return val->data.dbl;
+    }
+    else{
+        return (double)(val->data.integer);
+    }
+
+
+}
 
 Value *evalStaticExpression(Expression *e) {
     switch (e->type) {
@@ -736,23 +798,17 @@ Value *evalStaticExpression(Expression *e) {
     return NULL; //Just to pacify the compiler...
 }
 
-Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expression *e) {
+Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expression *e) {
 
     if(e == NULL)
         return NULL;
 
     (void) stack;
 
-    Value *returnValue = NULL;
-    Value *leftValue = NULL;
-    Value *rightValue = NULL;
     Node *node = NULL;
-    char *className = NULL;
     Stack *localStack;
     SymbolTable *localSymTable;
     Expression *exp;
-    int argCount;
-
 
     switch (e->type) {
         case E_FUNCALL:
@@ -760,11 +816,9 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             localStack = createLocalStack(GlobalStack);
             localSymTable = createSymbolTable();
 
-            argCount = e->data.funcall.argCount;
-            exp= e->next;
-            while(argCount){
-                pushParamToStack(localSymTable, localStack, funcName, exp);
-                argCount--;
+            exp = e->data.funcall.argHead;
+            while (exp != NULL) {
+                pushParamToStack(localSymTable, localStack, className, exp);
                 exp = exp->next;
             }
 
@@ -777,10 +831,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             return popFromStack(GlobalStack);
 
         case E_REFERENCE:
-            printValue(e->data.value);
-
-            printf("FuncName: %s\n", funcName);
-            node = table_lookup_either(symTableGlob, symTable, funcName, e->data.reference);
+            node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
 
             return node->data.value;
 
@@ -788,21 +839,11 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             return e->data.value;
 
         case E_BINARY:
-            leftValue = evalExpression(symTable, stack, funcName, e->data.binary.left);
-            rightValue = evalExpression(symTable, stack, funcName, e->data.binary.right);
-
-            printValue(leftValue);
-            printf("\n");
-            printValue(rightValue);
-            printf("\n");
-            assert(leftValue != NULL && rightValue != NULL);
-
-            returnValue = evalBinaryExpression(e->data.binary.op, leftValue, rightValue);
-            printf("%d\n", returnValue->data.boolean);
-            return returnValue;
-            break;
+            return evalBinaryExpression(e->data.binary.op,
+                                        evalExpression(symTable, stack, className, e->data.binary.left),
+                                        evalExpression(symTable, stack, className, e->data.binary.right));
     }
-    return returnValue; //Just to pacify the compiler...
+    return NULL; //Just to pacify the compiler...
 }
 
 
@@ -812,6 +853,11 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
     assert(right != NULL);
 
     ValueType returnType = T_VOID;
+
+    printf("left: %s, right %s\n",showValueType(left->type), showValueType(right->type));
+
+    if((left->type == T_VOID) || (right->type == T_VOID))
+        return returnType;
 
     switch (op) {
         case EB_EQUAL:
@@ -823,17 +869,12 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
 
             // if both arguments are equal type but are not string
             if(left->type == right->type && left->type != T_STRING){
-                returnType = left->type;
+                returnType = T_BOOLEAN;
             }
-            // if arguments are not equal and not string
-            else if(left->type != right->type && left->type != T_STRING && right->type != T_STRING){
-                returnType = T_DOUBLE;
-            }
-            // string and boolean are not accepted here
             break;
 
         case EB_ADD:
-            if(left->type == T_STRING || right->type == T_STRING){
+            if(left->type == T_STRING && right->type == T_STRING){
                 returnType = T_STRING;
                 break;
             }
@@ -844,7 +885,7 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
                 returnType = left->type;
             }
             // if is at least one argument double result is also double
-            else if(left->type == T_DOUBLE || right->type == T_DOUBLE){
+            else if((left->type == T_DOUBLE || right->type == T_DOUBLE) && (left->type != T_BOOLEAN && right->type != T_BOOLEAN)){
                 returnType = T_DOUBLE;
             }
             else{
@@ -853,14 +894,17 @@ ValueType evalReturnType( BinaryOperation op, Value *left, Value *right) {
             break;
 
         case EB_DIVIDE:
-           if((left->type == right->type) == T_INTEGER){
+           if(left->type == T_INTEGER && T_INTEGER == right->type){
                 returnType = T_INTEGER;
             }
-            else{
+            else if(left->type == T_DOUBLE && T_DOUBLE == right->type){
                 returnType = T_DOUBLE;
             }
+            else
+                returnType = T_VOID;
             break;
     }
+    printf("return %s\n",showValueType(returnType));
 
     return returnType;
 }
@@ -900,17 +944,13 @@ Stack *createLocalStack(Stack *stack){
     tmp->size = -1;
     tmp->cap = 5;
 
-    assert(tmp != NULL);
-
     return tmp;
 }
 
-Stack *deleteLocaleStack(Stack *stack){
-    assert(stack == NULL);
+Stack *deleteLocaleStack(Stack *stack) {
+    assert(stack != NULL);
 
     Stack *tmp = stack->prev;
-    // *stack = *stack->prev;
-
     free(stack);
 
     return tmp;
@@ -936,74 +976,8 @@ int pushToStack(Stack *stack, Value *val){
 Value *popFromStack(Stack *stack){
     assert(stack != NULL);
 
-    if(stack->size == -1){
+    if (stack->size == -1) {
         return NULL;
     }
-    else{
-        return stack->data[stack->size];
-    }
-
-    return 0;
-}
-
-
-//  Retype
-
-Value *reTypeFromDeclToVal(Declaration *dec){
-
-    // Integer
-    //
-    errno = 0;
-    char *rubbish = NULL;
-    long tmp_i = strtol(dec->name, &rubbish, 10);
-
-    if(rubbish == NULL && errno != ERANGE){
-        Value *val = createValue(T_INTEGER);
-        val->data.integer = tmp_i;
-        return val;
-    }
-
-    // Double
-    //
-    rubbish = NULL;
-    errno = 0;
-
-    double tmp_d = strtof(dec->name, &rubbish);
-
-    if(rubbish == NULL && errno != ERANGE){
-        Value *val = createValue(T_DOUBLE);
-        val->data.dbl = tmp_d;
-        return val;
-    }
-
-    // Boolean
-    //
-    char *tr = "TRUE";
-    char *fl = "FALSE";
-
-    if(!strcmp(dec->name,tr)){
-        Value *val = createValue(T_BOOLEAN);
-        val->data.boolean = 1;
-        return val;
-    }
-    else if(!strcmp(dec->name,fl)){
-        Value *val = createValue(T_BOOLEAN);
-        val->type = T_BOOLEAN;
-        return val;
-    }
-
-    return NULL;
-
-}
-
-int reType(Value *to, Value *from, ValueType type){
-
-    if(to == NULL || from == NULL)
-        return -1;
-
-    if(type != T_VOID)
-        return -1;
-
-
-    return 0;
+    return stack->data[stack->size--];
 }

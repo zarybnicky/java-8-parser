@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <errno.h>
+#include <string.h>
 
 // Local libraries
 #include "error.h"
@@ -80,14 +81,18 @@ int interpretFunc(Stack *, Node *);
 int builtInFunc(SymbolTable *, Stack *, Function *);
 
 Value *evalStaticExpression(Expression *);
+bool evalCondition(SymbolTable *, Stack *, char *, Expression *);
 Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
 
-Value *evalBinaryExpression(BinaryOperation op, Value *, Value *);
-ValueType evalReturnType(BinaryOperation op, Value *, Value *);
+Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
+ValueType evalReturnType(BinaryOperation, Value *, Value *);
+Value *evalOperation(BinaryOperation , Value *, Value *);
+Value *evalBool(BinaryOperation , Value *, Value *);
 
 
+double toDouble(Value *val);
 
 char *str_cat(char *, char* );
 

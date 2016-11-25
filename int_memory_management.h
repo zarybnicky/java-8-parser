@@ -15,7 +15,7 @@
 
 #include "ir.h"
 #include "int_debug.h"
-#include "assert.h"
+#include <assert.h>
 
 #define HTAB_SIZE 49157
 
