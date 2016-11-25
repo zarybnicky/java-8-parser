@@ -76,7 +76,6 @@ int freeInterpret(Interpret *i) {
     return 0;
 }
 
-
 int evalMain(Interpret *i) {
     assert(i != NULL);
     symGlob = &(i->symTable);
@@ -85,12 +84,9 @@ int evalMain(Interpret *i) {
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
 
     assert(mainFn != NULL);
+    assert(mainFn->type == N_FUNCTION);
 
-    if (mainFn->type == N_FUNCTION) {
-        interpretFunc(GlobalStack, mainFn);
-    } else {
-        dPrintf("%s %d","Unexpected happened with node!",mainFn->type);
-    }
+    interpretFunc(GlobalStack, mainFn);
 
     free(GlobalStack);
     return 0;
@@ -102,14 +98,12 @@ int interpretFunc(Stack *stack, Node *node) {
     Stack *localStack = NULL;
     SymbolTable *localTable = NULL;
 
-    Node *mainFn = table_lookup(symGlob, "Main.run");
-
-    if(strcmp(node->symbol, mainFn->symbol)){
+    if (strcmp(node->symbol, "Main.run")){
         dPrintf("%s","Creating new local stack.");
         localStack = createLocalStack(stack);
         dPrintf("%s","Creating new local table.");
         localTable = createSymbolTable();
-        ht_insert (&alloc_tab, localTable);
+        ht_insert(&alloc_tab, localTable);
     }
     else{
         dPrintf("%s\n\t- %s\n\t- %s","Setting reference of:","local stack to global stack,","local table to global table.");
@@ -127,27 +121,36 @@ int interpretFunc(Stack *stack, Node *node) {
         return 0;
 
     Command *current = node->data.function->body.head;
-    Command *tail = node->data.function->body.tail;
-
-    while(current != tail){
+    while (current != NULL) {
         evalCommand(localTable, localStack, current, node->data.function->name);
         current = current->next;
         printSymbolTable(localTable);
     }
-    evalCommand(localTable, localStack, current, node->data.function->name);
-
-
 
     return 0;
 }
 
+#define CYCLE_INNER(symTable, stack, funcName, body, end)       \
+    do {                                                        \
+        Command *c = body.head;                                 \
+        while (c != NULL) {                                     \
+            evalCommand(symTable, stack, c, funcName);          \
+            if (breakFlag) {                                    \
+                breakFlag = false;                              \
+                goto end;                                       \
+            }                                                   \
+            if (continueFlag) {                                 \
+                continueFlag = false;                           \
+                break;                                          \
+            }                                                   \
+            c = c->next;                                        \
+        }                                                       \
+    } while (0);
+
+
 Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *funcName){
-    (void) symTable;
-    (void) stack;
     Node *node;
     Value *val = NULL;
-
-    Command *current;
 
     continueFlag = FALSE;
     breakFlag = FALSE;
@@ -165,37 +168,15 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_DEFINE):
-
-            // insert dec into table
-            table_insert_dummy(symTable, cmd->data.define.declaration);
-
-            // find node and evaluate expression
-            node = table_lookup(symTable, cmd->data.define.declaration.name);
-
             val = evalExpression(symTable, stack, funcName, cmd->data.define.expr);
-
-            if(val == NULL || node == NULL)
-                PERROR("Interpret: CMD: Define: node or value not found.");
-
-            // assign value
-            node->data.value = val;
-
+            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, val));
             break;
 
         case(C_ASSIGN):
-
             node = table_lookup_either(symGlob, symTable, funcName, cmd->data.assign.name);
-
-            if(node == NULL)
-                PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
-
-            val = evalExpression(symTable, stack, funcName, cmd->data.assign.expr);
-
-            if(val == NULL)
-                PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
-
-            // assign
-            node->data.value = val;
+            if (node == NULL)
+                ERROR(ERR_RUNTIME_MISC);
+            node->data.value = evalExpression(symTable, stack, funcName, cmd->data.assign.expr);
             break;
 
         case(C_BLOCK):
@@ -210,27 +191,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             }
             break;
 
-        case(C_WHILE):
-            while (evalCondition(symTable, stack, funcName, cmd->data.whileC.cond)) {
-                current = cmd->data.whileC.bodyBlock.head;
-                while (current != NULL) {
-                    evalCommand(symTable, stack, current, funcName);
-
-                    if (breakFlag) {
-                        breakFlag = false;
-                        goto while_end;
-                    }
-                    if (continueFlag) {
-                        continueFlag = false;
-                        current = cmd->data.whileC.bodyBlock.head;
-                        break;
-                    }
-                    current = current->next;
-                }
-            }
-    while_end:
-            break;
-
         case(C_EXPRESSION):
             val = evalExpression(symTable, stack, funcName, cmd->data.expr);
             break;
@@ -238,45 +198,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
         case(C_RETURN):
             val = evalExpression(symTable, stack, funcName, cmd->data.expr);
             pushToStack(GlobalStack, val);
-            returnFlag = TRUE;
-            break;
-
-        case(C_FOR):
-            // insert dec into table
-            table_insert_dummy(symTable, cmd->data.forC.var);
-
-            // find node and evaluate expression
-            node = table_lookup_either(symGlob, symTable, funcName, cmd->data.forC.var.name);
-
-            val = evalExpression(symTable, stack, funcName, cmd->data.forC.initial);
-
-            if(val == NULL || node == NULL)
-                PERROR("Interpret: CMD: For: node or value not found.");
-
-            // assign value
-            node->data.value = val;
-
-            while (evalCondition(symTable, stack, funcName, cmd->data.forC.cond)){
-                current = cmd->data.forC.bodyBlock.head;
-                while (current != NULL) {
-                    evalCommand(symTable, stack, current, funcName);
-
-                    if (breakFlag) {
-                        breakFlag = false;
-                        goto for_end;
-                    }
-                    if (continueFlag) {
-                        continueFlag = false;;
-                        break;
-                    }
-                    current = current->next;
-                }
-
-                // preparation of condition & commands
-                node->data.value = evalCommand(symTable, stack, cmd->data.forC.iter, funcName);
-                current = cmd->data.forC.bodyBlock.head;
-            }
-    for_end:
+            returnFlag = true;
             break;
 
         case(C_CONTINUE):
@@ -287,22 +209,30 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             breakFlag = true;
             break;
 
+        case(C_FOR):
+            node = createValueNode(cmd->data.forC.var.name,
+                                   evalExpression(symTable, stack, funcName, cmd->data.forC.initial));
+            table_insert(symTable, node);
+
+            while (evalCondition(symTable, stack, funcName, cmd->data.forC.cond)){
+                CYCLE_INNER(symTable, stack, funcName, cmd->data.forC.bodyBlock, for_end);
+
+                node->data.value = evalCommand(symTable, stack, cmd->data.forC.iter, funcName);
+            }
+    for_end:
+            table_remove(symTable, cmd->data.forC.var.name);
+            break;
+
+        case(C_WHILE):
+            while (evalCondition(symTable, stack, funcName, cmd->data.whileC.cond)) {
+                CYCLE_INNER(symTable, stack, funcName, cmd->data.whileC.bodyBlock, while_end);
+            }
+    while_end:
+            break;
+
         case(C_DO_WHILE):
             do {
-                current = cmd->data.doWhileC.bodyBlock.head;
-                while (current != NULL) {
-                    val = evalCommand(symTable, stack, current, funcName);
-
-                    if (breakFlag) {
-                        breakFlag = false;
-                        goto doWhile_end;
-                    }
-                    if (continueFlag) {
-                        current = cmd->data.doWhileC.bodyBlock.head;
-                        break;
-                    }
-                    current = current->next;
-                }
+                CYCLE_INNER(symTable, stack, funcName, cmd->data.doWhileC.bodyBlock, doWhile_end);
             } while (evalCondition(symTable, stack, funcName, cmd->data.doWhileC.cond));
     doWhile_end:
             break;
@@ -322,34 +252,26 @@ bool evalCondition(SymbolTable *symTable, Stack *stack, char *funcName, Expressi
 
 int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName){
     Command *current = block->head;
-    Command *tail = block->tail;
 
-    while(current != tail){
+    while (current != NULL) {
         if(continueFlag)
             continueFlag = FALSE;
 
         evalCommand(symTable, stack, current, funcName);
 
-        if(continueFlag == TRUE){
+        if(continueFlag){
             current = block->head;
             break;
         }
-        else if(breakFlag == TRUE){
+        else if(breakFlag){
             break;
         }
-        else if(returnFlag == TRUE){
+        else if(returnFlag){
             break;
         }
-        else{
-            current = current->next;
-            if(current == tail){
-                evalCommand(symTable, stack, current, funcName);
-            }
-        }
+
+        current = current->next;
     }
-
-    evalCommand(symTable, stack, current, funcName);
-
     return 0;
 }
 
@@ -357,17 +279,13 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     (void) argCount;
     (void) argHead;
 
-    Value *val = NULL;
-
-    Node *node = table_lookup(symGlob, name);
-
-    Function *fn = node->data.function;
-
-    if(fn->builtin == TRUE){
-        builtInFunc(localSymTable, localStack, node->data.function);
+    Function *fn = table_lookup(symGlob, name)->data.function;
+    if (fn->builtin) {
+        builtInFunc(localSymTable, localStack, fn);
         return popFromStack(localStack);
     }
 
+    Value *val = NULL;
     val = createValue(fn->returnType);
     ht_insert(&alloc_tab,val);
 
@@ -417,10 +335,8 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     }
     else if(!strcmp(str, "ifj16.length") ){
 
-        Value *val = popFromStack(stack);
-        char *s = val->data.str;
-
-        val->type = T_INTEGER;
+        char *s = popFromStack(stack)->data.str;
+        Value *val = createValue(T_INTEGER);
         val->data.integer = length(s);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -428,46 +344,24 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.substr") ){
+        char *s = popFromStack(stack)->data.str;
+        int i = popFromStack(stack)->data.integer;
+        int n = popFromStack(stack)->data.integer;
 
-        Value *val = popFromStack(stack);
-        char *s = val->data.str;
-
-        val = popFromStack(stack);
-        int i = val->data.integer;
-
-        val = popFromStack(stack);
-        int n = val->data.integer;
-
-        val->type = T_STRING;
+        Value *val = createValue(T_STRING);
         val->data.str = substr(s, i, n);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
 
         return 0;
     }
-    else if(!strcmp(str, "ifj16.compare") ){
-
-        if(fn->argCount != 2)
-            PERROR("Bad number of arguments! Exiting");
-
-        Value *val = popFromStack(stack);
-        char *s1, *s2;
-        if(val->type == T_STRING)
-            s1 = val->data.str;
-        else{
-            dPrintf("%s, [%s], <%s>","Is not string", showValueType(val->type), val->data.str);
-        }
-
-        val = popFromStack(stack);
-        if(val->type == T_STRING)
-            s2 = val->data.str;
-        else{
-            dPrintf("%s, [%s] <%s>","Is not string", showValueType(val->type), val->data.str);
-        }
+    else if (!strcmp(str, "ifj16.compare")) {
+        char *s1 = popFromStack(stack)->data.str;
+        char *s2 = popFromStack(stack)->data.str;
 
         dPrintf("s1: '%s',\n s2: '%s'", s1, s2);
 
-        val->type = T_INTEGER;
+        Value *val = createValue(T_INTEGER);
         val->data.integer = compare(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
@@ -498,23 +392,16 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         val->data.integer = find(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
-
         return 0;
     }
     else
         return -1;
 }
 
-int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e){
-
-    Value *val = evalExpression(symTable, stack, funcName, e);
-
-    pushToStack(stack, val);
-
+int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e) {
+    pushToStack(stack, evalExpression(symTable, stack, funcName, e));
     return 0;
 }
-
-
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
@@ -699,8 +586,6 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
 
     result->undefined = false;
 
-    // printf("%s\n", "~~~~~~~~~~~~~~\n\tNot fully implemented!\n~~~~~~~~~~~~~~");
-
     return result; //Just to pacify the compiler...
 }
 
@@ -727,24 +612,20 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
 
     (void) stack;
 
-    Value *returnValue = NULL;
     Node *node = NULL;
-    char *className = NULL;
     Stack *localStack;
     SymbolTable *localSymTable;
     Expression *exp;
-    int argCount;
+
     switch (e->type) {
         case E_FUNCALL:
 
             localStack = createLocalStack(GlobalStack);
             localSymTable = createSymbolTable();
 
-            argCount = e->data.funcall.argCount;
-            exp= e->next;
-            while(argCount){
+            exp = e->data.funcall.argHead;
+            while (exp != NULL) {
                 pushParamToStack(localSymTable, localStack, funcName, exp);
-                argCount--;
                 exp = exp->next;
             }
 
@@ -757,10 +638,9 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             return popFromStack(GlobalStack);
 
         case E_REFERENCE:
-
-            className = getClassName(funcName);
-            node = table_lookup_either(symGlob, symTable, className, e->data.reference);
-
+            node = table_lookup_either(symGlob, symTable,
+                                       getClassName(funcName),
+                                       e->data.reference);
             return node->data.value;
 
         case E_VALUE:
@@ -771,7 +651,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
                                         evalStaticExpression(e->data.binary.left),
                                         evalStaticExpression(e->data.binary.right));
     }
-    return returnValue; //Just to pacify the compiler...
+    return NULL; //Just to pacify the compiler...
 }
 
 
@@ -869,17 +749,13 @@ Stack *createLocalStack(Stack *stack){
     tmp->size = -1;
     tmp->cap = 5;
 
-    assert(tmp != NULL);
-
     return tmp;
 }
 
-Stack *deleteLocaleStack(Stack *stack){
-    assert(stack == NULL);
+Stack *deleteLocaleStack(Stack *stack) {
+    assert(stack != NULL);
 
     Stack *tmp = stack->prev;
-    // *stack = *stack->prev;
-
     free(stack);
 
     return tmp;
@@ -905,74 +781,8 @@ int pushToStack(Stack *stack, Value *val){
 Value *popFromStack(Stack *stack){
     assert(stack != NULL);
 
-    if(stack->size == -1){
+    if (stack->size == -1) {
         return NULL;
     }
-    else{
-        return stack->data[stack->size];
-    }
-
-    return 0;
-}
-
-
-//  Retype
-
-Value *reTypeFromDeclToVal(Declaration *dec){
-
-    // Integer
-    //
-    errno = 0;
-    char *rubbish = NULL;
-    long tmp_i = strtol(dec->name, &rubbish, 10);
-
-    if(rubbish == NULL && errno != ERANGE){
-        Value *val = createValue(T_INTEGER);
-        val->data.integer = tmp_i;
-        return val;
-    }
-
-    // Double
-    //
-    rubbish = NULL;
-    errno = 0;
-
-    double tmp_d = strtof(dec->name, &rubbish);
-
-    if(rubbish == NULL && errno != ERANGE){
-        Value *val = createValue(T_DOUBLE);
-        val->data.dbl = tmp_d;
-        return val;
-    }
-
-    // Boolean
-    //
-    char *tr = "TRUE";
-    char *fl = "FALSE";
-
-    if(!strcmp(dec->name,tr)){
-        Value *val = createValue(T_BOOLEAN);
-        val->data.boolean = 1;
-        return val;
-    }
-    else if(!strcmp(dec->name,fl)){
-        Value *val = createValue(T_BOOLEAN);
-        val->type = T_BOOLEAN;
-        return val;
-    }
-
-    return NULL;
-
-}
-
-int reType(Value *to, Value *from, ValueType type){
-
-    if(to == NULL || from == NULL)
-        return -1;
-
-    if(type != T_VOID)
-        return -1;
-
-
-    return 0;
+    return stack->data[stack->size--];
 }
