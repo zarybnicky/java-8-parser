@@ -244,8 +244,6 @@ void checkFnExpression(Function *f, Command *c){
     switch(c->type){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
-        //is not pushed node already in table as static???
-        checkStaticDefinition(symTable, localTable, className, c->data.declare.name);
         break;
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
@@ -266,8 +264,7 @@ void checkFnExpression(Function *f, Command *c){
             className = NULL;
         }
         className = getClassName(f->name);
-        checkStaticDefinition(symTable, localTable, className, c->data.define.declaration.name);
-        e=expLoopSwitch(c);
+        e = expLoopSwitch(c);
         checkCondition_(e,f);
         break;
     case C_ASSIGN:
@@ -681,5 +678,3 @@ void checkTopLevel(Node *node) {
         }
     }
 }
-
-

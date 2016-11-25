@@ -332,11 +332,6 @@ Node *table_lookup(SymbolTable *tree, char *symbol) {
 }
 
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
-    //check for static and inside function definition
-    //printf("%s\n",var );
-    if (local != NULL || global != NULL)
-        checkStaticDefinition(global,local,class,var);
-
     Node *n = table_lookup(local, var);
     if (n != NULL) {
         return n;
@@ -497,30 +492,4 @@ void table_iterate(Node *object, void (*fn)(Node *object)){
     if (object->type == N_FUNCTION && object->data.function->builtin)
         return;
     fn(object);
-}
-
-void checkStaticDefinition(SymbolTable *global, SymbolTable *local, char*class,char *var){
-    int match = 0;
-    Node *n = table_lookup(local, var);
-    if (n != NULL)
-        match = 1;
-    int classLength = strlen(class);
-    int idLength = strlen(var);
-    char *qualified = malloc((classLength + 1 + idLength + 1));
-    CHECK_ALLOC(qualified);
-    strcpy(qualified, class);
-    qualified[classLength] = '.';
-    strcpy(qualified + classLength + 1, var);
-    qualified[classLength + 1 + idLength] = '\0';
-
-    n = table_lookup(global, qualified);
-    // 2 times match so its localy and globaly same node lets return ERROR
-    if (n != NULL && match == 1){
-        free(class);
-        free(qualified);
-        freeSymbolTable(local);
-        FERROR(ERR_SEM_UNDEFINED, "Variable is defined staticaly and inside function '%s'",var);
-    }
-    free(qualified);
-    return;
 }
