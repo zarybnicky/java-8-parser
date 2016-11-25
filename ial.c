@@ -277,8 +277,11 @@ void table_insert(SymbolTable *tree, Node *object){
             next = next->left;
         else if (compare > 0)
             next = next->right;
-        else
-            FERROR(ERR_SEM_UNDEFINED, "Cannot redefine object %s", object->symbol);
+        else {
+            fprintf(stderr, "Cannot redefine object %s\n", object->symbol);
+            freeNode(object);
+            ERROR(ERR_SEM_UNDEFINED);
+        }
     }
 
     int compare = strcmp(object->symbol, last->symbol);
