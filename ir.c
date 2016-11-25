@@ -59,7 +59,7 @@ int valueIsZero(Value *val){
             return val->data.dbl != 0.0;
             break;
         case(T_BOOLEAN):
-            return !val->data.boolean;
+            return val->data.boolean;
             break;
         case(T_VOID):
             return 1;

@@ -23,7 +23,7 @@ void runSemanticAnalysis(Interpret *i) {
     table_iterate(root, checkReturnPresence);
     table_iterate(root, checkTopLevel);
     table_iterate(root, checkAllStatic);
-    table_iterate(root, checkOperatorAssignmentType);
+    // table_iterate(root, checkOperatorAssignmentType);
 
     symTable = NULL;
 }

@@ -180,7 +180,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_ASSIGN):
-
+            printf("data.assign.name: %s\n",cmd->data.assign.name);
             dataName = getFunctionName(cmd->data.assign.name);
             node = table_lookup_either(symTableGlob, symTable, className, dataName);
 
@@ -204,17 +204,18 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_IF):
-            val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
+
+            val = evalExpression(symTable, stack, className, cmd->data.ifC.cond);
             if(val == NULL)
                 PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
 
             if(valueIsZero(val)){
-
-                evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock), funcName);
+                printf("%s\n", "som tu");
+                evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock), className);
             }
             else{
 
-                evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock), funcName);
+                evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock), className);
 
             }
 
@@ -611,6 +612,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             // return left->data > right->data;
             switch(result->type){
                 case(T_INTEGER):
+                    printf("l: %d, r: %d, result: %d\n", left->data.integer, right->data.integer, left->data.integer > right->data.integer);
                     result->data.integer = (left->data.integer > right->data.integer);
                     break;
                 case(T_DOUBLE):
@@ -742,12 +744,16 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
     (void) stack;
 
     Value *returnValue = NULL;
+    Value *leftValue = NULL;
+    Value *rightValue = NULL;
     Node *node = NULL;
     char *className = NULL;
     Stack *localStack;
     SymbolTable *localSymTable;
     Expression *exp;
     int argCount;
+
+
     switch (e->type) {
         case E_FUNCALL:
 
@@ -771,9 +777,10 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             return popFromStack(GlobalStack);
 
         case E_REFERENCE:
+            printValue(e->data.value);
 
-            className = getClassName(funcName);
-            node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
+            printf("FuncName: %s\n", funcName);
+            node = table_lookup_either(symTableGlob, symTable, funcName, e->data.reference);
 
             return node->data.value;
 
@@ -781,9 +788,19 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
             return e->data.value;
 
         case E_BINARY:
-            return evalBinaryExpression(e->data.binary.op,
-                                        evalStaticExpression(e->data.binary.left),
-                                        evalStaticExpression(e->data.binary.right));
+            leftValue = evalExpression(symTable, stack, funcName, e->data.binary.left);
+            rightValue = evalExpression(symTable, stack, funcName, e->data.binary.right);
+
+            printValue(leftValue);
+            printf("\n");
+            printValue(rightValue);
+            printf("\n");
+            assert(leftValue != NULL && rightValue != NULL);
+
+            returnValue = evalBinaryExpression(e->data.binary.op, leftValue, rightValue);
+            printf("%d\n", returnValue->data.boolean);
+            return returnValue;
+            break;
     }
     return returnValue; //Just to pacify the compiler...
 }
