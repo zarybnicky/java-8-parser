@@ -153,7 +153,6 @@ Expression *expLoopSwitch(Command *c){
         e=c->data.forC.cond;
         break;
     case C_EXPRESSION:
-    case C_RETURN:
         e=c->data.expr;
         break;
     default:
@@ -216,7 +215,6 @@ void checkCondition_(Expression *e, Function *f){
         }
         if (e->next != NULL)
             checkCondition_(e->next,f);
-
         break;
     case E_BINARY:
         checkBinaryCond_(e);
@@ -244,6 +242,7 @@ void checkFnExpression(Function *f, Command *c){
     switch(c->type){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
+        //is not pushed node already in table as static???
         break;
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
@@ -263,6 +262,7 @@ void checkFnExpression(Function *f, Command *c){
             free(className);
             className = NULL;
         }
+
         className = getClassName(f->name);
         e = expLoopSwitch(c);
         checkCondition_(e,f);
@@ -429,7 +429,6 @@ ValueType getExpressionType(Expression *e) {
     case E_REFERENCE:
         className = getReferenceName(e->data.reference);
         name = getFunctionName(e->data.reference);
-
         n = table_lookup_either(symTable, localTable, className, name);
         if (n == NULL){
             freeSymbolTable(localTable);
@@ -443,10 +442,6 @@ ValueType getExpressionType(Expression *e) {
 
         return n->data.value->type;
     case E_BINARY:
-        if (className != NULL){
-            free(className);
-            className=NULL;
-        }
         return coerceBinary(e->data.binary.op,
                             getExpressionType(e->data.binary.left),
                             getExpressionType(e->data.binary.right));
