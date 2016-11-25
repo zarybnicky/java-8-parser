@@ -303,7 +303,6 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
         return popFromStack(localStack);
     }
 
-    Value *val = NULL;
     val = createValue(fn->returnType);
     ht_insert(&alloc_tab,val);
 
