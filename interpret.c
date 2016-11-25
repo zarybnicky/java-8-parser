@@ -96,7 +96,7 @@ int evalMain(Interpret *i) {
     return 0;
 }
 
-int interpretFunc(Stack *stack, Node *node){
+int interpretFunc(Stack *stack, Node *node) {
 
     // if is node
     Stack *localStack = NULL;
@@ -147,13 +147,11 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
     Node *node;
     Value *val = NULL;
 
-    Command *current, *tail;
+    Command *current;
 
     continueFlag = FALSE;
     breakFlag = FALSE;
     returnFlag = FALSE;
-
-    bool cycle = TRUE;
 
     #ifdef DEBUG
         printCommand(cmd);
@@ -198,73 +196,39 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
             // assign
             node->data.value = val;
-
             break;
 
         case(C_BLOCK):
-
             evalBlock(symTable, stack, &(cmd->data.block), funcName);
-
             break;
 
         case(C_IF):
-            val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: ifC: Evaluation of condition was not successful.")
-
-            if(valueIsZero(val)){
-
+            if (evalCondition(symTable, stack, funcName, cmd->data.ifC.cond)) {
                 evalBlock(symTable, stack, &(cmd->data.ifC.thenBlock), funcName);
-            }
-            else{
-
+            } else {
                 evalBlock(symTable, stack, &(cmd->data.ifC.elseBlock), funcName);
-
             }
-
             break;
 
         case(C_WHILE):
-            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: whileC: Evaluation of condition was not successful.")
-
-            current = cmd->data.whileC.bodyBlock.head;
-            tail = cmd->data.whileC.bodyBlock.tail;
-
-            continueFlag = FALSE;
-
-            while(valueIsZero(val)){
-
-                while(current != tail){
-
-                    if(continueFlag)
-                        continueFlag = FALSE;
-
+            while (evalCondition(symTable, stack, funcName, cmd->data.whileC.cond)) {
+                current = cmd->data.whileC.bodyBlock.head;
+                while (current != NULL) {
                     evalCommand(symTable, stack, current, funcName);
 
-                    if(continueFlag == TRUE){
+                    if (breakFlag) {
+                        breakFlag = false;
+                        goto while_end;
+                    }
+                    if (continueFlag) {
+                        continueFlag = false;
                         current = cmd->data.whileC.bodyBlock.head;
                         break;
-                    }else if(breakFlag == TRUE){
-                        break;
                     }
-                    else{
-                        current = current->next;
-                        if(current == tail){
-                            evalCommand(symTable, stack, current, funcName);
-                        }
-                    }
+                    current = current->next;
                 }
-
-                if(breakFlag == TRUE){
-                        break;
-                }
-
-                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
-
             }
-
+    while_end:
             break;
 
         case(C_EXPRESSION):
@@ -292,101 +256,68 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             // assign value
             node->data.value = val;
 
-            // cycle preparation
-            current = cmd->data.forC.bodyBlock.head;
-            tail = cmd->data.forC.bodyBlock.tail;
-            val = evalExpression(symTable, stack, funcName, cmd->data.forC.cond);
-
-            // cycle
-            while (valueIsZero(val)){
-
-                while(current != tail){
-
+            while (evalCondition(symTable, stack, funcName, cmd->data.forC.cond)){
+                current = cmd->data.forC.bodyBlock.head;
+                while (current != NULL) {
                     evalCommand(symTable, stack, current, funcName);
 
-                    if(continueFlag == TRUE){
-                        continueFlag = FALSE;
-                        break;
-
-                    }else if(breakFlag == TRUE){
-                        break;
-                        
-                    }else{
-
-                        current = current->next;
-
-                        if(current == tail){
-                            evalCommand(symTable, stack, current, funcName);
-                        }
+                    if (breakFlag) {
+                        breakFlag = false;
+                        goto for_end;
                     }
-                }
-
-                if(breakFlag == TRUE){
+                    if (continueFlag) {
+                        continueFlag = false;;
                         break;
+                    }
+                    current = current->next;
                 }
 
                 // preparation of condition & commands
                 node->data.value = evalCommand(symTable, stack, cmd->data.forC.iter, funcName);
-                val = evalExpression(symTable, stack, funcName, cmd->data.forC.cond);
                 current = cmd->data.forC.bodyBlock.head;
             }
-
+    for_end:
             break;
 
         case(C_CONTINUE):
-            continueFlag = TRUE;
+            continueFlag = true;
             break;
 
         case(C_BREAK):
-            breakFlag = TRUE;
+            breakFlag = true;
             break;
 
         case(C_DO_WHILE):
-            val = evalExpression(symTable, stack, funcName, cmd->data.whileC.cond);
-            if(val == NULL)
-                PERROR("Interpret: CMD: doWhile: Evaluation of condition was not successful.")
-
-            current = cmd->data.whileC.bodyBlock.head;
-            tail = cmd->data.whileC.bodyBlock.tail;
-
-            continueFlag = FALSE;
-
-            do{
-
-                while(cycle == TRUE){
-
-                    if(continueFlag)
-                        continueFlag = FALSE;
-
+            do {
+                current = cmd->data.doWhileC.bodyBlock.head;
+                while (current != NULL) {
                     val = evalCommand(symTable, stack, current, funcName);
 
-                    if(continueFlag == TRUE){
+                    if (breakFlag) {
+                        breakFlag = false;
+                        goto doWhile_end;
+                    }
+                    if (continueFlag) {
                         current = cmd->data.doWhileC.bodyBlock.head;
                         break;
                     }
-                    else if(breakFlag == TRUE){
-                        break;
-                    }
-                    else{
-                        if(current == tail){
-                            cycle = FALSE;
-                        }
-                        current = current->next;
-                    }
+                    current = current->next;
                 }
-
-                if(breakFlag == TRUE){
-                        break;
-                }
-
-                val = evalExpression(symTable, stack, funcName, cmd->data.ifC.cond);
-
-            }while(valueIsZero(val));
-
+            } while (evalCondition(symTable, stack, funcName, cmd->data.doWhileC.cond));
+    doWhile_end:
             break;
     }
 
     return val;
+}
+
+bool evalCondition(SymbolTable *symTable, Stack *stack, char *funcName, Expression *cond) {
+    Value *val = evalExpression(symTable, stack, funcName, cond);
+    if (val == NULL)
+        MERROR(ERR_RUNTIME_MISC, "Interpret: CMD: evalCondition: Evaluation was unsuccessful.");
+    if (val->type != T_BOOLEAN)
+        MERROR(ERR_RUNTIME_MISC, "Interpret: CMD: evalCondition: Condition is not a boolean expression");
+    return val->data.boolean;
 }
 
 int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *funcName){

@@ -46,29 +46,6 @@ void printValue(Value *v) {
     printf(")");
 }
 
-int valueIsZero(Value *val){
-
-    switch(val->type){
-        case(T_STRING):
-            return val->data.str[0] != '\0';
-            break;
-        case(T_INTEGER):
-            return val->data.integer != 0;
-            break;
-        case(T_DOUBLE):
-            return val->data.dbl != 0.0;
-            break;
-        case(T_BOOLEAN):
-            return !val->data.boolean;
-            break;
-        case(T_VOID):
-            return 1;
-            break;
-    }
-
-    return 0;
-}
-
 /* EXPRESSION */
 Expression *createExpression(ExpressionType type) {
     Expression *e = malloc(sizeof(Expression));
@@ -533,4 +510,3 @@ char *getFunctionName(char* funcName){
     }
     return ++name;
 }
-

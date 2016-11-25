@@ -403,13 +403,6 @@ bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     return false;
 }
 
-/* Maybe for Eval Function node
-ValueType evalFunctionNode(Node *n){
-    if (n->type != N_FUNCTION)
-        MERROR(ERR_SEM_TYPECHECK, "Trying to call a variable");
-    return n->data.function->returnType;
-}*/
-
 ValueType getExpressionType(Expression *e) {
     if (e == NULL) {
         MERROR(ERR_INTERNAL, "NULL expression");
@@ -546,7 +539,6 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
                 fprintf(stderr, "In function %s:\n", f->name);
                 MERROR(ERR_SEM_TYPECHECK, "Not returning a value from a non-void function");
             }
-            /*
             ltype = f->returnType;
             rtype = getExpressionType(c->data.expr);
             if (!checkAssignCompatible(ltype, rtype)) {
@@ -554,7 +546,6 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
                 FERROR(ERR_SEM_TYPECHECK, "Can't return a %s from a function returning %s\n",
                        showValueType(rtype), showValueType(ltype));
             }
-            */
         }
         break;
     case C_BLOCK:

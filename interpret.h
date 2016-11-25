@@ -80,6 +80,7 @@ int interpretFunc(Stack *, Node *);
 int builtInFunc(SymbolTable *, Stack *, Function *);
 
 Value *evalStaticExpression(Expression *);
+bool evalCondition(SymbolTable *, Stack *, char *, Expression *);
 Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
