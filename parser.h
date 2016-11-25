@@ -68,26 +68,30 @@ bool commit(Lexer *l);
                    STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
         }                                                               \
     } while (0);
-#define expectSymbol(l, x) do {                                         \
+#define expectSymbol_(l, x, f) do {                                     \
         expectMore(l);                                                  \
         Token *t = peekToken(l);                                        \
         if (t->type != SYMBOL || t->val.symbol != (x)) {                \
+            f;                                                          \
             FERROR(ERR_SYNTAX,                                          \
                    "Expected %s on line %d:%d, received '%s'.\n",       \
                    STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
         }                                                               \
         nextToken(l);                                                   \
     } while (0);
-#define expectReserved(l, x) do {                                       \
+#define expectSymbol(l, x) expectSymbol_(l, x, NULL)
+#define expectReserved_(l, x, f) do {                                   \
         expectMore(l);                                                  \
         Token *t = peekToken(l);                                        \
         if (t->type != RESERVED || t->val.reserved != (x)) {            \
+            f;                                                          \
             FERROR(ERR_SYNTAX,                                          \
                    "Expected %s on line %d:%d, received '%s'.\n",       \
                    STRINGIFY(x), t->lineNum, t->lineChar, t->original); \
         }                                                               \
         nextToken(l);                                                   \
     } while (0);
+#define expectReserved(l, x) expectReserved_(l, x, NULL)
 #define tryType(l, x, ret) do {                                         \
         Token *t = peekToken(l);                                        \
         if (t == NULL || t->type != (x)) {                              \
