@@ -136,11 +136,6 @@ Value *createValue(ValueType);
 void freeValue(Value *);
 void printValue(Value *);
 
-/**
- *   return zero if val is zero else not zero
- **/
-int valueIsZero(Value *);
-
 Expression *createExpression(ExpressionType);
 void freeExpression(Expression *);
 void printExpression(Expression *);

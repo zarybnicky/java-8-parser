@@ -153,7 +153,6 @@ Expression *expLoopSwitch(Command *c){
         e=c->data.forC.cond;
         break;
     case C_EXPRESSION:
-    case C_RETURN:
         e=c->data.expr;
         break;
     default:
@@ -216,7 +215,6 @@ void checkCondition_(Expression *e, Function *f){
         }
         if (e->next != NULL)
             checkCondition_(e->next,f);
-
         break;
     case E_BINARY:
         checkBinaryCond_(e);
@@ -245,7 +243,6 @@ void checkFnExpression(Function *f, Command *c){
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
         //is not pushed node already in table as static???
-        checkStaticDefinition(symTable, localTable, className, c->data.declare.name);
         break;
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
@@ -265,9 +262,9 @@ void checkFnExpression(Function *f, Command *c){
             free(className);
             className = NULL;
         }
+
         className = getClassName(f->name);
-        checkStaticDefinition(symTable, localTable, className, c->data.define.declaration.name);
-        e=expLoopSwitch(c);
+        e = expLoopSwitch(c);
         checkCondition_(e,f);
         break;
     case C_ASSIGN:
@@ -406,13 +403,6 @@ bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     return false;
 }
 
-/* Maybe for Eval Function node
-ValueType evalFunctionNode(Node *n){
-    if (n->type != N_FUNCTION)
-        MERROR(ERR_SEM_TYPECHECK, "Trying to call a variable");
-    return n->data.function->returnType;
-}*/
-
 ValueType getExpressionType(Expression *e) {
     if (e == NULL) {
         MERROR(ERR_INTERNAL, "NULL expression");
@@ -439,7 +429,6 @@ ValueType getExpressionType(Expression *e) {
     case E_REFERENCE:
         className = getReferenceName(e->data.reference);
         name = getFunctionName(e->data.reference);
-
         n = table_lookup_either(symTable, localTable, className, name);
         if (n == NULL){
             freeSymbolTable(localTable);
@@ -453,10 +442,6 @@ ValueType getExpressionType(Expression *e) {
 
         return n->data.value->type;
     case E_BINARY:
-        if (className != NULL){
-            free(className);
-            className=NULL;
-        }
         return coerceBinary(e->data.binary.op,
                             getExpressionType(e->data.binary.left),
                             getExpressionType(e->data.binary.right));
@@ -549,7 +534,6 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
                 fprintf(stderr, "In function %s:\n", f->name);
                 MERROR(ERR_SEM_TYPECHECK, "Not returning a value from a non-void function");
             }
-            /*
             ltype = f->returnType;
             rtype = getExpressionType(c->data.expr);
             if (!checkAssignCompatible(ltype, rtype)) {
@@ -557,7 +541,6 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
                 FERROR(ERR_SEM_TYPECHECK, "Can't return a %s from a function returning %s\n",
                        showValueType(rtype), showValueType(ltype));
             }
-            */
         }
         break;
     case C_BLOCK:
@@ -641,7 +624,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     }
 }
 
-// Aplikace v pruchodu stromu
+// Use table_iterator to work
 void checkTopLevel(Node *node) {
     if (node->type != N_FUNCTION) {
         return;
@@ -681,5 +664,3 @@ void checkTopLevel(Node *node) {
         }
     }
 }
-
-

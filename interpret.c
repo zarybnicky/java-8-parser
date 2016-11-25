@@ -129,6 +129,7 @@ int interpretFunc(Stack *stack, Node *node) {
     Node *n = table_lookup_either(symTableGlob, localTable, getClassName(mainFn->symbol),"b");
     printValue(n->data.value);
 
+
     return 0;
 }
 
@@ -151,13 +152,13 @@ int interpretFunc(Stack *stack, Node *node) {
 
 
 Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *className){
+
     Node *node;
     Value *val = NULL;
 
     continueFlag = FALSE;
     breakFlag = FALSE;
     returnFlag = FALSE;
-
 
     bool cycle = TRUE;
 
@@ -175,8 +176,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_ASSIGN):
-
-
             dataName = getFunctionName(cmd->data.assign.name);
             node = table_lookup_either(symTableGlob, symTable, className, dataName);
 
@@ -293,7 +292,6 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     (void) argCount;
     (void) argHead;
 
-
     Value *val = NULL;
 
     Node *node = table_lookup(symTableGlob, name);
@@ -305,6 +303,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
         return popFromStack(localStack);
     }
 
+    Value *val = NULL;
     val = createValue(fn->returnType);
     ht_insert(&alloc_tab,val);
 
@@ -832,7 +831,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
 
         case E_REFERENCE:
             node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
-
             return node->data.value;
 
         case E_VALUE:
