@@ -14,7 +14,7 @@
 #define TRUE true
 #define FALSE false
 
-static SymbolTable *symGlob = NULL;
+static SymbolTable *symTableGlob = NULL;
 static Stack *GlobalStack = NULL;
 
 static bool continueFlag = FALSE;
@@ -79,7 +79,7 @@ int freeInterpret(Interpret *i) {
 
 int evalMain(Interpret *i) {
     assert(i != NULL);
-    symGlob = &(i->symTable);
+    symTableGlob = &(i->symTable);
     GlobalStack = createLocalStack(NULL);
 
     Node *mainFn = table_lookup(&i->symTable, "Main.run");
@@ -102,41 +102,38 @@ int interpretFunc(Stack *stack, Node *node){
     Stack *localStack = NULL;
     SymbolTable *localTable = NULL;
 
-    Node *mainFn = table_lookup(symGlob, "Main.run");
+    Node *mainFn = table_lookup(symTableGlob, "Main.run");
 
     if(strcmp(node->symbol, mainFn->symbol)){
         dPrintf("%s","Creating new local stack.");
         localStack = createLocalStack(stack);
-        dPrintf("%s","Creating new local table.");
-        localTable = createSymbolTable();
-        ht_insert (&alloc_tab, localTable);
     }
     else{
         dPrintf("%s\n\t- %s\n\t- %s","Setting reference of:","local stack to global stack,","local table to global table.");
         localStack = GlobalStack;
-        localTable = symGlob;
     }
+
+    dPrintf("%s","Creating new local table.");
+    localTable = createSymbolTable();
+    ht_insert (&alloc_tab, localTable);
 
     assert(localStack != NULL);
     assert(localTable != NULL);
 
-    int fn_type = builtInFunc(localTable, localStack, node->data.function);
-
-    // if fn type was built-in function return
-    if(fn_type == 0)
-        return 0;
-
     Command *current = node->data.function->body.head;
     Command *tail = node->data.function->body.tail;
 
-    while(current != tail){
+    for(;current != tail; current = current->next){
         evalCommand(localTable, localStack, current, node->data.function->name);
-        current = current->next;
-        printSymbolTable(localTable);
     }
     evalCommand(localTable, localStack, current, node->data.function->name);
 
+    printSymbolTable(localTable);
 
+    Node *n = table_lookup(localTable, "a");
+    printf("\n");
+
+    printValue(n->data.value);
 
     return 0;
 }
@@ -155,10 +152,8 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
     bool cycle = TRUE;
 
-    #ifdef DEBUG
-        printCommand(cmd);
-        printf("\n\n");
-    #endif
+    char *className = getClassName(funcName);
+    char *dataName = NULL;
 
     switch(cmd->type){
         case(C_DECLARE):
@@ -186,7 +181,8 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
 
         case(C_ASSIGN):
 
-            node = table_lookup_either(symGlob, symTable, funcName, cmd->data.assign.name);
+            dataName = getFunctionName(cmd->data.assign.name);
+            node = table_lookup_either(symTableGlob, symTable, className, dataName);
 
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
@@ -377,7 +373,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
 
     Value *val = NULL;
 
-    Node *node = table_lookup(symGlob, name);
+    Node *node = table_lookup(symTableGlob, name);
 
     Function *fn = node->data.function;
 
@@ -777,7 +773,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *funcName, Expre
         case E_REFERENCE:
 
             className = getClassName(funcName);
-            node = table_lookup_either(symGlob, symTable, className, e->data.reference);
+            node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
 
             return node->data.value;
 

@@ -9,6 +9,7 @@ class Main{
         b = 42;
         x = 4.2;
 
+
         bool = true;
     }
 }
