@@ -278,8 +278,59 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *func
             break;
 
         case(C_FOR):
-            dPrintf("%s", "Interpret: C_FOR: not implemented yet.");
-            PERROR("exiting");
+            // insert dec into table
+            table_insert_dummy(symTable, cmd->data.forC.var);
+
+            // find node and evaluate expression
+            node = table_lookup_either(symGlob, symTable, funcName, cmd->data.forC.var.name);
+
+            val = evalExpression(symTable, stack, funcName, cmd->data.forC.initial);
+
+            if(val == NULL || node == NULL)
+                PERROR("Interpret: CMD: For: node or value not found.");
+
+            // assign value
+            node->data.value = val;
+
+            // cycle preparation
+            current = cmd->data.forC.bodyBlock.head;
+            tail = cmd->data.forC.bodyBlock.tail;
+            val = evalExpression(symTable, stack, funcName, cmd->data.forC.cond);
+
+            // cycle
+            while (valueIsZero(val)){
+
+                while(current != tail){
+
+                    evalCommand(symTable, stack, current, funcName);
+
+                    if(continueFlag == TRUE){
+                        continueFlag = FALSE;
+                        break;
+
+                    }else if(breakFlag == TRUE){
+                        break;
+                        
+                    }else{
+
+                        current = current->next;
+
+                        if(current == tail){
+                            evalCommand(symTable, stack, current, funcName);
+                        }
+                    }
+                }
+
+                if(breakFlag == TRUE){
+                        break;
+                }
+
+                // preparation of condition & commands
+                node->data.value = evalCommand(symTable, stack, cmd->data.forC.iter, funcName);
+                val = evalExpression(symTable, stack, funcName, cmd->data.forC.cond);
+                current = cmd->data.forC.bodyBlock.head;
+            }
+
             break;
 
         case(C_CONTINUE):
