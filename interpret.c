@@ -160,10 +160,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
     breakFlag = FALSE;
     returnFlag = FALSE;
 
-    bool cycle = TRUE;
-
-    char *dataName = NULL;
-
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
@@ -176,8 +172,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_ASSIGN):
-            dataName = getFunctionName(cmd->data.assign.name);
-            node = table_lookup_either(symTableGlob, symTable, className, dataName);
+            node = table_lookup_either(symTableGlob, symTable, className, cmd->data.assign.name);
 
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");

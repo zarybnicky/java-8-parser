@@ -23,13 +23,6 @@ void checkReturnPresenceC(Function *, Command *);
 void checkReturnPresence(Function *);
 void checkMainRunPresence();
 
-void checkDefined(char *,char *);
-void checkBinaryCond_(Expression *);
-void checkCondition_(Expression *, Function *);
-void checkFnExpression(Function *,Command *);
-
-void checkAllStatic(Function *);
-
 ValueType coerceBinary(BinaryOperation, ValueType, ValueType);
 bool checkAssignCompatible(ValueType, ValueType);
 ValueType getExpressionType(Expression *);
