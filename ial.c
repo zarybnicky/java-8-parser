@@ -443,10 +443,14 @@ void printNode(Node *n)  {
         return;
     }
     printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
-    printNode(n->left);
-    printf(", ");
-    printNode(n->right);
-    printf(")\n");
+    if (n->left != NULL){
+        printNode(n->left);
+        printf(", ");
+    }
+    if (n->right != NULL){
+        printNode(n->right);
+        printf(")\n");
+    }
 }
 char *showNodeType(NodeType x) {
     switch (x) {

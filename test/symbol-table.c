@@ -51,7 +51,7 @@ int main() {
     printSymbolTable(table);
 
     printf("Iterating through the table...\n");
-    table_iterate(table->root, printNode);
+    printNode(table->root);
 
     freeSymbolTable(table);
     return 0;
