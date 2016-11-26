@@ -467,46 +467,24 @@ char *showCommandType(CommandType x) {
     return "Unknown CommandType"; //Just to pacify the compiler...
 }
 
-char *getReferenceName(char *reference){
-    int i = 0;
-    char *className;
-
-    while (reference[i] != '.' && reference[i] != '\0')
-        i++;
-    if (reference[i] == '\0'){
-        return reference;
+char *getClassName(char *fn){
+    char *dot = strchr(fn, '.');
+    if (dot == NULL) {
+        FERROR(ERR_INTERNAL, "Unqualified function reference found: %s", fn);
     }
-    className = malloc(sizeof(char) * (i + 1));
-    strncpy(className, reference, i);
-    className[i] = '\0';
 
-    return className;
+    *dot = '\0';
+    char *class = strdup_(fn);
+    *dot = '.';
+    return class;
 }
 
-char *getClassName(char *funcName){
-    int i = 0;
-    char *className;
-
-    while (funcName[i] != '.' && funcName[i] != '\0')
-        i++;
-
-    if (funcName[i] == '\0') {
-        fprintf(stderr, "In function %s:\n", funcName);
-        MERROR(ERR_INTERNAL, "Unqualified function name in symbol table");
-    }
-
-    className = malloc(sizeof(char) * (i + 1));
-    strncpy(className, funcName, i);
-    className[i] = '\0';
-
-    return className;
-}
-
-char *getFunctionName(char* funcName){
-    char *name = strchr(funcName, '.');
-    //No dot found
-    if (name == NULL){
-        return funcName;
-    }
-    return ++name;
+/* Not in POSIX... */
+char *strdup_(const char *s) {
+    if (s == NULL)
+        return NULL;
+    char *dup = malloc(strlen(s) + 1);
+    CHECK_ALLOC(dup);
+    strcpy(dup, s);
+    return dup;
 }

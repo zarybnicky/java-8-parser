@@ -306,12 +306,14 @@ bool parseFuncall(Lexer *l, Block *b) {
 
 bool parseContinue(Lexer *l, Block *b) {
     tryReserved(l, RES_CONTINUE, false);
+    expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandContinue());
     return true;
 }
 
 bool parseBreak(Lexer *l, Block *b) {
     tryReserved(l, RES_BREAK, false);
+    expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandBreak());
     return true;
 }

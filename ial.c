@@ -335,6 +335,10 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
         return n;
     }
 
+    if (NULL != strchr(var, '.')) {
+        return table_lookup(global, var);
+    }
+
     int classLength = strlen(class);
     int idLength = strlen(var);
     char *qualified = malloc((classLength + 1 + idLength + 1));
@@ -479,15 +483,14 @@ void printSymbolTable(SymbolTable *t) {
  * object better is to call tree and traverse table by it, we can hit object
  * with not left, right node
  */
-void table_iterate(Node *object, void (*fn)(Node *object)){
+void table_iterate_fn(Node *object, void (*fn)(Function *)){
     if (fn == NULL)
         return;
     if (object->left != NULL)
-        table_iterate(object->left,fn);
+        table_iterate_fn(object->left, fn);
     if (object->right != NULL)
-        table_iterate(object->right,fn);
+        table_iterate_fn(object->right, fn);
 
-    if (object->type == N_FUNCTION && object->data.function->builtin)
-        return;
-    fn(object);
+    if (object->type == N_FUNCTION && !object->data.function->builtin)
+        fn(object->data.function);
 }

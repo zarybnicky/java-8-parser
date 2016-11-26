@@ -11,16 +11,6 @@
 //3. vyriesit num/nacitanie esc kodu
 #include "scanner.h"
 
-/* Not in POSIX... */
-char *strdup_(const char *s) {
-    if (s == NULL)
-        return NULL;
-    char *dup = malloc(strlen(s) + 1);
-    CHECK_ALLOC(dup);
-    strcpy(dup, s);
-    return dup;
-}
-
 Token *getNextToken(FILE *f) {
     char *str = NULL;
     ReservedWord reserved;

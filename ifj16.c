@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     fclose(f);
     l->file = NULL;
 
-    runSemanticAnalysis(i);
+    runSemanticAnalysis(&i->symTable);
 
     evalMain(i);
     freeGlobalResources();

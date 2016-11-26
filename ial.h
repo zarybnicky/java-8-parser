@@ -97,6 +97,6 @@ Node **table_lookup_ptr(SymbolTable *, char *);
 Node *table_lookup(SymbolTable *, char *);
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var);
 
-void table_iterate(Node *, void (*fn)(Node *));
+void table_iterate_fn(Node *, void (*fn)(Function *));
 
 #endif /* IFJ_IAL_H */

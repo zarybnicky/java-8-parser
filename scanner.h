@@ -155,7 +155,6 @@ typedef struct s_Token {
     } val;
 } Token;
 
-char *strdup_(const char *);
 Token *getNextToken(FILE *stream);
 void string_end(char **string, char c, int *stringLength, int *stringAlloc);
 Token *createToken(TokenType, void *, char *);

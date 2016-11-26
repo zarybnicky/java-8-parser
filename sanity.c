@@ -14,18 +14,35 @@ static SymbolTable *symTable;
 static SymbolTable *localTable;
 static bool hasReturnCommand;
 static char *className;
-//----- Global variables ------
-void runSemanticAnalysis(Interpret *i) {
-    symTable = &i->symTable;
+
+void runSemanticAnalysis(SymbolTable *s) {
+    symTable = s;
     Node *root = symTable->root;
 
+<<<<<<< a82502d3a360dfb729481435bacc86082e3352c6
     checkMainRun(&i->symTable);
     table_iterate(root, checkReturnPresence);
     table_iterate(root, checkTopLevel);
     table_iterate(root, checkAllStatic);
     // table_iterate(root, checkOperatorAssignmentType);
+=======
+    checkMainRunPresence();
+    table_iterate_fn(root, checkReturnPresence);
+    table_iterate_fn(root, checkTopLevel);
+    table_iterate_fn(root, checkAllStatic);
+    table_iterate_fn(root, checkOperatorAssignmentType);
+>>>>>>> Simplify a lot of semantic analysis
 
     symTable = NULL;
+}
+
+void freeSemantic() {
+    if (localTable != NULL) {
+        freeSymbolTable(localTable);
+    }
+    if (className != NULL) {
+        free(className);
+    }
 }
 
 //----- Check return type -----
@@ -35,194 +52,127 @@ void checkReturnPresenceC(Function *f, Command *c) {
         hasReturnCommand = true;
     }
 }
-void checkReturnPresence(Node *node) {
-    if (node->type != N_FUNCTION) {
-        return;
-    }
-    Function *f = node->data.function;
+void checkReturnPresence(Function *f) {
     hasReturnCommand = false;
 
     traverseCommands(f, checkReturnPresenceC, NULL);
     if (f->returnType != T_VOID && !hasReturnCommand) {
+        freeSemantic();
         fprintf(stderr, "In function %s:\n", f->name);
         MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
     }
 }
 
-//----- Check Binary reference/function ------
-void checkBinaryReference_(char *name, char *typeM){
-    Node *n=table_lookup_either(symTable, localTable, className, name);
-    if (n == NULL){
-        freeSymbolTable(localTable);
-        FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined %s '%s'.", typeM, name);
+void checkMainRunPresence() {
+    Node *tmp = table_lookup(symTable, "Main");
+    if (tmp == NULL || tmp->type != N_CLASS) {
+        freeSemantic();
+        MERROR(ERR_SEM_UNDEFINED, "Missing class Main.");
+    }
+    tmp = table_lookup(symTable, "Main.run");
+    if (tmp == NULL || tmp->type != N_FUNCTION) {
+        freeSemantic();
+        MERROR(ERR_SEM_UNDEFINED, "Missing run method in Main.");
     }
 }
+
+//----- Check Binary reference/function ------
+void checkDefined(char *name, char *type) {
+    if (table_lookup_either(symTable, localTable, className, name) == NULL) {
+        freeSemantic();
+        FERROR(ERR_SEM_UNDEFINED, "Trying to reference undefined %s '%s'.", type, name);
+    }
+}
+
 /**
   * Check whether binary condition does not cointain not defined references
   * or undefined functions
   */
-void checkBinaryCond_(Expression *e){
+void checkBinaryCond_(Expression *e) {
     if (e == NULL)
         return;
-    char *name;
-    switch(e->data.binary.left->type){
+
+    switch(e->data.binary.left->type) {
     case E_FUNCALL:
-        switch(e->data.binary.right->type){
-        case E_FUNCALL:
-            name =getFunctionName(e->data.binary.left->data.funcall.name);
-            checkBinaryReference_(name,"function");
-            name =getFunctionName(e->data.binary.right->data.funcall.name);
-            checkBinaryReference_(name, "function");
-            break;
-        case E_REFERENCE:
-            name =getFunctionName(e->data.binary.left->data.funcall.name);
-            checkBinaryReference_(name,"function");
-            checkBinaryReference_(e->data.binary.right->data.reference, "reference");
-            break;
-        case E_BINARY:
-            name =getFunctionName(e->data.binary.left->data.funcall.name);
-            checkBinaryReference_(name,"function");
-            //RECURSION
-            checkBinaryCond_(e->data.binary.right);
-            break;
-        case E_VALUE:
-            break;
-        }
+        checkDefined(e->data.binary.left->data.funcall.name, "function");
         break;
     case E_REFERENCE:
-        //Function call on right expression
-        switch(e->data.binary.right->type){
-        case E_FUNCALL:
-            name =getFunctionName(e->data.binary.right->data.funcall.name);
-            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
-            checkBinaryReference_(name, "function");
-            break;
-        case E_REFERENCE:
-            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
-            checkBinaryReference_(e->data.binary.right->data.reference, "reference");
-            break;
-        case E_BINARY:
-            checkBinaryReference_(e->data.binary.left->data.reference,"reference");
-            //RECURSION
-            checkBinaryCond_(e->data.binary.right);
-        case E_VALUE:
-            break;
-        }
+        checkDefined(e->data.binary.left->data.reference,"variable");
         break;
     case E_BINARY:
+        checkBinaryCond_(e->data.binary.left);
         break;
     case E_VALUE:
-    //FIXME?!? || && operands
-        switch(e->data.binary.right->type){
-        case E_FUNCALL:
-            name =getFunctionName(e->data.binary.right->data.funcall.name);
-            checkBinaryReference_(name, "function");
-            break;
-        case E_REFERENCE:
-            checkBinaryReference_(e->data.binary.right->data.reference,"reference");
-            break;
-        case E_BINARY:
-            checkBinaryCond_(e->data.binary.right);
-            break;
-        case E_VALUE:
-            break;
-        }
+        break;
+    }
+    switch(e->data.binary.right->type) {
+    case E_FUNCALL:
+        checkDefined(e->data.binary.right->data.funcall.name, "function");
+        break;
+    case E_REFERENCE:
+        checkDefined(e->data.binary.right->data.reference,"variable");
+        break;
+    case E_BINARY:
+        checkBinaryCond_(e->data.binary.right);
+        break;
+    case E_VALUE:
         break;
     }
 }
 
-Expression *expLoopSwitch(Command *c){
-    Expression *e= NULL;
-    switch(c->type){
-    case C_DEFINE:
-        e=c->data.define.expr;
-        break;
-    case C_ASSIGN:
-        e=c->data.assign.expr;
-        break;
-    case C_IF:
-        e=c->data.ifC.cond;
-        break;
-    case C_WHILE:
-        e=c->data.whileC.cond;
-        break;
-    case C_DO_WHILE:
-        e=c->data.doWhileC.cond;
-        break;
-    case C_FOR:
-        e=c->data.forC.cond;
-        break;
-    case C_EXPRESSION:
-        e=c->data.expr;
-        break;
-    default:
-        break;
-    }
-    return e;
-}
 /**
   * Condition + Expr + Ret check.
   * Checks variables/functions inside loop or classic condition
   * lookup for node in local/global table return fault or proccess
   */
-void checkCondition_(Expression *e, Function *f){
-    Node *n;
-    Expression *arg; char *name;
+void checkCondition_(Expression *e, Function *f) {
     if (e == NULL)
         return;
-    /* initialization of name */
-    switch(e->type){
-    case E_FUNCALL:
-        if (className != NULL){
-            free(className);
-            className = NULL;
-        }
-        className = getReferenceName(e->data.funcall.name);
-        name = getFunctionName(e->data.funcall.name);
 
-        n=table_lookup_either(symTable, localTable, className, name);
-        if (n == NULL){
-            //check for ifj16 class
-            n=table_lookup_either(symTable, NULL, "ifj16", name);
-            if (n == NULL){
-                free(className);
-                freeSymbolTable(localTable);
-                FERROR(ERR_SEM_UNDEFINED, "Trying to call an undefined function '%s'.", e->data.funcall.name);
-            }
+    Node *n;
+    Expression *arg;
+
+    switch(e->type) {
+    case E_FUNCALL:
+        n = table_lookup(symTable, e->data.funcall.name);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_UNDEFINED,
+                   "Trying to call an undefined function '%s'.",
+                   e->data.funcall.name);
         }
         arg = e->data.funcall.argHead;
         if (arg != NULL) {
-            checkCondition_(e->data.funcall.argHead,f);
+            checkCondition_(e->data.funcall.argHead, f);
             arg = arg->next;
         }
-        //TODO
-        //if (n->data.function->returnType != f->returnType)
-            //FIXME: implicit conversions
-            //MERROR(ERR_SEM_TYPECHECK, "Returning a function call with an incompatible type.");
-        break;
-    case E_REFERENCE:
-        if (className != NULL){
-           free(className);
-           className = NULL;
+        if (checkAssignCompatible(f->returnType, n->data.function->returnType)) {
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK,
+                   "Returning a function call with an incompatible type.");
         }
-        className = getReferenceName(e->data.reference);
-        name = getFunctionName(e->data.reference);
+        break;
 
-        n=table_lookup_either(symTable, localTable, className, name);
-        if (n == NULL){
-            freeSymbolTable(localTable);
-            FERROR(ERR_SEM_UNDEFINED, "Trying to call undefined reference '%s'.", e->data.reference);
+    case E_REFERENCE:
+        n = table_lookup_either(symTable, localTable, className, e->data.reference);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_UNDEFINED,
+                   "Trying to reference an undefined variable '%s'.",
+                   e->data.reference);
         }
-        if (e->next != NULL)
-            checkCondition_(e->next,f);
         break;
+
     case E_BINARY:
         checkBinaryCond_(e);
         break;
+
     case E_VALUE:
-        /*TODO if (f->returnType != e->data.value->type)
-            //FIXME: implicit conversions
-            MERROR(ERR_SEM_TYPECHECK, "Trying to return a value with an incompatible type.");*/
+        if (checkAssignCompatible(f->returnType, e->data.value->type)) {
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK,
+                   "Trying to return a value with an incompatible type.");
+        }
         break;
     }
 }
@@ -232,71 +182,67 @@ void checkCondition_(Expression *e, Function *f){
   * command checks whether should assign to table new node
   * or check compatibility of nodes(functions, variables)
   */
-void checkFnExpression(Function *f, Command *c){
+void checkFnExpression(Function *f, Command *c) {
     if (c == NULL)
         return;
     char *look;
     Node *n;
     ValueType ltype, rtype;
-    Expression *e;
-    switch(c->type){
+
+    switch(c->type) {
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
-        //is not pushed node already in table as static???
         break;
+
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
         rtype = getExpressionType(c->data.define.expr);
         if (!checkAssignCompatible(ltype, rtype)) {
-            if (className != NULL){
-                free(className);
-                className = NULL;
-            }
-            freeSymbolTable(localTable);
+            freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
         }
-        table_insert_dummy(localTable, c->data.define.declaration);
-        //is not pushed node already in table as static ???
-        if (className != NULL){
-            free(className);
-            className = NULL;
-        }
 
-        className = getClassName(f->name);
-        e = expLoopSwitch(c);
-        checkCondition_(e,f);
+        table_insert_dummy(localTable, c->data.define.declaration);
+        checkCondition_(c->data.define.expr, f);
         break;
+
     case C_ASSIGN:
-        look = strchr(c->data.assign.name,'.');
-        look++;
+        look = strchr(c->data.assign.name, '.') + 1;
+
         /* check whether node is ok */
         n = table_lookup_either(symTable, localTable, className, look);
         if (n == NULL) {
-            free(className);
-            freeSymbolTable(localTable);
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
             FERROR(ERR_SEM_UNDEFINED, "Trying to assign to undefined variable '%s'", c->data.assign.name);
         }
-        e=expLoopSwitch(c);
-        checkCondition_(e,f);
+        checkCondition_(c->data.assign.expr, f);
         break;
+
     case C_IF:
-    case C_WHILE:
-    case C_DO_WHILE:
-        e=expLoopSwitch(c);
-        checkCondition_(e,f);
+        checkCondition_(c->data.ifC.cond, f);
         break;
+
+    case C_WHILE:
+        checkCondition_(c->data.whileC.cond, f);
+        break;
+
+    case C_DO_WHILE:
+        checkCondition_(c->data.doWhileC.cond, f);
+        break;
+
     case C_EXPRESSION:
     case C_RETURN:
-        e=expLoopSwitch(c);
-        checkCondition_(e,f);
+        checkCondition_(c->data.expr, f);
         break;
+
     case C_FOR:
         table_insert_dummy(localTable, c->data.forC.var);
-        e=expLoopSwitch(c);
-        checkCondition_(e,f);
+        checkCondition_(c->data.forC.initial, f);
+        checkCondition_(c->data.forC.cond, f);
         break;
+
     case C_CONTINUE:
     case C_BREAK:
     case C_BLOCK:
@@ -305,39 +251,20 @@ void checkFnExpression(Function *f, Command *c){
 }
 
 //----- Check return type all variables/functions -----
-void checkAllStatic (Node *node){
-    if (node->type == N_FUNCTION){
-        Function *f = node->data.function;
-        hasReturnCommand = false;
-        className = getClassName(f->name);
+void checkAllStatic(Function *f) {
+    className = getClassName(f->name);
+    localTable = createSymbolTable();
 
-        localTable = createSymbolTable();
-        //insert arguments to table
-        Declaration *arg = f->argHead;
-        while (arg != NULL) {
-            table_insert_dummy(localTable, *arg);
-            arg = arg->next;
-        }
-        //traverse commands
-        traverseCommands(f, checkFnExpression, checkOperatorAssignmentTypeF);
-        /* dealocation of local sym table */
-        freeSymbolTable(localTable);
-        localTable = NULL;
-        if (className != NULL){
-            free(className);
-            className = NULL;
-        }
-    }
-}
+    hasReturnCommand = false;
 
-void checkMainRun(SymbolTable *table){
-    Node *tmp = table_lookup (table, "Main");
-    if (tmp == NULL || tmp->type != N_CLASS){
-        MERROR(ERR_SEM_UNDEFINED, "Missing class Main.");
+    Declaration *arg = f->argHead;
+    while (arg != NULL) {
+        table_insert_dummy(localTable, *arg);
+        arg = arg->next;
     }
-    tmp = table_lookup(table, "Main.run");
-    if (tmp == NULL || tmp->type != N_FUNCTION)
-        MERROR(ERR_SEM_UNDEFINED, "Missing run method in Main.");
+
+    traverseCommands(f, checkFnExpression, checkOperatorAssignmentTypeF);
+    freeSemantic();
 }
 
 /* ------ Operators ---- */
@@ -350,9 +277,9 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
         if (op == EB_ADD) {
             return T_STRING; //concatenation
         }
-        freeSymbolTable(localTable);
-        localTable = NULL;
-        FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
+        freeSemantic();
+        FERROR(ERR_SEM_TYPECHECK,
+               "Wrong operator types for operation %s: %s, %s.\n",
                showBinaryOperation(op), showValueType(left), showValueType(right));
     }
     if (left == T_BOOLEAN || right == T_BOOLEAN) {
@@ -360,9 +287,9 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
             (op == EB_EQUAL || op == EB_NOT_EQUAL)) {
             return T_BOOLEAN; //bool comparison
         }
-        freeSymbolTable(localTable);
-        localTable = NULL;
-        FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
+        freeSemantic();
+        FERROR(ERR_SEM_TYPECHECK,
+               "Wrong operator types for operation %s: %s, %s.\n",
                showBinaryOperation(op), showValueType(left), showValueType(right));
     }
 
@@ -384,11 +311,12 @@ ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
     case EB_GREATER_EQUAL:
         return T_BOOLEAN;
     }
-    freeSymbolTable(localTable);
-    localTable = NULL;
-    FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
-          showBinaryOperation(op), showValueType(left), showValueType(right));
+    freeSemantic();
+    FERROR(ERR_SEM_TYPECHECK,
+           "Wrong operator types for operation %s: %s, %s.\n",
+           showBinaryOperation(op), showValueType(left), showValueType(right));
 }
+
 bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
     if ((lvalue == T_INTEGER || lvalue == T_DOUBLE) &&
         (rvalue == T_INTEGER || rvalue == T_DOUBLE)) {
@@ -405,42 +333,43 @@ bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
 
 ValueType getExpressionType(Expression *e) {
     if (e == NULL) {
+        freeSemantic();
         MERROR(ERR_INTERNAL, "NULL expression");
     }
-    Node *n; char *name;
+    Node *n;
     switch (e->type) {
     case E_VALUE:
         return e->data.value->type;
+
     case E_FUNCALL:
-        className = getReferenceName(e->data.funcall.name);
-        name = getFunctionName(e->data.funcall.name);
-
-        n = table_lookup_either(symTable, localTable, className,name);
-        if (n == NULL)
-            //maybe function for ifj16 class?
-            n = table_lookup_either(symTable,NULL,"ifj16",getFunctionName(e->data.funcall.name));
-        //node should not be null
-        if (n->type != N_FUNCTION){
-            freeSymbolTable(localTable);
-            MERROR(ERR_SEM_TYPECHECK, "Trying to call a variable");
-        }
-
-        return n->data.function->returnType;
-    case E_REFERENCE:
-        className = getReferenceName(e->data.reference);
-        name = getFunctionName(e->data.reference);
-        n = table_lookup_either(symTable, localTable, className, name);
-        if (n == NULL){
-            freeSymbolTable(localTable);
-            FERROR(ERR_SEM_TYPECHECK, "Trying to reference a non existent variable %s",
+        n = table_lookup(symTable, e->data.funcall.name);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Trying to call a non-existent function %s",
                    e->data.reference);
         }
-        if (n->type != N_VALUE){
-            freeSymbolTable(localTable);
+        if (n->type != N_FUNCTION) {
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK, "Trying to call a variable");
+        }
+        return n->data.function->returnType;
+
+    case E_REFERENCE:
+        n = table_lookup_either(symTable, localTable, className,
+                                e->data.reference);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Trying to reference a non-existent variable %s",
+                   e->data.reference);
+        }
+        if (n->type != N_VALUE) {
+            freeSemantic();
             MERROR(ERR_SEM_TYPECHECK, "Trying to reference a function");
         }
-
         return n->data.value->type;
+
     case E_BINARY:
         return coerceBinary(e->data.binary.op,
                             getExpressionType(e->data.binary.left),
@@ -451,72 +380,83 @@ ValueType getExpressionType(Expression *e) {
     return T_VOID;
 }
 void checkOperatorAssignmentTypeC(Function *f, Command *c) {
-    Node *n;
-    char *name;
-    ValueType ltype, rtype;
     if (c == NULL || f == NULL)
         return;
+
+    Node *n;
+    ValueType ltype, rtype;
+
     switch (c->type) {
     case C_DECLARE:
         table_insert_dummy(localTable, c->data.declare);
         break;
+
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
         rtype = getExpressionType(c->data.define.expr);
         if (!checkAssignCompatible(ltype, rtype)) {
-            freeSymbolTable(localTable);
+            freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
         }
         table_insert_dummy(localTable, c->data.define.declaration);
         break;
-    case C_ASSIGN:
-        name = getFunctionName(c->data.assign.name);
 
-        n = table_lookup_either(symTable, localTable, className,name);
+    case C_ASSIGN:
+        n = table_lookup_either(symTable, localTable, className,
+                                c->data.assign.name);
         if (n->type != N_VALUE) {
-            freeSymbolTable(localTable);
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
             MERROR(ERR_SEM_TYPECHECK, "Can't assign to a function");
         }
         ltype = n->data.value->type;
         rtype = getExpressionType(c->data.assign.expr);
         if (!checkAssignCompatible(ltype, rtype)) {
-            freeSymbolTable(localTable);
+            freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
         }
         break;
+
     case C_IF:
         if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.ifC.cond))) {
-            freeSymbolTable(localTable);
-            MERROR(ERR_SEM_TYPECHECK, "'if' condition requires a boolean expression\n");
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK,
+                   "'if' condition requires a boolean expression\n");
         }
         break;
+
     case C_WHILE:
         if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.whileC.cond))) {
             freeSymbolTable(localTable);
-            MERROR(ERR_SEM_TYPECHECK, "'while' condition requires a boolean expression\n");
+            MERROR(ERR_SEM_TYPECHECK,
+                   "'while' condition requires a boolean expression\n");
         }
         break;
+
     case C_DO_WHILE:
         if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.doWhileC.cond))) {
-            freeSymbolTable(localTable);
-            MERROR(ERR_SEM_TYPECHECK, "'do-while' condition requires a boolean expression\n");
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK,
+                   "'do-while' condition requires a boolean expression\n");
         }
         break;
+
     case C_FOR:
         ltype = c->data.forC.var.type;
         rtype = getExpressionType(c->data.doWhileC.cond);
         if (!checkAssignCompatible(ltype, rtype)) {
-            freeSymbolTable(localTable);
-            FERROR(ERR_SEM_TYPECHECK, "Can't assign %s to %s in 'for' initialization",
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Can't assign %s to %s in 'for' initialization",
                    showValueType(ltype), showValueType(rtype));
         }
         table_insert_dummy(localTable, c->data.forC.var);
         if (!checkAssignCompatible(T_BOOLEAN, getExpressionType(c->data.forC.cond))) {
-            freeSymbolTable(localTable);
-            MERROR(ERR_SEM_TYPECHECK, "'for' condition requires a boolean expression\n");
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK,
+                   "'for' condition requires a boolean expression\n");
         }
         break;
     case C_EXPRESSION:
@@ -524,21 +464,24 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     case C_RETURN:
         if (f->returnType == T_VOID) {
             if (c->data.expr != NULL) {
-                freeSymbolTable(localTable);
+                freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
-                MERROR(ERR_SEM_TYPECHECK, "Returning a value from a void function");
+                MERROR(ERR_SEM_TYPECHECK,
+                       "Returning a value from a void function");
             }
         } else {
             if (c->data.expr == NULL) {
-                freeSymbolTable(localTable);
+                freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
-                MERROR(ERR_SEM_TYPECHECK, "Not returning a value from a non-void function");
+                MERROR(ERR_SEM_TYPECHECK,
+                       "Not returning a value from a non-void function");
             }
             ltype = f->returnType;
             rtype = getExpressionType(c->data.expr);
             if (!checkAssignCompatible(ltype, rtype)) {
-                freeSymbolTable(localTable);
-                FERROR(ERR_SEM_TYPECHECK, "Can't return a %s from a function returning %s\n",
+                freeSemantic();
+                FERROR(ERR_SEM_TYPECHECK,
+                       "Can't return a %s from a function returning %s\n",
                        showValueType(rtype), showValueType(ltype));
             }
         }
@@ -552,50 +495,45 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
 void checkOperatorAssignmentTypeF(Command *c) {
     freeNode(table_remove(localTable, c->data.forC.var.name));
 }
-void checkOperatorAssignmentType(Node *node) {
-    if (node->type != N_FUNCTION) {
-        return;
-    }
-    Function *f = node->data.function;
-
-    //find the class name
+void checkOperatorAssignmentType(Function *f) {
     className = getClassName(f->name);
     localTable = createSymbolTable();
+
     Declaration *arg = f->argHead;
-    //printDeclaration(arg);
     while (arg != NULL) {
         table_insert_dummy(localTable, *arg);
         arg = arg->next;
     }
     traverseCommands(f, checkOperatorAssignmentTypeC,
                      checkOperatorAssignmentTypeF);
-    freeSymbolTable(localTable);
-    localTable = NULL;
-    free(className);
-    className = NULL;
+    freeSemantic();
 }
 
 void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     while (c != NULL) {
         switch (c->type) {
         case C_DECLARE:
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located out of top-level of command");
+            MERROR(ERR_INTERNAL, "C_DECLARE located in a nested block.");
             break;
         case C_DEFINE:
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DEFINE located out of top-level of command");
+            MERROR(ERR_INTERNAL, "C_DEFINE located in a nested block.");
             break;
         case C_CONTINUE:
-            if (cycle == false){
+            if (cycle == false) {
+                freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
-                MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
+                MERROR(ERR_INTERNAL, "C_CONTINUE located outside of a cycle.");
             }
             break;
         case C_BREAK:
-            if (cycle == false){
+            if (cycle == false) {
+                freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
-                MERROR(ERR_INTERNAL, "C_DEFINE located out of cycle of command");
+                MERROR(ERR_INTERNAL, "C_BREAK located outside of a cycle.");
             }
             break;
         case C_IF:
@@ -609,7 +547,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
             checkTopLevelInner(f, c->data.doWhileC.bodyBlock.head, true);
             break;
         case C_FOR:
-            checkTopLevelInner(f, c->data.forC.iter, false); //for(;;break/continue) no way
+            checkTopLevelInner(f, c->data.forC.iter, false);
             checkTopLevelInner(f, c->data.forC.bodyBlock.head, true);
             break;
         case C_BLOCK:
@@ -624,21 +562,19 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     }
 }
 
-// Use table_iterator to work
-void checkTopLevel(Node *node) {
-    if (node->type != N_FUNCTION) {
-        return;
-    }
-    Function *f = node->data.function;
+// Aplikace v pruchodu stromu
+void checkTopLevel(Function *f) {
     for (Command *c = f->body.head; c != NULL; c = c->next) {
         switch (c->type) {
         case C_CONTINUE:
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located out of cycle of command");
+            MERROR(ERR_INTERNAL, "C_CONTINUE located outside of a cycle.");
             break;
         case C_BREAK:
+            freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DEFINE located out of cycle of command");
+            MERROR(ERR_INTERNAL, "C_DEFINE located outside of a cycle.");
             break;
         case C_IF:
             checkTopLevelInner(f, c->data.ifC.thenBlock.head, false);
@@ -655,11 +591,9 @@ void checkTopLevel(Node *node) {
             checkTopLevelInner(f, c->data.forC.bodyBlock.head, true);
             break;
         case C_BLOCK:
-        case C_DECLARE:
-        case C_DEFINE:
-        case C_ASSIGN:
-        case C_EXPRESSION:
-        case C_RETURN:
+            checkTopLevelInner(f, c->data.block.head, false);
+            break;
+        default:
             break;
         }
     }

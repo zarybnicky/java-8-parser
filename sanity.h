@@ -15,33 +15,28 @@
 #include "error.h"
 #include "ir.h"
 #include "ial.h"
-#include "interpret.h"
 #include "int_memory_management.h"
 
-void runSemanticAnalysis(Interpret *);
+void runSemanticAnalysis(SymbolTable *);
 
 void checkReturnPresenceC(Function *, Command *);
-void checkReturnPresence(Node *);
-void checkReturnCommand(Function *, Command *);
-void checkReturnType(Node *);
+void checkReturnPresence(Function *);
+void checkMainRunPresence();
 
-//support function for fnExpression definition??!
-void checkBinaryReference_(char *,char *);
+void checkDefined(char *,char *);
 void checkBinaryCond_(Expression *);
-Expression *expLoopSwitch(Command *);
 void checkCondition_(Expression *, Function *);
 void checkFnExpression(Function *,Command *);
-//Sanity main local/global variables functions
-void checkAllStatic (Node *);
-void checkMainRun(SymbolTable *);
+
+void checkAllStatic(Function *);
 
 ValueType coerceBinary(BinaryOperation, ValueType, ValueType);
 bool checkAssignCompatible(ValueType, ValueType);
 ValueType getExpressionType(Expression *);
 void checkOperatorAssignmentTypeC(Function *, Command *);
 void checkOperatorAssignmentTypeF(Command *);
-void checkOperatorAssignmentType(Node *);
+void checkOperatorAssignmentType(Function *);
 void checkTopLevelInner(Function *, Command *, bool cycle);
-void checkTopLevel(Node *);
+void checkTopLevel(Function *);
 
 #endif /* IFJ_SANITY_H */

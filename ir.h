@@ -173,9 +173,8 @@ char *showExpressionType(ExpressionType);
 char *showBinaryOperation(BinaryOperation);
 char *showCommandType(CommandType);
 
-//IR.H
-char *getReferenceName(char *);
 char *getClassName(char *);
-char *getFunctionName(char*);
+
+char *strdup_(const char *);
 
 #endif /* IFJ_IR_H */
