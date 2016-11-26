@@ -19,19 +19,11 @@ void runSemanticAnalysis(SymbolTable *s) {
     symTable = s;
     Node *root = symTable->root;
 
-<<<<<<< a82502d3a360dfb729481435bacc86082e3352c6
-    checkMainRun(&i->symTable);
-    table_iterate(root, checkReturnPresence);
-    table_iterate(root, checkTopLevel);
-    table_iterate(root, checkAllStatic);
-    // table_iterate(root, checkOperatorAssignmentType);
-=======
     checkMainRunPresence();
     table_iterate_fn(root, checkReturnPresence);
     table_iterate_fn(root, checkTopLevel);
     table_iterate_fn(root, checkAllStatic);
     table_iterate_fn(root, checkOperatorAssignmentType);
->>>>>>> Simplify a lot of semantic analysis
 
     symTable = NULL;
 }
