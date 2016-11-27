@@ -711,6 +711,18 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
             exp = e->data.funcall.argHead;
             while (exp != NULL) {
                 // printf("exp type: %s\n", showExpressionType(exp->type));
+                if ((exp->type == E_VALUE) || (exp->type == E_REFERENCE)){
+                    node = table_lookup_either(symTableGlob, symTable, className, exp->data.reference);
+                }
+
+                if (node != NULL){
+                    if (node->type == N_VALUE){
+                        if (node->data.value->undefined == TRUE){
+                            MERROR(ERR_RUNTIME_UNINITIALIZED,"JUJDA")
+                        }
+                    }
+                }
+
                 pushToStack(localStack, evalExpression(symTable, localStack, className, exp));
                 exp = exp->next;
             }
