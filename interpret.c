@@ -155,9 +155,9 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
     breakFlag = FALSE;
     returnFlag = FALSE;
 
-    printf("SWITCH CMD:\n");
-    printCommand(cmd);
-    printf("\n");
+    // printf("SWITCH CMD:\n");
+    // printCommand(cmd);
+    // printf("\n");
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
