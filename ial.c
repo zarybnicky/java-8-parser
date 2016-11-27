@@ -330,14 +330,29 @@ Node *table_lookup(SymbolTable *tree, char *symbol) {
 }
 
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var) {
-    Node *n = table_lookup(local, var);
+    /* check global, local */
+    Node *n = table_lookup(global, var);
+    if (n != NULL)
+        return n;
+
+    n = table_lookup(local, var);
     if (n != NULL) {
         return n;
     }
 
+    /* check global local with changed name */
     if (NULL != strchr(var, '.')) {
-        return table_lookup(global, var);
+        n= table_lookup(local, strchr(var, '.')+1);
+        if (n != NULL)
+            return n;
     }
+
+    if (NULL != strchr(var, '.')) {
+        n = table_lookup(global, strchr(var, '.')+1);
+        if (n != NULL)
+            return n;
+    }
+
 
     int classLength = strlen(class);
     int idLength = strlen(var);
