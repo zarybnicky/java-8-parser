@@ -155,6 +155,9 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
     breakFlag = FALSE;
     returnFlag = FALSE;
 
+    printf("SWITCH CMD:\n");
+    printCommand(cmd);
+    printf("\n");
     switch(cmd->type){
         case(C_DECLARE):
             //  insert declaration into table
@@ -162,6 +165,9 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_DEFINE):
+            // printf("\ncommand: ");
+            //  printCommand(cmd);
+            //  printf("\n");
             val = evalExpression(symTable, stack, className, cmd->data.define.expr);
             val = coerceTo(cmd->data.define.declaration.type, val);
             table_insert(symTable, createValueNode(cmd->data.define.declaration.name, val));
@@ -193,8 +199,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_EXPRESSION):
-            // printf("command: ");
-            // printCommand(cmd);
             val = evalExpression(symTable, stack, className, cmd->data.expr);
             break;
 
@@ -262,7 +266,6 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
     while (current != NULL) {
         if(continueFlag)
             continueFlag = FALSE;
-
         evalCommand(symTable, stack, current, className);
 
         if(continueFlag){
@@ -281,13 +284,13 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
     return 0;
 }
 
-Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, int argCount, Expression *argHead){
+Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, int argCount, Expression *argHead, char *className){
     (void) argCount;
     (void) argHead;
 
     Value *val = NULL;
 
-    Node *node = table_lookup(symTableGlob, name);
+    Node *node = table_lookup_either(symTableGlob,NULL,className, name);
 
     Function *fn = node->data.function;
 
@@ -295,10 +298,17 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
         builtInFunc(localSymTable, localStack, fn);
         return popFromStack(localStack);
     }
-
+    Declaration *d=fn->argHead;
+    while (localStack->size != -1){
+        val = popFromStack(localStack);
+        node=createValueNode(d->name,val);
+        table_insert(localSymTable,node);
+        d=d->next;
+    }
     val = createValue(fn->returnType);
     ht_insert(&alloc_tab,val);
 
+    //getClassName(fn->name);
     evalBlock(localSymTable, localStack, &(fn->body), fn->name);
 
     return val;
@@ -570,8 +580,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
         return NULL;
     }
 
-    (void) stack;
-
     Node *node = NULL;
     Value *val = NULL;
     Stack *localStack;
@@ -580,11 +588,14 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
 
     switch (e->type) {
         case E_FUNCALL:
-            // printf("%s\n", "Som fcia");
+            //printf("%s\n", "Som fcia");
             localStack = createLocalStack(GlobalStack);
             localSymTable = createSymbolTable();
 
             exp = e->data.funcall.argHead;
+            // printf("Expression:\n");
+            // printExpression(exp);
+            // printf("\n" );
             while (exp != NULL) {
                 // printf("exp type: %s\n", showExpressionType(exp->type));
                 if ((exp->type == E_VALUE) || (exp->type == E_REFERENCE)){
@@ -607,12 +618,14 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          localSymTable,
                          e->data.funcall.name,
                          e->data.funcall.argCount,
-                         e->data.funcall.argHead);
+                         e->data.funcall.argHead,
+                         className);
 
             val = localStack->prev == NULL ? popFromStack(localStack) : popFromStack(localStack->prev);
             return val;
 
         case E_REFERENCE:
+            //printf("\nclassName:\n%s\n\nreference:%s\n",className,e->data.reference);
             node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
             return node->data.value;
 

@@ -76,6 +76,7 @@ bool evalCondition(SymbolTable *, Stack *, char *, Expression *);
 Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
+Value *evalFunction(Stack *,SymbolTable *,char *,int,Expression *,char *);
 
 Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
 ValueType evalReturnType(BinaryOperation, Value *, Value *);

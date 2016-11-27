@@ -173,10 +173,11 @@ char *substr(char *s,int i, int n) {
 }
 
 int compare(char *s1, char *s2) {
-    unsigned int s1len = strlen(s1);
-    unsigned int s2len = strlen(s2);
+    //unsigned int s1len = strlen(s1);
+    //unsigned int s2len = strlen(s2);
 
-    if (s1len > s2len)
+    return strcmp(s1,s2);
+    /*if (s1len > s2len)
         return 1;
     if (s1len < s2len)
         return -1;
@@ -187,7 +188,7 @@ int compare(char *s1, char *s2) {
         if (s1[i] < s2[i])
             return -1;
     }
-    return 0;
+    return 0; */
 }
 
 void print(Value *term){

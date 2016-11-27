@@ -8,10 +8,11 @@ class Main{
   static void run(){
     String g = "halo";
     int a=ifj16.compare(g,test.s);
-    int b;
+    int b= 12;
     if ((a+b+a)>5){
       b=5;
       abc();
+      ifj16.print(b);
     }
   }
 }
