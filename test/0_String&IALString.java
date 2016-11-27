@@ -3,7 +3,7 @@ class Main
     static void run() {
         String a = ifj16.readString();
         String b = "hgfeabcd";
-	      int comp = compare(a, b);
+	    int comp = ifj16.compare(a, b);
 	
 	      if (comp != 0){
             ifj16.print("Stringy jsou ruzne! Zkousim seradit a znovu porovnat.\n");

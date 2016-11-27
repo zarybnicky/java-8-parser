@@ -145,7 +145,7 @@ ValueType getExpressionType(Expression *e) {
         n = table_lookup(symTable, e->data.funcall.name);
         if (n == NULL) {
             freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK,
+            FERROR(ERR_SEM_UNDEFINED,
                    "Trying to call a non-existent function %s",
                    e->data.reference);
         }
@@ -184,7 +184,7 @@ ValueType getExpressionType(Expression *e) {
                                 e->data.reference);
         if (n == NULL) {
             freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK,
+            FERROR(ERR_SEM_UNDEFINED,
                    "Trying to reference a non-existent variable %s",
                    e->data.reference);
         }
