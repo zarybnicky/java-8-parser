@@ -93,7 +93,7 @@ void printExpression(Expression *e) {
             printValue(e->data.value);
             break;
         case E_REFERENCE:
-            printValue(e->data.value);
+            printf("%s", e->data.reference);
             break;
         case E_BINARY:
             printf("%s, ", showBinaryOperation(e->data.binary.op));

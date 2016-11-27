@@ -286,7 +286,7 @@ bool parseAssign(Lexer *l, Block *b) {
     Token *t = peekToken(l);
     if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
         return false;
-    char *name = parseAndQualifyId(l);
+    char *name = parseAnyId(l);
     trySymbol(l, SYM_ASSIGN, (free(name), false));
     PARSE_EXPRESSION(e, l);
     expectSymbol_(l, SYM_SEMI, (free(name), freeExpression(e)));
@@ -451,7 +451,7 @@ bool parseExpressionFuncall(Lexer *l, Expression **e) {
     Token *t = peekToken(l);
     if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
         return false;
-    char *name = parseAndQualifyId(l);
+    char *name = parseAnyId(l);
     trySymbol(l, SYM_PAREN_OPEN, (free(name), false));
     int argCount = 0;
     Expression *argHead = parseArgListCall(l, &argCount);
