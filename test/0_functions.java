@@ -14,7 +14,7 @@ class Main{
         String str = "Hello World!\n";
         ifj16.print(str);
 
-        // ifj16.print("test"+"je tu length\n");
+        ifj16.print(5 + " conversion\n");
         ifj16.print(ifj16.length("hellooo"));
         ifj16.print("ahoj\n");
 
@@ -30,7 +30,7 @@ class Main{
 
         ifj16.print("1 - compare\n");
 
-        if(ifj16.compare(s_a, s_aa)){
+        if(ifj16.compare(s_a, s_aa) == 0){
             ifj16.print("rovnake\n");
         }
         else{
@@ -40,7 +40,7 @@ class Main{
         ifj16.print("2 - compare\n");
 
 
-        if(ifj16.compare(s_a, s_b)){
+        if(ifj16.compare(s_a, s_b) == 0){
             ifj16.print("rovnake\n");
         }
         else{

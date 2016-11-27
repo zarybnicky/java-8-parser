@@ -358,7 +358,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         int i = popFromStack(stack)->data.integer;
         char *s = popFromStack(stack)->data.str;
 
-        // dPrintf("args: %s %d %d\n", s, i, n);
         Value *val = createValue(T_STRING);
         S(val) = substr(s, i, n);
 
@@ -372,8 +371,8 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
         dPrintf("s1: '%s', s2: '%s'", s1, s2);
 
-        Value *val = createValue(T_BOOLEAN);
-        I(val) = !compare(s1, s2);
+        Value *val = createValue(T_INTEGER);
+        I(val) = compare(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
 
@@ -411,17 +410,13 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
 int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e) {
     assert(e != NULL);
-
-    // printf("%s\n", "start pushing");
-    // printf("expression type: %s", showExpressionType(e->type));
-    Value *val = evalExpression(symTable, stack, funcName, e);
-    // printf("Val: ");
-    // printValue(val);
-    pushToStack(stack, val);
+    pushToStack(stack, evalExpression(symTable, stack, funcName, e));
     return 0;
 }
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
+    if (left->undefined || right->undefined)
+        ERROR(ERR_RUNTIME_UNINITIALIZED);
 
     #ifdef DEBUG
     printf("left: "); printValue(left);
@@ -429,98 +424,39 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
     printf("\n");
     #endif
 
+    Value *result = createValue(T_BOOLEAN);
 
-    Value *result = NULL;
-
-    switch(left->type){
-    case(T_INTEGER):
-        switch(right->type){
-        case(T_INTEGER):
-            result = evalOperation(op,left,right);
-            result->type = T_INTEGER;
-            if(result->undefined == true){
-                freeValue(result);
-                result = evalBool(op, left, right);
-            }
-            return result;
-        case(T_DOUBLE):
-            result = evalOperation(op,left,right);
-            result->type = T_DOUBLE;
-            if(result->undefined == true){
-                freeValue(result);
-                result = evalBool(op, left, right);
-            }
-            return result;
-        case(T_STRING):
-        case(T_VOID):
-        case(T_BOOLEAN):
-            result = createValue(T_VOID);
-            break;
-        }
-        break;
-    case(T_DOUBLE):
-        switch(right->type){
-        case(T_INTEGER):
-        case(T_DOUBLE):
-            result = evalOperation(op,left,right);
-            result->type = T_DOUBLE;
-            if(result->undefined == true){
-                freeValue(result);
-                result = evalBool(op, left, right);
-            }
-            return result;
-        case(T_STRING):
-        case(T_VOID):
-        case(T_BOOLEAN):
-            result = createValue(T_VOID);
-            break;
-        }
-        break;
-    case(T_STRING):
-        switch(right->type){
-        case(T_STRING):
-            result = evalOperation(op,left,right);
-            result->type = T_STRING;
-            if(result->undefined == true){
-                freeValue(result);
-                result = evalBool(op, left, right);
-            }
-            return result;
-        case(T_INTEGER):
-        case(T_DOUBLE):
-        case(T_VOID):
-        case(T_BOOLEAN):
-            result = createValue(T_VOID);
-            break;
-        }
-        break;
-    case(T_VOID):
-        result = createValue(T_VOID);
-        break;
-    case(T_BOOLEAN):
-        switch(right->type){
-        case(T_INTEGER):
-        case(T_DOUBLE):
-        case(T_STRING):
-        case(T_VOID):
-            result = createValue(T_VOID);
-            break;
-        case(T_BOOLEAN):
-            result = evalBool(op,left,right);
-            result->type = T_BOOLEAN;
-            return result;
-        }
-        break;
+    if (left->type == T_VOID || right->type == T_VOID) {
+        result->undefined = true;
+        return result;
     }
 
-    result->undefined = false;
+    if (left->type == T_STRING || right->type == T_STRING) {
+        if (op != EB_ADD) {
+            result->undefined = true;
+            return result;
+        }
+        char *l = ( left->type == T_STRING) ? S( left) : S(coerceTo(T_STRING, left));
+        char *r = (right->type == T_STRING) ? S(right) : S(coerceTo(T_STRING, right));
+        result->type = T_STRING;
+        S(result) = malloc(sizeof(char) * (strlen(l) + strlen(r) + 1));
+        strcpy(S(result), l);
+        strcat(S(result), r);
+    }
 
-    return result;
-}
-
-Value *evalBool(BinaryOperation op, Value *left, Value *right){
-
-    Value *result = createValue(T_BOOLEAN);
+    if (left->type == T_BOOLEAN && right->type == T_BOOLEAN) {
+        switch(op){
+        case(EB_EQUAL):
+            B(result) = B(left) == B(right);
+            return result;
+        case(EB_NOT_EQUAL):
+            B(result) = B(left) != B(right);
+            return result;
+        default:
+            result->undefined = true;
+            return result;
+        }
+    }
 
     if (left->type == T_INTEGER && right->type == T_INTEGER) {
         switch(op){
@@ -542,130 +478,70 @@ Value *evalBool(BinaryOperation op, Value *left, Value *right){
         case(EB_GREATER_EQUAL):
             B(result) = I(left) >= I(right);
             return result;
+        case(EB_ADD):
+            result->type = T_INTEGER;
+            I(result) = I(left) + I(right);
+            return result;
+        case(EB_SUBTRACT):
+            result->type = T_INTEGER;
+            I(result) = I(left) - I(right);
+            return result;
+        case(EB_MULTIPLY):
+            result->type = T_INTEGER;
+            I(result) = I(left) * I(right);
+            return result;
+        case(EB_DIVIDE):
+            if (I(right) == 0)
+                ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+            result->type = T_INTEGER;
+            I(result) = I(left) / I(right);
+            return result;
         default:
             result->undefined = true;
             return result;
         }
     }
 
-    if (left->type == T_BOOLEAN && right->type == T_BOOLEAN) {
-        switch(op){
+    if (( left->type == T_DOUBLE ||  left->type == T_INTEGER) &&
+        (right->type == T_DOUBLE || right->type == T_INTEGER)) {
+        switch(op) {
         case(EB_EQUAL):
-            B(result) = B(left) == B(right);
+            B(result) = DVAL(left) == DVAL(right);
             return result;
         case(EB_NOT_EQUAL):
-            B(result) = B(left) != B(right);
+            B(result) = DVAL(left) != DVAL(right);
             return result;
-        default:
-            result->undefined = true;
+        case(EB_LESS):
+            B(result) = DVAL(left) < DVAL(right);
+            return result;
+        case(EB_LESS_EQUAL):
+            B(result) = DVAL(left) <= DVAL(right);
+            return result;
+        case(EB_GREATER):
+            B(result) = DVAL(left) > DVAL(right);
+            return result;
+        case(EB_GREATER_EQUAL):
+            B(result) = DVAL(left) >= DVAL(right);
+            return result;
+        case(EB_ADD):
+            result->type = T_DOUBLE;
+            D(result) = DVAL(left) + DVAL(right);
+            return result;
+        case(EB_SUBTRACT):
+            result->type = T_DOUBLE;
+            D(result) = DVAL(left) - DVAL(right);
+            return result;
+        case(EB_MULTIPLY):
+            result->type = T_DOUBLE;
+            D(result) = DVAL(left) * DVAL(right);
+            return result;
+        case(EB_DIVIDE):
+            if (fabs(DVAL(right)) < 10e-7)
+                ERROR(ERR_RUNTIME_DIV_BY_ZERO);
+            result->type = T_DOUBLE;
+            D(result) = DVAL(left) / DVAL(right);
             return result;
         }
-    }
-
-    if (( left->type != T_DOUBLE &&  left->type != T_INTEGER) &&
-        (right->type != T_DOUBLE && right->type != T_INTEGER)) {
-        result->undefined = true;
-        return result;
-    }
-
-    switch(op){
-    case(EB_EQUAL):
-        B(result) = DVAL(left) == DVAL(right);
-        return result;
-    case(EB_NOT_EQUAL):
-        B(result) = DVAL(left) != DVAL(right);
-        return result;
-    case(EB_LESS):
-        B(result) = DVAL(left) < DVAL(right);
-        return result;
-    case(EB_LESS_EQUAL):
-        B(result) = DVAL(left) <= DVAL(right);
-        return result;
-    case(EB_GREATER):
-        B(result) = DVAL(left) > DVAL(right);
-        return result;
-    case(EB_GREATER_EQUAL):
-        B(result) = DVAL(left) >= DVAL(right);
-        return result;
-    default:
-        result->undefined = true;
-        return result;
-    }
-}
-
-Value *evalOperation(BinaryOperation op, Value *left, Value *right) {
-    if (left->undefined || right->undefined)
-        ERROR(ERR_RUNTIME_UNINITIALIZED);
-
-    Value *result = createValue(getBinExpType(op, left->type, right->type));
-
-    // TODO BOOLOP
-
-    switch(op){
-    case(EB_MULTIPLY):
-        switch(result->type){
-            case(T_INTEGER):
-                I(result) = I(left) * I(right);
-                return result;
-            case(T_DOUBLE):
-                D(result) = DVAL(left) * DVAL(right);
-                return result;
-            default:
-            break;
-        }
-        break;
-    case(EB_DIVIDE):
-        switch(result->type){
-            case(T_INTEGER):
-
-                if(I(right) == 0)
-                    ERROR(ERR_RUNTIME_DIV_BY_ZERO);
-
-                I(result) = I(left) / I(right);
-                return result;
-
-            case(T_DOUBLE):
-
-                if(DVAL(right) == 0.0)
-                    ERROR(ERR_RUNTIME_DIV_BY_ZERO);
-
-                D(result) = DVAL(left) / DVAL(right);
-                return result;
-
-            default:
-            break;
-        }
-        break;
-    case(EB_ADD):
-        switch(result->type){
-            case(T_INTEGER):
-                I(result) = I(left) + I(right);
-                return result;
-            case(T_DOUBLE):
-                D(result) = DVAL(left) + DVAL(right);
-                return result;
-            case(T_STRING):
-                // printf("l:'%s' r:'%s'\n", S(left), S(right));
-                S(result) = strcat(S(left), S(right));
-                return result;
-            default:
-                break;
-        }
-        break;
-    case(EB_SUBTRACT):
-        switch(result->type){
-            case(T_INTEGER):
-                I(result) = I(left) - I(right);
-                return result;
-            case(T_DOUBLE):
-                D(result) = DVAL(left) - DVAL(right);
-                return result;
-            default:
-                break;
-        }
-        break;
-    default:
-        break;
     }
 
     result->undefined = true;
@@ -734,7 +610,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          e->data.funcall.argHead);
 
             val = localStack->prev == NULL ? popFromStack(localStack) : popFromStack(localStack->prev);
-            // printf("%s", "Return value: "); printValue(val);
             return val;
 
         case E_REFERENCE:
@@ -745,7 +620,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
             return e->data.value;
 
         case E_BINARY:
-            // printf("%s\n", "bianry");
             return evalBinaryExpression(e->data.binary.op,
                                         evalExpression(symTable, stack, className, e->data.binary.left),
                                         evalExpression(symTable, stack, className, e->data.binary.right));
@@ -756,10 +630,6 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~Function handling~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 //  Stack Init Del Push Pop
-
-
-
-
 
 void testStack(){
     printf("%s\n", "TEST STACK");
@@ -787,7 +657,7 @@ void testStack(){
 
     val = createValue(T_STRING);
 
-    val->data.str = malloc(sizeof(strlen("asdf")+1));
+    val->data.str = malloc(sizeof(strlen("asdf")) + 1);
     strcpy(val->data.str, "asdf\0");
 
     pushToStack(stack, val);
