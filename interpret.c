@@ -101,28 +101,31 @@ int interpretFunc(Stack *stack, Node *node) {
     Node *mainFn = table_lookup(symTableGlob, "Main.run");
     Function *f = node->data.function;
 
-    if(strcmp(node->symbol, mainFn->symbol)){
-        dPrintf("%s", "Creating new local stack.\n");
-        localStack = createLocalStack(stack);
-    }
-    else{
-        dPrintf("%s", "Setting reference of: local stack to global stack\n");
-        localStack = GlobalStack;
-    }
+    (void) mainFn;
+    (void) localStack;
+
+    // if(strcmp(node->symbol, mainFn->symbol)){
+    //     dPrintf("%s", "Creating new local stack.\n");
+    //     localStack = createLocalStack(stack);
+    // }
+    // else{
+    //     dPrintf("%s", "Setting reference of: local stack to global stack\n");
+    //     localStack = GlobalStack;
+    // }
 
     dPrintf("%s", "Creating new local table.\n");
     localTable = createSymbolTable();
     ht_insert (&alloc_tab, localTable);
 
-    assert(localStack != NULL);
+    // assert(localStack != NULL);
     assert(localTable != NULL);
 
     for (Command *c = f->body.head; c != NULL; c = c->next) {
-        evalCommand(localTable, localStack, c, getClassName(f->name));
+        evalCommand(localTable, stack, c, getClassName(f->name));
     }
 
-    Node *n = table_lookup_either(symTableGlob, localTable, getClassName(f->name), "b");
-    printValue(n->data.value);
+    // Node *n = table_lookup_either(symTableGlob, localTable, getClassName(f->name), "b");
+    // printValue(n->data.value);
 
     return 0;
 }
@@ -190,6 +193,8 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_EXPRESSION):
+            // printf("command: ");
+            // printCommand(cmd);
             val = evalExpression(symTable, stack, className, cmd->data.expr);
             break;
 
@@ -349,10 +354,11 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if(!strcmp(str, "ifj16.substr") ){
-        char *s = popFromStack(stack)->data.str;
-        int i = popFromStack(stack)->data.integer;
         int n = popFromStack(stack)->data.integer;
+        int i = popFromStack(stack)->data.integer;
+        char *s = popFromStack(stack)->data.str;
 
+        // dPrintf("args: %s %d %d\n", s, i, n);
         Value *val = createValue(T_STRING);
         S(val) = substr(s, i, n);
 
@@ -361,13 +367,13 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         return 0;
     }
     else if (!strcmp(str, "ifj16.compare")) {
-        char *s1 = popFromStack(stack)->data.str;
         char *s2 = popFromStack(stack)->data.str;
+        char *s1 = popFromStack(stack)->data.str;
 
-        dPrintf("s1: '%s',\n s2: '%s'", s1, s2);
+        dPrintf("s1: '%s', s2: '%s'", s1, s2);
 
-        Value *val = createValue(T_INTEGER);
-        I(val) = compare(s1, s2);
+        Value *val = createValue(T_BOOLEAN);
+        I(val) = !compare(s1, s2);
 
         stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
 
@@ -388,10 +394,10 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     else if(!strcmp(str, "ifj16.find") ){
 
         Value *val = popFromStack(stack);
-        char *s1 = val->data.str;
+        char *s2 = val->data.str;
 
         val = popFromStack(stack);
-        char *s2 = val->data.str;
+        char *s1 = val->data.str;
 
         val->type = T_INTEGER;
         I(val) = find(s1, s2);
@@ -404,11 +410,25 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 }
 
 int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e) {
-    pushToStack(stack, evalExpression(symTable, stack, funcName, e));
+    assert(e != NULL);
+
+    // printf("%s\n", "start pushing");
+    // printf("expression type: %s", showExpressionType(e->type));
+    Value *val = evalExpression(symTable, stack, funcName, e);
+    // printf("Val: ");
+    // printValue(val);
+    pushToStack(stack, val);
     return 0;
 }
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
+
+    #ifdef DEBUG
+    printf("left: "); printValue(left);
+    printf(" right: "); printValue(right);
+    printf("\n");
+    #endif
+
 
     Value *result = NULL;
 
@@ -625,7 +645,8 @@ Value *evalOperation(BinaryOperation op, Value *left, Value *right) {
                 D(result) = DVAL(left) + DVAL(right);
                 return result;
             case(T_STRING):
-                S(result) = str_cat(S(left), S(right));
+                // printf("l:'%s' r:'%s'\n", S(left), S(right));
+                S(result) = strcat(S(left), S(right));
                 return result;
             default:
                 break;
@@ -668,25 +689,29 @@ Value *evalStaticExpression(Expression *e) {
 
 Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expression *e) {
 
-    if(e == NULL)
+    if(e == NULL){
+        MERROR(ERR_INTERNAL, "evalExpression: Expression je null");
         return NULL;
+    }
 
     (void) stack;
 
     Node *node = NULL;
+    Value *val = NULL;
     Stack *localStack;
     SymbolTable *localSymTable;
     Expression *exp;
 
     switch (e->type) {
         case E_FUNCALL:
-
+            // printf("%s\n", "Som fcia");
             localStack = createLocalStack(GlobalStack);
             localSymTable = createSymbolTable();
 
             exp = e->data.funcall.argHead;
             while (exp != NULL) {
-                pushParamToStack(localSymTable, localStack, className, exp);
+                // printf("exp type: %s\n", showExpressionType(exp->type));
+                pushToStack(localStack, evalExpression(symTable, localStack, className, exp));
                 exp = exp->next;
             }
 
@@ -696,7 +721,9 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          e->data.funcall.argCount,
                          e->data.funcall.argHead);
 
-            return popFromStack(GlobalStack);
+            val = localStack->prev == NULL ? popFromStack(localStack) : popFromStack(localStack->prev);
+            // printf("%s", "Return value: "); printValue(val);
+            return val;
 
         case E_REFERENCE:
             node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
@@ -706,6 +733,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
             return e->data.value;
 
         case E_BINARY:
+            // printf("%s\n", "bianry");
             return evalBinaryExpression(e->data.binary.op,
                                         evalExpression(symTable, stack, className, e->data.binary.left),
                                         evalExpression(symTable, stack, className, e->data.binary.right));
@@ -713,26 +741,91 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
     return NULL; //Just to pacify the compiler...
 }
 
-char *str_cat(char *str1, char* str2){
-    assert(str1 == NULL);
-    assert(str2 == NULL);
-
-    char *result = malloc_c( sizeof(char) * ( strlen(str1) + strlen(str2) ) );
-    CHECK_ALLOC(result);
-
-    unsigned x = 0;
-
-    for ( x = 0; x < strlen(str1); x++)
-        result[x] = str1[x];
-    for (; x < strlen(str2) + strlen(str1); x++)
-        result[x] = str2[x - strlen(str1)];
-
-    return result;
-}
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~Function handling~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 //  Stack Init Del Push Pop
+
+
+
+
+
+void testStack(){
+    printf("%s\n", "TEST STACK");
+
+    printf("%s\n", "1. create stack");
+
+    Stack *stack = NULL;
+
+    stack = createLocalStack(NULL);
+
+    printStack(stack);
+
+    printf("%s\n", "\n--------------------\n");
+
+    printf("%s\n", "2. push to stack");
+
+
+    Value *val = createValue(T_INTEGER);
+    val->data.integer = 42;
+    pushToStack(stack, val);
+
+    val = createValue(T_DOUBLE);
+    val->data.dbl = 41.0;
+    pushToStack(stack, val);
+
+    val = createValue(T_STRING);
+
+    val->data.str = malloc(sizeof(strlen("asdf")+1));
+    strcpy(val->data.str, "asdf\0");
+
+    pushToStack(stack, val);
+
+    printStack(stack);
+    printf("%s\n", "--------------------\n");
+
+    printf("%s\n", "3. pop to stack");
+
+    popFromStack(stack);
+    printStack(stack);
+    printf("\n\n");
+    popFromStack(stack);
+    printStack(stack);
+    printf("\n\n");
+
+    popFromStack(stack);
+    printStack(stack);
+    printf("\n\n");
+
+    popFromStack(stack);
+    printStack(stack);
+    printf("\n\n");
+
+    printf("%s\n", "--------------------\n");
+
+    printf("%s\n", "END TEST\n This test do not free all resources it should left 4 memory blocks!");
+
+    free_c_all(&alloc_tab);
+
+
+    return;
+}
+
+void printStack(Stack *stack){
+    if(stack == NULL){
+        printf("Stack is not initialized\n");
+    }
+
+    printf("size: %d cap: %d\n", stack->size, stack->cap);
+
+    printf("|-----------------|\n ");
+
+    for(int i = stack->size; i >= 0 ; i--){
+        printValue(stack->data[i]);
+
+        printf("\n|-----------------|\n ");
+    }
+}
+
 
 Stack *createLocalStack(Stack *stack){
 

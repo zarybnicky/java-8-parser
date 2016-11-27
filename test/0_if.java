@@ -1,6 +1,6 @@
 class Main{
     static void run(){
-        
+
         int a = 42;
         int b = 4;
 
@@ -10,5 +10,7 @@ class Main{
         else{
             b = 8;
         }
+
+        ifj16.print(b);
     }
 }

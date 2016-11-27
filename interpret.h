@@ -95,4 +95,11 @@ int pushParamToStack(SymbolTable *, Stack *, char *, Expression *);
 
 Value *reTypeFromDeclToVal(Declaration *);
 
+void testStack();
+void printStack(Stack *);
+Stack *createLocalStack(Stack *stack);
+Stack *deleteLocaleStack(Stack *stack);
+int pushToStack(Stack *stack, Value *val);
+Value *popFromStack(Stack *stack);
+
 #endif

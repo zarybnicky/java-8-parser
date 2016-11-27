@@ -10,8 +10,11 @@ LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memo
 
 all: ifj16
 
-debug: CFLAGS += -DDEBUG -g3
+debug: CFLAGS += -g3
 debug: all
+
+debugInt: CFLAGS += -DDEBUG
+debugInt: debug
 
 test: debug test/parser test/symbol-table
 	bash testsuite.sh

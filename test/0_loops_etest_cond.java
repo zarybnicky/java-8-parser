@@ -1,12 +1,14 @@
 class Main{
-  static void abc(){}
+  static void abc(String x){
+    ifj16.print(x);
+  }
   static void run(){
     int c= 5;
     for (int i; i < 10; i=5){
-      abc();
+      abc(i);
     }
     while(c == 5){
-      abc();
+      abc(c);
     }
     do{
       abc();
