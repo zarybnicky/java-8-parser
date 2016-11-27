@@ -17,8 +17,6 @@
 // System libraries
 #include <stdbool.h>
 #include <assert.h>
-#include <limits.h>
-#include <errno.h>
 #include <string.h>
 
 // Local libraries
@@ -27,7 +25,7 @@
 #include "ir.h"
 #include "int_memory_management.h"
 #include "int_debug.h"
-
+#include "type.h"
 
 /*--------------------------------STRUCTURES--------------------------------*/
 
@@ -55,15 +53,7 @@ typedef enum{
     FN_OTHER
 } FnTypes;
 
-/*--------------------------------VARIABLES---------------------------------*/
-
-
-
-/*---------------------------------MACROS-----------------------------------*/
-
-
-
-/*-------------------------------Declarations--------------------------------*/
+/*-------------------------------Declarations-------------------------------*/
 
 
 Interpret *createInterpret(void);
@@ -91,8 +81,7 @@ ValueType evalReturnType(BinaryOperation, Value *, Value *);
 Value *evalOperation(BinaryOperation , Value *, Value *);
 Value *evalBool(BinaryOperation , Value *, Value *);
 
-
-double toDouble(Value *val);
+Value *coerceTo(ValueType, Value *);
 
 char *str_cat(char *, char* );
 

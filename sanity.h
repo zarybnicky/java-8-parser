@@ -16,6 +16,7 @@
 #include "ir.h"
 #include "ial.h"
 #include "int_memory_management.h"
+#include "type.h"
 
 void runSemanticAnalysis(SymbolTable *);
 
@@ -23,13 +24,12 @@ void checkReturnPresenceC(Function *, Command *);
 void checkReturnPresence(Function *);
 void checkMainRunPresence();
 
-ValueType coerceBinary(BinaryOperation, ValueType, ValueType);
-bool checkAssignCompatible(ValueType, ValueType);
-ValueType getExpressionType(Expression *);
 void checkOperatorAssignmentTypeC(Function *, Command *);
 void checkOperatorAssignmentTypeF(Command *);
 void checkOperatorAssignmentType(Function *);
 void checkTopLevelInner(Function *, Command *, bool cycle);
 void checkTopLevel(Function *);
+
+ValueType getExpressionType(Expression *);
 
 #endif /* IFJ_SANITY_H */

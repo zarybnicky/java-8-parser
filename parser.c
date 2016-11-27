@@ -261,17 +261,24 @@ bool parseFor(Lexer *l, Block *b) {
     if (!parseDeclaration(l, &dPtr)) {
         return false;
     }
-    expectSymbol_(l, SYM_ASSIGN, free(d.name));
-    PARSE_EXPRESSION(init, l);
-    expectSymbol_(l, SYM_SEMI, (free(d.name), freeExpression(init)));
+    Token *t = peekToken(l);
+    Expression *init;
+    if (t->type == SYMBOL && t->val.symbol == SYM_ASSIGN) {
+        nextToken(l);
+        PARSE_EXPRESSION(init_, l);
+        init = init_;
+    } else {
+        init = NULL;
+    }
+    expectSymbol_(l, SYM_SEMI, (free(d.name)));
     PARSE_EXPRESSION(cond, l);
-    expectSymbol_(l, SYM_SEMI, (free(d.name), freeExpression(init), freeExpression(cond)));
+    expectSymbol_(l, SYM_SEMI, (free(d.name), freeExpression(cond)));
     Block dummy; dummy.head = dummy.tail = NULL;
-    if (!parseAssign(l, &dummy)) {
-        free(d.name), freeExpression(init), freeExpression(cond);
+    if (!parseAssignExpression(l, &dummy)) {
+        free(d.name), freeExpression(cond);
         errorExpectedCommand(l);
     }
-    expectSymbol_(l, SYM_PAREN_CLOSE, (free(d.name), freeExpression(init), freeExpression(cond), freeCommand(dummy.head)));
+    expectSymbol_(l, SYM_PAREN_CLOSE, (free(d.name), freeExpression(cond), freeCommand(dummy.head)));
 
     Command *c = createCommandFor(d, init, cond, dummy.head);
     if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
@@ -283,13 +290,19 @@ bool parseFor(Lexer *l, Block *b) {
 }
 
 bool parseAssign(Lexer *l, Block *b) {
+    if (!parseAssignExpression(l, b))
+        return false;
+    expectSymbol(l, SYM_SEMI);
+    return true;
+}
+
+bool parseAssignExpression(Lexer *l, Block *b) {
     Token *t = peekToken(l);
     if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
         return false;
     char *name = parseAnyId(l);
     trySymbol(l, SYM_ASSIGN, (free(name), false));
     PARSE_EXPRESSION(e, l);
-    expectSymbol_(l, SYM_SEMI, (free(name), freeExpression(e)));
     appendToBlock(b, createCommandAssign(name, e));
     return true;
 }

@@ -4,7 +4,7 @@ CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99
 LDFLAGS=-L.
 
-LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o
+LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
 
 .PHONY: all test clean
 

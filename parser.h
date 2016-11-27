@@ -173,6 +173,7 @@ bool parseFor(Lexer *l, Block *b);
 bool parseCommand(Lexer *l, Block *b);
 
 bool parseAssign(Lexer *l, Block *b);
+bool parseAssignExpression(Lexer *l, Block *b);
 bool parseFuncall(Lexer *l, Block *b);
 bool parseContinue(Lexer *l, Block *b);
 bool parseBreak(Lexer *l, Block *b);

@@ -67,142 +67,6 @@ void checkMainRunPresence() {
     }
 }
 
-ValueType coerceBinary(BinaryOperation op, ValueType left, ValueType right) {
-    if (left == T_VOID || right == T_VOID) {
-        return T_VOID; //this should never happen
-    }
-    if (left == T_STRING || right == T_STRING) {
-        if (op == EB_ADD) {
-            return T_STRING; //concatenation
-        }
-        freeSemantic();
-        FERROR(ERR_SEM_TYPECHECK,
-               "Wrong operator types for operation %s: %s, %s.\n",
-               showBinaryOperation(op), showValueType(left), showValueType(right));
-    }
-    if (left == T_BOOLEAN || right == T_BOOLEAN) {
-        if (left == T_BOOLEAN && right == T_BOOLEAN &&
-            (op == EB_EQUAL || op == EB_NOT_EQUAL)) {
-            return T_BOOLEAN; //bool comparison
-        }
-        freeSemantic();
-        FERROR(ERR_SEM_TYPECHECK,
-               "Wrong operator types for operation %s: %s, %s.\n",
-               showBinaryOperation(op), showValueType(left), showValueType(right));
-    }
-
-    //now left & right are both int or double
-    switch (op) {
-    case EB_ADD:
-    case EB_SUBTRACT:
-    case EB_MULTIPLY:
-    case EB_DIVIDE:
-        if (left == T_INTEGER && right == T_INTEGER) {
-            return T_INTEGER;
-        }
-        return T_DOUBLE;
-    case EB_EQUAL:
-    case EB_NOT_EQUAL:
-    case EB_LESS:
-    case EB_LESS_EQUAL:
-    case EB_GREATER:
-    case EB_GREATER_EQUAL:
-        return T_BOOLEAN;
-    }
-    freeSemantic();
-    FERROR(ERR_SEM_TYPECHECK,
-           "Wrong operator types for operation %s: %s, %s.\n",
-           showBinaryOperation(op), showValueType(left), showValueType(right));
-}
-
-bool checkAssignCompatible(ValueType lvalue, ValueType rvalue) {
-    if ((lvalue == T_INTEGER || lvalue == T_DOUBLE) &&
-        (rvalue == T_INTEGER || rvalue == T_DOUBLE)) {
-        return true;
-    }
-    if (lvalue == T_STRING) {
-        return true;
-    }
-    if (lvalue == T_BOOLEAN && rvalue == T_BOOLEAN) {
-        return true;
-    }
-    return false;
-}
-
-ValueType getExpressionType(Expression *e) {
-    if (e == NULL) {
-        freeSemantic();
-        MERROR(ERR_INTERNAL, "NULL expression");
-    }
-    Node *n;
-    Expression *arg;
-
-    switch (e->type) {
-    case E_VALUE:
-        return e->data.value->type;
-
-    case E_FUNCALL:
-        n = table_lookup_either(symTable,NULL, className,e->data.funcall.name);
-        if (n == NULL) {
-            freeSemantic();
-            FERROR(ERR_SEM_UNDEFINED,
-                   "Trying to call a non-existent function %s",
-                   e->data.reference);
-        }
-        if (n->type != N_FUNCTION) {
-            freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK, "Trying to call a variable %s",
-                   e->data.funcall.name);
-        }
-        if (e->data.funcall.argCount != n->data.function->argCount) {
-            freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK,
-                   "Calling %s with %d arguments, expecting %d",
-                   e->data.funcall.name, e->data.funcall.argCount,
-                   n->data.function->argCount);
-        }
-
-        arg = e->data.funcall.argHead;
-        for (int argNum = 0; arg != NULL; argNum++, arg = arg->next) {
-            Declaration *d = n->data.function->argHead;
-            for (int i = n->data.function->argCount - 1; i --> argNum;)
-                d = d->next;
-
-            ValueType rtype = getExpressionType(arg);
-            if (!checkAssignCompatible(d->type, rtype)) {
-                freeSemantic();
-                FERROR(ERR_SEM_TYPECHECK,
-                       "Cannot convert %s to %s while calling function %s\n",
-                       showValueType(rtype), showValueType(d->type),
-                       n->data.function->name);
-            }
-        }
-        return n->data.function->returnType;
-
-    case E_REFERENCE:
-        n = table_lookup_either(symTable, localTable, className,
-                                e->data.reference);
-        if (n == NULL) {
-            freeSemantic();
-            FERROR(ERR_SEM_UNDEFINED,
-                   "Trying to reference a non-existent variable %s",
-                   e->data.reference);
-        }
-        if (n->type != N_VALUE) {
-            freeSemantic();
-            MERROR(ERR_SEM_TYPECHECK, "Trying to reference a function");
-        }
-        return n->data.value->type;
-
-    case E_BINARY:
-        return coerceBinary(e->data.binary.op,
-                            getExpressionType(e->data.binary.left),
-                            getExpressionType(e->data.binary.right));
-    }
-
-    //...and appease the compiler
-    return T_VOID;
-}
 void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     if (c == NULL || f == NULL)
         return;
@@ -218,7 +82,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
         rtype = getExpressionType(c->data.define.expr);
-        if (!checkAssignCompatible(ltype, rtype)) {
+        if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
@@ -243,7 +107,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         }
         ltype = n->data.value->type;
         rtype = getExpressionType(c->data.assign.expr);
-        if (!checkAssignCompatible(ltype, rtype)) {
+        if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
@@ -252,7 +116,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
 
     case C_IF:
         rtype = getExpressionType(c->data.ifC.cond);
-        if (!checkAssignCompatible(T_BOOLEAN, rtype)) {
+        if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
                    "'if' condition requires a boolean expression\n");
@@ -261,7 +125,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
 
     case C_WHILE:
         rtype = getExpressionType(c->data.whileC.cond);
-        if (!checkAssignCompatible(T_BOOLEAN, rtype)) {
+        if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSymbolTable(localTable);
             MERROR(ERR_SEM_TYPECHECK,
                    "'while' condition requires a boolean expression\n");
@@ -270,7 +134,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
 
     case C_DO_WHILE:
         rtype = getExpressionType(c->data.doWhileC.cond);
-        if (!checkAssignCompatible(T_BOOLEAN, rtype)) {
+        if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
                    "'do-while' condition requires a boolean expression\n");
@@ -280,7 +144,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     case C_FOR:
         ltype = c->data.forC.var.type;
         rtype = getExpressionType(c->data.forC.initial);
-        if (!checkAssignCompatible(ltype, rtype)) {
+        if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
             FERROR(ERR_SEM_TYPECHECK,
                    "Can't assign %s to %s in 'for' initialization",
@@ -289,7 +153,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         table_insert_dummy(localTable, c->data.forC.var);
 
         rtype = getExpressionType(c->data.forC.cond);
-        if (!checkAssignCompatible(T_BOOLEAN, rtype)) {
+        if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
                    "'for' condition requires a boolean expression\n");
@@ -317,7 +181,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
             }
             ltype = f->returnType;
             rtype = getExpressionType(c->data.expr);
-            if (!checkAssignCompatible(ltype, rtype)) {
+            if (!isAssignCompatible(ltype, rtype)) {
                 freeSemantic();
                 FERROR(ERR_SEM_TYPECHECK,
                        "Can't return a %s from a function returning %s\n",
@@ -437,4 +301,88 @@ void checkTopLevel(Function *f) {
             break;
         }
     }
+}
+
+ValueType getExpressionType(Expression *e) {
+    if (e == NULL) {
+        freeSemantic();
+        MERROR(ERR_INTERNAL, "NULL expression");
+    }
+    Node *n;
+    Expression *arg;
+    ValueType t;
+
+    switch (e->type) {
+    case E_VALUE:
+        return e->data.value->type;
+
+    case E_FUNCALL:
+        n = table_lookup_either(symTable, NULL, className, e->data.funcall.name);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_UNDEFINED,
+                   "Trying to call a non-existent function %s",
+                   e->data.reference);
+        }
+        if (n->type != N_FUNCTION) {
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK, "Trying to call a variable %s",
+                   e->data.funcall.name);
+        }
+        if (e->data.funcall.argCount != n->data.function->argCount) {
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Calling %s with %d arguments, expecting %d",
+                   e->data.funcall.name, e->data.funcall.argCount,
+                   n->data.function->argCount);
+        }
+
+        arg = e->data.funcall.argHead;
+        for (int argNum = 0; arg != NULL; argNum++, arg = arg->next) {
+            Declaration *d = n->data.function->argHead;
+            for (int i = n->data.function->argCount - 1; i --> argNum;)
+                d = d->next;
+
+            ValueType rtype = getExpressionType(arg);
+            if (!isAssignCompatible(d->type, rtype)) {
+                freeSemantic();
+                FERROR(ERR_SEM_TYPECHECK,
+                       "Cannot convert %s to %s while calling function %s\n",
+                       showValueType(rtype), showValueType(d->type),
+                       n->data.function->name);
+            }
+        }
+        return n->data.function->returnType;
+
+    case E_REFERENCE:
+        n = table_lookup_either(symTable, localTable, className,
+                                e->data.reference);
+        if (n == NULL) {
+            freeSemantic();
+            FERROR(ERR_SEM_UNDEFINED,
+                   "Trying to reference a non-existent variable %s",
+                   e->data.reference);
+        }
+        if (n->type != N_VALUE) {
+            freeSemantic();
+            MERROR(ERR_SEM_TYPECHECK, "Trying to reference a function");
+        }
+        return n->data.value->type;
+
+    case E_BINARY:
+        t = getBinExpType(e->data.binary.op,
+                          getExpressionType(e->data.binary.left),
+                          getExpressionType(e->data.binary.right));
+        if (t == T_VOID) {
+            freeSemantic();
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Wrong operator types for operation %s: %s, %s.\n",
+                   showBinaryOperation(e->data.binary.op),
+                   showValueType(getExpressionType(e->data.binary.left)),
+                   showValueType(getExpressionType(e->data.binary.right)));
+        }
+    }
+
+    //...and appease the compiler
+    return T_VOID;
 }

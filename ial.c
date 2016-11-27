@@ -338,8 +338,7 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
     /* check global local with changed name */
     if (NULL != strchr(var, '.')) {
         n = table_lookup(global, var);
-        if (n != NULL)
-            return n;
+        return n;
     }
 
 
@@ -446,15 +445,20 @@ void printNode(Node *n)  {
         printf("Node(NULL)\n");
         return;
     }
-    printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
-    if (n->left != NULL){
-        printNode(n->left);
+    switch (n->type) {
+    case N_VALUE:
+        printf("Node(%s, ", n->symbol);
+        printValue(n->data.value);
         printf(", ");
+        break;
+    default:
+        printf("Node(%s, %s, ", n->symbol, showNodeType(n->type));
+        break;
     }
-    if (n->right != NULL){
-        printNode(n->right);
-        printf(")\n");
-    }
+    printNode(n->left);
+    printf(", ");
+    printNode(n->right);
+    printf(")\n");
 }
 char *showNodeType(NodeType x) {
     switch (x) {

@@ -72,6 +72,15 @@ typedef struct tValue {
     } data;
 } Value;
 
+#define I(x) (x)->data.integer
+#define D(x) (x)->data.dbl
+#define B(x) (x)->data.boolean
+#define S(x) (x)->data.str
+#define DVAL(x)                                  \
+    ((x)->type == T_DOUBLE ? D(x) :              \
+     (x)->type == T_INTEGER ? (double) I(x) :    \
+     0.0)
+
 typedef struct tExpression {
     ExpressionType type;
     struct tExpression *next; //for argument lists
