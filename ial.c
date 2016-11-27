@@ -337,7 +337,7 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
 
     /* check global local with changed name */
     if (NULL != strchr(var, '.')) {
-        n = table_lookup(global, strchr(var, '.')+1);
+        n = table_lookup(global, var);
         if (n != NULL)
             return n;
     }

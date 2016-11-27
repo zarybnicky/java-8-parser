@@ -23,15 +23,14 @@ assert_raises "./ifj16 test/3_class_nomain.java" 3
 assert_raises "./ifj16 test/3_function_nodefinition.java" 3
 assert_raises "./ifj16 test/3_undefined_variable.java" 3
 
+assert_raises "./ifj16 test/4_wrong_param_type.java" 4
 assert_raises "./ifj16 test/4_wrong_param_number.java" 4
 assert_raises "./ifj16 test/4_assign_bool.java" 4
 assert_raises "./ifj16 test/4_equals.java" 4
 assert_raises "./ifj16 test/4_plus.java" 4
-assert_raises "./ifj16 test/4_undefined_variable.java" 4
 
 assert_raises "./ifj16 test/8_print_uninitialized_value.java" 8
 assert_raises "./ifj16 test/9_division_by_zero.java" 9
-
 
 assert_raises "./ifj16 test/10_substr_start_over.java" 10
 assert_raises "./ifj16 test/10_substr_read_over.java" 10

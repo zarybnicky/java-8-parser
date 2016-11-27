@@ -142,7 +142,7 @@ ValueType getExpressionType(Expression *e) {
         return e->data.value->type;
 
     case E_FUNCALL:
-        n = table_lookup(symTable, e->data.funcall.name);
+        n = table_lookup_either(symTable,NULL, className,e->data.funcall.name);
         if (n == NULL) {
             freeSemantic();
             FERROR(ERR_SEM_UNDEFINED,
