@@ -1,7 +1,7 @@
 CC=gcc
 #Werror add?
 CPPFLAGS=-pedantic -Wall -Wextra
-CFLAGS=-std=c99
+CFLAGS=-std=c99 -g
 LDFLAGS=-L.
 
 LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o

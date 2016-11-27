@@ -79,13 +79,8 @@ int evalBlock(SymbolTable *, Stack *, Block *, char *);
 Value *evalFunction(Stack *,SymbolTable *,char *,int,Expression *,char *);
 
 Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
-ValueType evalReturnType(BinaryOperation, Value *, Value *);
-Value *evalOperation(BinaryOperation , Value *, Value *);
-Value *evalBool(BinaryOperation , Value *, Value *);
 
 Value *coerceTo(ValueType, Value *);
-
-char *str_cat(char *, char* );
 
 Stack *createLocalStack(Stack *);
 Stack *deleteLocaleStack(Stack *);
@@ -93,9 +88,6 @@ Stack *deleteLocaleStack(Stack *);
 int pushToStack(Stack *, Value *);
 Value *popFromStack(Stack *);
 int pushParamToStack(SymbolTable *, Stack *, char *, Expression *);
-
-
-Value *reTypeFromDeclToVal(Declaration *);
 
 void testStack();
 void printStack(Stack *);

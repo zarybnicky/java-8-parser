@@ -142,13 +142,15 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_FOR:
-        ltype = c->data.forC.var.type;
-        rtype = getExpressionType(c->data.forC.initial);
-        if (!isAssignCompatible(ltype, rtype)) {
-            freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK,
-                   "Can't assign %s to %s in 'for' initialization",
-                   showValueType(ltype), showValueType(rtype));
+        if (c->data.forC.initial != NULL) {
+            ltype = c->data.forC.var.type;
+            rtype = getExpressionType(c->data.forC.initial);
+            if (!isAssignCompatible(ltype, rtype)) {
+                freeSemantic();
+                FERROR(ERR_SEM_TYPECHECK,
+                       "Can't assign %s to %s in 'for' initialization",
+                       showValueType(ltype), showValueType(rtype));
+            }
         }
         table_insert_dummy(localTable, c->data.forC.var);
 

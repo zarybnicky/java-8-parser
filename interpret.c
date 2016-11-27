@@ -218,9 +218,14 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_FOR):
-            val = evalExpression(symTable, stack, className, cmd->data.forC.initial);
-            node = createValueNode(cmd->data.forC.var.name,
-                                   coerceTo(cmd->data.forC.var.type, val));
+            if (cmd->data.forC.initial != NULL) {
+                val = evalExpression(symTable, stack, className, cmd->data.forC.initial);
+                val = coerceTo(cmd->data.forC.var.type, val);
+            } else {
+                val = createValue(cmd->data.forC.var.type);
+                val->undefined = true;
+            }
+            node = createValueNode(cmd->data.forC.var.name, val);
             table_insert(symTable, node);
 
             while (evalCondition(symTable, stack, className, cmd->data.forC.cond)){

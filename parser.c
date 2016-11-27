@@ -281,7 +281,7 @@ bool parseFor(Lexer *l, Block *b) {
     expectSymbol_(l, SYM_PAREN_CLOSE, (free(d.name), freeExpression(cond), freeCommand(dummy.head)));
 
     Command *c = createCommandFor(d, init, cond, dummy.head);
-    if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
+    if (!parseCommand(l, &c->data.forC.bodyBlock)) {
         freeCommand(c);
         errorExpectedCommand(l);
     }
