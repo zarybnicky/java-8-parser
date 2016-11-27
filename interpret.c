@@ -57,8 +57,8 @@ Interpret *createInterpret(void) {
     FN(i, T_DOUBLE, readDouble, 0, NULL);
     FN(i, T_STRING, readString, 0, NULL);
     FN(i, T_VOID, print, 1, printArg);
-    FN(i, T_STRING, sort, 2, sortArg);
-    FN(i, T_INTEGER, length, 2, lengthArg);
+    FN(i, T_STRING, sort, 1, sortArg);
+    FN(i, T_INTEGER, length, 1, lengthArg);
     FN(i, T_INTEGER, find, 2, findArg2);
     FN(i, T_INTEGER, compare, 2, compareArg2);
     FN(i, T_STRING, substr, 3, substrArg3);
