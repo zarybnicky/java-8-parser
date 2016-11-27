@@ -381,6 +381,7 @@ ValueType getExpressionType(Expression *e) {
                    showValueType(getExpressionType(e->data.binary.left)),
                    showValueType(getExpressionType(e->data.binary.right)));
         }
+        return t;
     }
 
     //...and appease the compiler
