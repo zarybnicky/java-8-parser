@@ -334,6 +334,7 @@ bool parseBreak(Lexer *l, Block *b) {
 bool parseReturn(Lexer *l, Block *b) {
     tryReserved(l, RES_RETURN, false);
     if (isSymbol(l, SYM_SEMI)) {
+        nextToken(l);
         appendToBlock(b, createCommandReturn(NULL));
         return true;
     }
