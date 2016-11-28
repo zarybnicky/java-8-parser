@@ -184,7 +184,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
             // assign
             node->data.value = coerceTo(node->data.value->type, val);
-            printNode(node);
             break;
 
         case(C_BLOCK):
