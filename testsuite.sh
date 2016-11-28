@@ -4,10 +4,10 @@
 
 assert_raises "./ifj16 test/0_class_cooperation.java" 0
 assert_raises "./ifj16 test/0_condition_check.java" 0
-assert_raises "./ifj16 test/0_fact_iter.java" 0
+assert_raises "echo 10 | ./ifj16 test/0_fact_iter.java" 0
 assert_raises "./ifj16 test/0_loops_etest_cond.java" 0
 assert_raises "./ifj16 test/0_return_var_declared.java" 0
-assert_raises "./ifj16 test/0_String&IALString.java" 0
+assert_raises "printf abcdefgh | ./ifj16 test/0_String&IALString.java" 0
 assert_raises "./ifj16 test/0_sort_try.java" 0
 assert_raises "./ifj16 test/0_variable_bothscopes.java" 0
 

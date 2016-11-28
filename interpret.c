@@ -184,6 +184,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
             // assign
             node->data.value = coerceTo(node->data.value->type, val);
+            printNode(node);
             break;
 
         case(C_BLOCK):
@@ -295,6 +296,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
 
     Value *val = NULL;
 
+    // printf("classname:%s\nnode name:%s\n", className,name);
     Node *node = table_lookup_either(symTableGlob,NULL,className, name);
 
     Function *fn = node->data.function;
