@@ -69,9 +69,10 @@ Token *getNextToken(FILE *f) {
         free(t);
         return NULL;
     default:
+        fprintf(stderr, "Invalid string occurred %s\n", t->original);
         free(t->original);
         free(t);
-        FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
+        ERROR(ERR_LEXER);
     }
     return t;
 }
