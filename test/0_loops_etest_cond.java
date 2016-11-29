@@ -1,5 +1,5 @@
 class Main{
-  static void abc(String x){
+  static void abc(int x){
     ifj16.print(x);
   }
   static void run(){

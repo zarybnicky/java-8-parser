@@ -50,7 +50,7 @@ void checkReturnPresence(Function *f) {
     if (f->returnType != T_VOID && !hasReturnCommand) {
         freeSemantic();
         fprintf(stderr, "In function %s:\n", f->name);
-        MERROR(ERR_SEM_TYPECHECK, "No 'return' in a non-void function.");
+        MERROR(ERR_RUNTIME_UNINITIALIZED, "No 'return' in a non-void function.");
     }
 }
 

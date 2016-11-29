@@ -7,9 +7,13 @@ assert_raises "./ifj16 test/0_condition_check.java" 0
 assert_raises "echo 10 | ./ifj16 test/0_fact_iter.java" 0
 assert_raises "./ifj16 test/0_loops_etest_cond.java" 0
 assert_raises "./ifj16 test/0_return_var_declared.java" 0
-assert_raises "printf abcdefgh | ./ifj16 test/0_String&IALString.java" 0
+assert_raises "printf abcdefgh | ./ifj16 test/0_String\&IALString.java" 0
 assert_raises "./ifj16 test/0_sort_try.java" 0
 assert_raises "./ifj16 test/0_variable_bothscopes.java" 0
+assert_raises "printf "10\n12e-10\nabcdefghijklm" |./ifj16 test/0_builtin_func.java" 0
+#assert_raises "./ifj16 test/0_length_cmp.java" 0
+assert "./ifj16 test/0_priority_operation.java" "50"
+assert_raises "./ifj16 test/0_work_with_double.java" 0
 
 assert_raises "./ifj16 test/1_unknown_char.java" 1
 
@@ -17,11 +21,16 @@ assert_raises "./ifj16 test/2_no_class.java" 2
 assert_raises "./ifj16 test/2_badvalue_assign.java" 2
 
 assert_raises "./ifj16 test/3_assign_to_undec_var.java" 3
+assert_raises "./ifj16 test/3_bad_definition_of_run.java" 3
 assert_raises "./ifj16 test/3_class_redefinition.java" 3
 assert_raises "./ifj16 test/3_ifj16_redefinition.java" 3
 assert_raises "./ifj16 test/3_class_nomain.java" 3
 assert_raises "./ifj16 test/3_function_nodefinition.java" 3
 assert_raises "./ifj16 test/3_undefined_variable.java" 3
+assert_raises "./ifj16 test/3_redefinition_of_function.java" 3
+assert_raises "./ifj16 test/3_redefinition_in_func.java" 3
+assert_raises "./ifj16 test/3_redefinition_of_var.java" 3
+assert_raises "./ifj16 test/3_redefinition_of_static_var.java" 3
 
 assert_raises "./ifj16 test/4_wrong_param_type.java" 4
 assert_raises "./ifj16 test/4_wrong_param_number.java" 4
@@ -30,6 +39,8 @@ assert_raises "./ifj16 test/4_equals.java" 4
 assert_raises "./ifj16 test/4_plus.java" 4
 
 assert_raises "./ifj16 test/8_print_uninitialized_value.java" 8
+assert_raises "./ifj16 test/8_uninit_var.java" 8
+assert_raises "./ifj16 test/8_no_return.java" 8
 assert_raises "./ifj16 test/9_division_by_zero.java" 9
 
 assert_raises "./ifj16 test/10_substr_start_over.java" 10
