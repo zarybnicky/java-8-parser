@@ -294,33 +294,34 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
  */
 int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     (void) symTable;
-
+    returnFlag = true;
     char *str = fn->name;
 
     if(!strcmp(str, "ifj16.print")){
         Value *v = coerceTo(T_STRING, popFromStack(stack));
         print(v);
+        returnFlag = false;
         return 0;
     }
     else if(!strcmp(str, "ifj16.readInt") ){
         Value *val = createValue(T_INTEGER);
         I(val) = readInt();
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.readDouble") ){
         Value *val = createValue(T_DOUBLE);
         D(val) = readDouble();
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.readString") ){
         Value *val = createValue(T_STRING);
         S(val) = readString();
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.length") ){
@@ -329,7 +330,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *val = createValue(T_INTEGER);
         I(val) = length(S(v));
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.substr") ){
@@ -340,7 +341,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *val = createValue(T_STRING);
         S(val) = substr(S(s), I(i), I(n));
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if (!strcmp(str, "ifj16.compare")) {
@@ -350,7 +351,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *val = createValue(T_INTEGER);
         I(val) = compare(S(s1), S(s2));
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.sort") ){
@@ -359,7 +360,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *val = createValue(T_STRING);
         S(val) = sort(S(s));
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.find") ){
@@ -369,7 +370,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *val = createValue(T_INTEGER);
         I(val) = find(S(s1), S(s2));
 
-        stack->prev != NULL ? pushToStack(stack->prev, val) : pushToStack(stack, val);
+        pushToStack(GlobalStack, val);
         return 0;
     }
 

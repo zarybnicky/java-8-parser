@@ -5,5 +5,6 @@ class Main{
   }
   static void run(){
     int a = abc();
+    ifj16.print(a);
   }
 }
