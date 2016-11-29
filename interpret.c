@@ -575,7 +575,9 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          e->data.funcall.argHead,
                          className);
 
-            val = localStack->prev == NULL ? popFromStack(localStack) : popFromStack(localStack->prev);
+            if(returnFlag == true)
+                val = popFromStack(GlobalStack);
+
             return val;
 
         case E_REFERENCE:
