@@ -558,7 +558,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 state = AUT_STRING;
                 string_end(string, c, &stringLength, &stringAlloc);
             } else if(isdigit(c)) {
-				if(c > '0' || c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
+				if(c > '0' && c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
 				    num += (c - '0')*64;
 				    state = AUT_ESCN; }
 
@@ -583,7 +583,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     num += (c - '0')*8; // ak dva nuly
                     state = AUT_ESC_ZERO2;
                 }
-                else if (c > '0' || c <= '7' ) {
+                else if (c > '0' && c <= '7' ) {
                     num += (c - '0')*8;
                     state = AUT_ESCN2;
                 }
@@ -602,7 +602,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 	    case AUT_ESCN:
 	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
-                if(c > '0' || c <= '7' ) {
+                if(c > '0' && c <= '7' ) {
                     num += ((c - '0')*8);
                     state = AUT_ESCN2;
                 }
@@ -626,7 +626,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     state = Start_state;
                     return ERROR_ESC_ZERO2;
                 } // 3 nuly cize error
-                else if (c > '0' || c <= '7'){
+                else if (c > '0' && c <= '7'){
                     num += (c - '0');
                     string_end(string, c, &stringLength, &stringAlloc);
                     state = AUT_STRING;
@@ -648,7 +648,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
         case AUT_ESCN2:
             GET_CHAR(c, input, state, line, lineCol);
             if(isdigit(c)) {
-                if(c >= '0' || c <= '7' ) {
+                if(c >= '0' && c <= '7' ) {
                     num +=(c - '0');
                     string_end(string, num, &stringLength, &stringAlloc);
                     state = AUT_STRING;
