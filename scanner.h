@@ -117,6 +117,7 @@ typedef enum{
     AUT_BIN2,
     NUMBER,
     FLOAT,
+    ERROR_IDEN,
     ERROR_R,
     ERROR_NUMBER,
     ERROR_ASCII,
