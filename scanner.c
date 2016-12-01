@@ -450,11 +450,25 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             }
             break;
         case AUT_IDEN2:
+           control_res_key_word(*string, reserved);
+            if(c =='.' && *reserved != 0){ 
+				//kvoli lavej strane compound ! void. napr..
+				state=Start_state;
+				return ERROR_IDEN;
+			}
             string_end(string, c, &stringLength, &stringAlloc);
-            GET_CHAR(c, input, state, line, lineCol);
-            if (! (isalnum(c) || c == '_' ||c == '$' )) {
-                state = Start_state;
-                return IDEN_COMPOUND;
+            GET_CHAR(c, input, state, line, lineCol);         
+
+            if(! (isalnum(c) || c == '_' ||c == '$' )) {
+				if(strchr(*string,'.')) 
+				// vezme bodku a zprava string napr .for
+					control_res_key_word(strchr(*string,'.')+1, reserved); // strch +1 vymaze bodku a ostane mi uz iba  reser alebo neres
+				if(*reserved != 0){
+					state = Start_state;
+					return ERROR_IDEN; 
+				}
+				state = Start_state;
+				return IDEN_COMPOUND;
             }
             break;
         case AUT_NUM:
