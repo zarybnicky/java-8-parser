@@ -607,8 +607,6 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     num += ((c - '0')*8);
                     state = AUT_ESCN2;
                 }
-                else if (c == '0'){
-                    state = AUT_ESCN2;} // predchadzam moznosti 3 nul
                 else {
                     state = Start_state;
                     return ERROR_ESCN;
