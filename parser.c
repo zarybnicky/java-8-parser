@@ -238,7 +238,7 @@ bool parseWhile(Lexer *l, Block *b) {
 bool parseDoWhile(Lexer *l, Block *b) {
     tryReserved(l, RES_DO, false);
     Command *c = createCommandDoWhile();
-    if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
+    if (!parseCommand(l, &c->data.doWhileC.bodyBlock)) {
         freeCommand(c);
         errorExpectedCommand(l);
     }
