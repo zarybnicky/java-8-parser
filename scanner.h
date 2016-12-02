@@ -88,6 +88,7 @@ typedef enum{
     AUT_SYMBOL,
     AUT_IDEN,
     AUT_IDEN2,
+    AUT_IDEN3,
     AUT_NUM,
     AUT_FLOAT1 ,
     AUT_FLOAT2,
