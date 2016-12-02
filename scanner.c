@@ -449,7 +449,27 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 }
             }
             break;
+         
         case AUT_IDEN2:
+        // OPRAVENA CHYBA S MOZSNOSTOU ZACATIA CISLA
+           control_res_key_word(*string, reserved);
+            if(c =='.' && *reserved != 0){ 
+				//kvoli lavej strane compound ! void. napr..
+				state=Start_state;
+				return ERROR_IDEN;
+			}
+            string_end(string, c, &stringLength, &stringAlloc);
+            GET_CHAR(c, input, state, line, lineCol);
+            // preco ten vykricnik ? 
+            if ((c>='A' && c<='z') || c == '_' || c == '$') { 
+                    state = AUT_IDEN3;} 
+			else {
+                    state = Start_state;
+					return ERROR_IDEN; 
+                 }
+            break;
+                
+        case AUT_IDEN3:
            control_res_key_word(*string, reserved);
             if(c =='.' && *reserved != 0){ 
 				//kvoli lavej strane compound ! void. napr..
