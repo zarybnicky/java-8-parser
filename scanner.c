@@ -350,7 +350,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
         case Start_state :
             *lineNumToken = lineNum;
             *lineColToken = lineCol;
-
+            *reserved = 0; // musime si vynulovat reserved ked nacitame znova
             if (isspace(c)) {
                 state = NEUTRAL_STATE;
             }
