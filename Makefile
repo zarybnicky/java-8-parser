@@ -6,7 +6,7 @@ LDFLAGS=-L.
 
 LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
 
-.PHONY: test
+.PHONY: all test clean
 
 all: ifj16
 
