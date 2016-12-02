@@ -146,8 +146,8 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             node = table_lookup_either(symTableGlob, symTable, className, cmd->data.assign.name);
             if(node == NULL)
                 PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
-
             val = evalExpression(symTable, stack, className, cmd->data.assign.expr);
+            // printValue(val);
             if(val == NULL)
                 PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
 
@@ -156,7 +156,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_BLOCK):
-            evalBlock(symTable, stack, &(cmd->data.block), className);
+            evalBlock(symTable, stack, &(cmd->data.block), "Main");
             break;
 
         case(C_IF):
@@ -216,6 +216,9 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
         case(C_DO_WHILE):
             do {
+                // #ifdef DEBUG
+                // printExpression(cmd->data.doWhileC.cond);
+                // #endif
                 CYCLE_INNER(symTable, stack, className, cmd->data.doWhileC.bodyBlock, doWhile_end);
             } while (evalCondition(symTable, stack, className, cmd->data.doWhileC.cond));
     doWhile_end:
@@ -240,7 +243,7 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
     while (current != NULL) {
         if(continueFlag)
             continueFlag = FALSE;
-        evalCommand(symTable, stack, current, className);
+        evalCommand(symTable, stack, current,className);
 
         if(continueFlag){
             current = block->head;
@@ -263,10 +266,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     (void) argHead;
 
     Value *val = NULL;
-
-    // printf("classname:%s\nnode name:%s\n", className,name);
     Node *node = table_lookup_either(symTableGlob,NULL,className, name);
-
     Function *fn = node->data.function;
 
     if(fn->builtin == TRUE){
@@ -283,7 +283,6 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     val = createValue(fn->returnType);
     ht_insert(&alloc_tab,val);
 
-    //getClassName(fn->name);
     evalBlock(localSymTable, localStack, &(fn->body), fn->name);
 
     return val;
@@ -299,6 +298,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
     if(!strcmp(str, "ifj16.print")){
         Value *v = coerceTo(T_STRING, popFromStack(stack));
+        // printf("v.data:'%s'\n",v->data.str);
         print(v);
         returnFlag = false;
         return 0;
@@ -568,7 +568,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                 pushToStack(localStack, evalExpression(symTable, localStack, className, exp));
                 exp = exp->next;
             }
-
+            //push return address to stack??
             evalFunction(localStack,
                          localSymTable,
                          e->data.funcall.name,
@@ -576,12 +576,17 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          e->data.funcall.argHead,
                          className);
 
-            if(returnFlag == true)
+            if(returnFlag == true){
                 val = popFromStack(GlobalStack);
+                returnFlag=false;
+            }
 
             return val;
 
         case E_REFERENCE:
+            #ifdef DEBUG
+            printf("reference lookup: %s\n", e->data.reference);
+            #endif
             node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
             return node->data.value;
 

@@ -70,7 +70,7 @@ Value *coerceTo(ValueType t, Value *v) {
         return v;
 
     if (t == T_STRING) {
-        ssize_t bufSize; char *buf;
+        Value *retVal; size_t bufSize; char *buf;
         switch (v->type) {
         case T_BOOLEAN:
             if (B(v) == true) {
@@ -83,13 +83,17 @@ Value *coerceTo(ValueType t, Value *v) {
             bufSize = snprintf(NULL, 0, "%d", I(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%d", I(v));
-            S(v) = buf;
+            retVal=createValue(T_STRING);//malloc_c?
+            retVal->data.str = buf;
+            return retVal;
             break;
         case T_DOUBLE:
             bufSize = snprintf(NULL, 0, "%g", D(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%g", D(v));
-            S(v) = buf;
+            retVal=createValue(T_STRING); //malloc_c?
+            retVal->data.str = buf;
+            return retVal;
             break;
         default:
             FERROR(ERR_RUNTIME_MISC, "Cannot convert from %s to String",

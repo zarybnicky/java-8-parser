@@ -377,11 +377,11 @@ ValueType getExpressionType(Expression *e) {
                           getExpressionType(e->data.binary.right));
         if (t == T_VOID) {
             freeSemantic();
-            FERROR(ERR_SEM_TYPECHECK,
-                   "Wrong operator types for operation %s: %s, %s.\n",
+            fprintf(stderr,"Wrong operator types for operation %s: %s, %s.\n",
                    showBinaryOperation(e->data.binary.op),
                    showValueType(getExpressionType(e->data.binary.left)),
                    showValueType(getExpressionType(e->data.binary.right)));
+            ERROR(ERR_SEM_TYPECHECK);
         }
         return t;
     }

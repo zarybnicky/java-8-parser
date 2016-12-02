@@ -16,8 +16,8 @@ class Main{
             {
                 continue;
             }
-            
-            print("Done");
+
+            ifj16.print("Done");
         }
     }
 

@@ -7,15 +7,19 @@ class Main{
     for (int i; c < 5; c = c + 1){
         abc(c);
     }
+    ifj16.print("\nEND FOR:\n START WHILE:");
     while(c == 5){
       abc(c);
       c = c - 1;
     }
-    do{
-      abc(c);
-      c = c + 2;
-    }while(4==c);
+    ifj16.print("\nEND WHILE:\n START DOWHILE:\n");
+    // do{
+    //   abc(c);
+    //   c = c + 2;
+    //   ifj16.print(c);
+    // }while(c==4);
 
+    ifj16.print("END DO WHILE:\n START CONDITION:\n");
     if (c>6){
       abc(c);
       ifj16.print("c > 6");
