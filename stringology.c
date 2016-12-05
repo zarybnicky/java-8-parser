@@ -154,11 +154,11 @@ int length(char *s) {
 char *substr(char *s,int i, int n) {
     int sLen = strlen(s);
 
-    if (sLen - 1 < i || sLen - 1 < i + n)
-        ERROR(ERR_RUNTIME_MISC); // Chceme prilis dlouhy podretezec -> udelame castecny?
+    if (sLen - 1 < i || sLen - 1 < n + i)
+        ERROR(ERR_RUNTIME_MISC); //
 
     if (n != 0) {
-        sLen = n+1;	// Urceni delky
+        sLen = n+1;	// Set length
     } else {
         n = sLen - i;
         sLen = n+1;
@@ -169,7 +169,7 @@ char *substr(char *s,int i, int n) {
     strncpy(pom, s+i, n);
 
     pom[sLen-1] = '\0';
-    return pom; // Nekdy dealokovat
+    return pom; // Deallocation connected to ht_table
 }
 
 int compare(char *s1, char *s2) {
