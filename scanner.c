@@ -52,6 +52,26 @@ Token *getNextToken(FILE *f) {
             //FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
         }
         break;
+    case EXT_HEX:
+        str+=2;
+        t->type = LIT_INTEGER;
+        t->val.intVal = strtol(str,&endptr,16);
+        if(endptr != NULL){
+            free(t->original);
+            free(t);
+            //FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
+        }
+        break;
+    case EXT_OCT:
+        str+=2;
+        t->type = LIT_INTEGER;
+        t->val.intVal = strtol(str,&endptr,8);
+        if(endptr != NULL){
+            free(t->original);
+            free(t);
+            //FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
+        }
+        break;
     case FLOAT:
         t->type = LIT_DOUBLE;
         t->val.doubleVal = strtod(str,NULL);
@@ -878,6 +898,32 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  return EXT_BASE;
             }
             break; 
+                
+         case AUT_HEX:
+         //printf("hex %c",c);
+         string_end(string, c, &stringLength, &stringAlloc);
+         GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
+                 //oprav isdigitc = '1';
+                 state = AUT_HEX;
+            } else {
+                 state = Start_state;
+                 return EXT_HEX;
+            }
+            break; 
+            
+         case AUT_OCT:
+         //printf("oct %c",c);
+         string_end(string, c, &stringLength, &stringAlloc);
+         GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
+                 //oprav isdigitc = '1';
+                 state = AUT_OCT;
+            } else {
+                 state = Start_state;
+                 return EXT_OCT;
+            }
+            break;
         }
     }
 }
