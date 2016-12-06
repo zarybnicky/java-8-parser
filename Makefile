@@ -3,12 +3,18 @@ CC=gcc
 CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99 -g
 LDFLAGS=-L.
+
 DOC_SRC=./doc/doc.tex
-DOC_OUT=./dokumentace.pdf
+TEX = -shell-escape -interaction=nonstopmode -file-line-error --jobname=dokumentace
+PACK_CONT=Makefile rozdeleni rozsireni
+
+#Removed files after compilation
+DOC_LOG=dokumentace.log dokumentace.aux dokumentace.toc missfont.log
+EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe
 
 LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
 
-.PHONY: all test clean
+.PHONY: all doc test clean
 
 all: ifj16
 
@@ -18,20 +24,22 @@ debug: all
 debugInt: CFLAGS += -DDEBUG
 debugInt: debug
 
+#doc
 test: ifj16 test/parser test/symbol-table
 	bash testsuite.sh
 
 clean:
-	$(RM) ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe xzaryb00.tgz $(LIBOBJ) ./doc.*
+	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ) $(DOC_LOG)
 
 ifj16: ifj16.o $(LIBOBJ)
 
 test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
 
-dist: $(wildcard *.c) $(wildcard *.h) Makefile rozdeleni rozsireni dokumentace.pdf
+#doc
+dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT) dokumentace.pdf
 	tar cvzf xzaryb00.tgz $^
 
-doc: $(DOC_SRC)
-	pdflatex $(DOC_SRC) $(DOC_OUT)
-	rm doc.aux doc.log doc.toc
+doc: $(DOC_OUT)
+	pdflatex  $(TEX) $(DOC_SRC) dokumentace.pdf
+	rm $(DOC_LOG)
