@@ -1,6 +1,7 @@
 % arara: pdflatex: { options: "--jobname great-name" }
 \documentclass[12pt,a4paper]{report}
 \usepackage[utf8]{inputenc}
+\usepackage[margin=1.8cm]{geometry}
 \usepackage{amsmath}
 \usepackage[czech, slovak]{babel}
 \usepackage{amsfonts}
@@ -8,21 +9,45 @@
 \usepackage{graphicx}
 \usepackage{lmodern}
 
-% TODO 
-% - upravit TitlePage [Logo, fakulta a pod.]
-% - K menam diakritiku
+% TODO
 % - 
+
+% FIXME img link, compiling with make [Table of Content]
 
 \begin{document}
 
-\author{Marek Tamaskovic, Martin Vasko,\\Michal Vasko, Jirka Zalesky, Jakub Zarybnicky}
-\title{IFJ dokumentácia projektu}
-\maketitle
+
+
+\begin{titlepage}
+
+\fontfamily{qhv}\selectfont
+\addtolength{\voffset}{-3cm}
+
+\noindent\hspace{-60.0pt}\includegraphics[width=0.6\textwidth]{./img/VUT_symbol_barevne_CMYK_CZ}\\
+\Large\textbf{VYSOKÉ UČENÍ TECHNICKÉ V BRNĚ}\\
+\small\textbf{BRNO UNIVERSITY OF TECHNOLOGY}\\\vfill\hspace{-0.7cm}
+\Large\textbf{FAKULTA INFORMAČNÍCH TECHNOLOGIÍ}\\
+\small\textbf{FACULTY OF INFORMATION TECHNOLOGY}\\\vfill\hspace{-0.7cm}
+\Large\textbf{IFJ dokumentácia}\\
+\small\textbf{IFJ documentation}\\\vfill\hspace{-0.7cm}
+\Large\textbf{SEMESTRÁLNÍ PROJEKT}\\
+\small\textbf{TERM PROJECT}\\\vfill\hspace{-0.7cm}
+\Large\textbf{AUTORI PRÁCE \hfill \normalsize{Marek Tamaškovič, Martin Vaško,}}\\
+\small\textbf{AUTHORS} \hfill \normalsize\textbf{Michal Vaško, Jirka Záleský,Jakub Zárybnický}
+\vfill\hspace{-0.7cm}
+\large\textbf{BRNO 2017}
+
+\newpage
+\fontfamily{\familydefault}\selectfont%
+\end{titlepage}
+
+\newgeometry{margin=2.5cm}
 
 \begin{abstract}
 Nas abstrakt\\
 http://www.fit.vutbr.cz/info/szz/bib\_citace.html\\
-http://www.fit.vutbr.cz/info/szz/psani\_textu.php
+http://www.fit.vutbr.cz/info/szz/psani\_textu.php\\
+http://citace.info/norma1/webova-stranka/
 \end{abstract}
 
 \tableofcontents
