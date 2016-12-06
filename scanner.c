@@ -49,7 +49,7 @@ Token *getNextToken(FILE *f) {
         if(endptr != NULL){
             free(t->original);
             free(t);
-            FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
+            //FERROR(ERR_LEXER, "Scanner: getNextToken: invalid conversion with strtol (%p)", endptr);
         }
         break;
     case FLOAT:
@@ -358,9 +358,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             // POZOR CISLA PRVE BRAT NEMOZE --DONE
             else if ((c>='A' && c<='z') || c == '_' || c == '$')
                 state = AUT_IDEN;
-
-            //else if (c == '0')  //pokracujeme na stav cisla
-                //state = AUT_BIN;
+            //kvoli oktalovemu , string musi byt nulovy kedze 0 je prva
+            else if ((c == '0') && *string== NULL)  //pokracujeme na stav cisla
+                state = AUT_BIN;
 
             else if ((isdigit(c))) //&& (c!='0'))  //pokracujeme na stav cisla
                 state = AUT_NUM;
@@ -842,14 +842,27 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  return ERROR_OR;
             }
             break;
-        /* case AUT_BIN:
-         //printf("%c",c);
+        case AUT_BIN:
+         //printf("AUT BIN S%c",c);
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
-            if(c == 'b') {
+         //printf("AUT BIN CH%c",c);
+         if (isdigit(c)) {
+			 // MUSEL SOM PRIDAT STRING END ABY NACITALO PREDOSLI !!
+			 string_end(string, c, &stringLength, &stringAlloc);
+             state = AUT_OCT;
+             
+              }
+         else if  (c == 'b') {
                  state = AUT_BIN2;
-            } else if (isdigit(c)){
-                 state = AUT_NUM;;
+			 }
+	     else if  (c == 'x') {
+                 state = AUT_HEX;
+			 }
+		 
+         else {
+               state = Start_state;
+               return ERROR_BIN;
             }
             break;
 
@@ -860,11 +873,11 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             if(isdigit(c)) {
                  //oprav isdigitc = '1';
                  state = AUT_BIN2;
-            } else if (isspace(c)){
+            } else {
                  state = Start_state;
                  return EXT_BASE;
             }
-            break; */
+            break; 
         }
     }
 }
