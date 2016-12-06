@@ -882,7 +882,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 		 
          else {
                state = Start_state;
-               return ERROR_BIN;
+               return NUMBER;
             }
             break;
 
