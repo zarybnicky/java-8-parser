@@ -17,7 +17,7 @@ int readInt() { // Int celé nezáporné číslo (3.1)
     unsigned vysledek = 0;
 
     while ((c = getchar()) != '\n' && c != EOF) {
-        if (c < '0' && '9' < c) {
+        if (c < '0' || '9' < c) {
             FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing an integer, unexpected character: %c\n", c);
         }
         vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
