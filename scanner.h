@@ -133,6 +133,7 @@ typedef enum{
     ERROR_NOT_EQUALS,
     ERROR_AND,
     ERROR_OR,
+    ERROR_BIN,
     IDEN,
     IDEN_COMPOUND,
     STRING,
