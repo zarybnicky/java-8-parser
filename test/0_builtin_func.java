@@ -21,7 +21,7 @@ class Main{
     ifj16.print("RESULT length function: \n" + l + "\nNOW SubString\n");
     //retype DOUBLE!?!?
     int retype = 5;
-    String sub = ifj16.substr(c,retype,a);
+    String sub = ifj16.substr(c,retype,a-6);
     ifj16.print("RESULT substring function: \n" + sub + "\nNow compare\n");
     l = ifj16.compare(c,sub);
     ifj16.print("RESULT compare function: \n" + l + "\nNow find\n");

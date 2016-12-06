@@ -65,6 +65,10 @@ void checkMainRunPresence() {
         freeSemantic();
         MERROR(ERR_SEM_UNDEFINED, "Missing run method in Main.");
     }
+    if (tmp->data.function->returnType != T_VOID){
+        freeSemantic();
+        MERROR(ERR_SEM_UNDEFINED, "Run is not void function.");
+    }
 }
 
 void checkOperatorAssignmentTypeC(Function *f, Command *c) {
@@ -340,18 +344,27 @@ ValueType getExpressionType(Expression *e) {
         }
 
         arg = e->data.funcall.argHead;
+        #ifdef DEBUG
+        printf("\n");
+        printExpression(arg);
+        printf("\n");
+        printSymbolTable(localTable);
+        printSymbolTable(symTable);
+        printFunction(n->data.function);
+        printf("\n");
+        #endif
         for (int argNum = 0; arg != NULL; argNum++, arg = arg->next) {
             Declaration *d = n->data.function->argHead;
             for (int i = n->data.function->argCount - 1; i --> argNum;)
                 d = d->next;
-
             ValueType rtype = getExpressionType(arg);
             if (!isAssignCompatible(d->type, rtype)) {
-                freeSemantic();
-                FERROR(ERR_SEM_TYPECHECK,
+                fprintf(stderr,
                        "Cannot convert %s to %s while calling function %s\n",
                        showValueType(rtype), showValueType(d->type),
                        n->data.function->name);
+                freeSemantic();
+                ERROR(ERR_SEM_TYPECHECK);
             }
         }
         return n->data.function->returnType;
@@ -376,11 +389,11 @@ ValueType getExpressionType(Expression *e) {
                           getExpressionType(e->data.binary.left),
                           getExpressionType(e->data.binary.right));
         if (t == T_VOID) {
-            freeSemantic();
             fprintf(stderr,"Wrong operator types for operation %s: %s, %s.\n",
                    showBinaryOperation(e->data.binary.op),
                    showValueType(getExpressionType(e->data.binary.left)),
                    showValueType(getExpressionType(e->data.binary.right)));
+            freeSemantic();
             ERROR(ERR_SEM_TYPECHECK);
         }
         return t;

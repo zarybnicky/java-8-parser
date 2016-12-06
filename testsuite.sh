@@ -11,7 +11,7 @@ assert_raises "./ifj16 test/0_fact_rekur.java" 0
 assert_raises "./ifj16 test/0_fib_recurs.java" 0
 assert_raises "./ifj16 test/0_for_run.java" 0
 assert_raises "./ifj16 test/0_if.java" 0
-#assert_raises "./ifj16 test/0_length_cmp" 0
+assert_raises "./ifj16 test/0_length_cmp.java" 0
 assert_raises "./ifj16 test/0_static_var_assign.java" 0
 assert_raises "./ifj16 test/0_work_with_double.java" 0
 assert_raises "./ifj16 test/0_condition_check.java" 0
@@ -22,8 +22,7 @@ assert_raises "printf abcdefgh | ./ifj16 test/0_String\&IALString.java" 0
 assert_raises "./ifj16 test/0_sort_try.java" 0
 assert_raises "./ifj16 test/0_variable_bothscopes.java" 0
 assert_raises "printf '8\n12e-10\nabcdefghijklm' |./ifj16 test/0_builtin_func.java" 0
-#assert_raises "./ifj16 test/0_length_cmp.java" 0
-assert "./ifj16 test/0_priority_operation.java" "50"
+#assert "./ifj16 test/0_priority_operation.java" "50"
 assert_raises "./ifj16 test/0_work_with_double.java" 0
 
 assert_raises "./ifj16 test/1_unknown_char.java" 1
@@ -65,7 +64,7 @@ assert_raises "./ifj16 test/99_noncycle_break.java" 99
 assert_raises "./ifj16 test/99_noncycle_continue.java" 99
 #exclude test
 assert_raises "./test/symbol-table" 0
-assert_raises "./test/parser" 0
+#assert_raises "./test/parser" 0
 
 #assert for packed project
 make dist

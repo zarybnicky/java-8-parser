@@ -541,13 +541,12 @@ bool parseDeclaration(Lexer *l, Declaration **d) {
 }
 
 Declaration *parseArgListDecl(Lexer *l, int *argCount) {
-    Declaration *d = NULL;
-    if (!parseDeclaration(l, &d))
+    Declaration *head = NULL;
+    if (!parseDeclaration(l, &head))
         return NULL;
 
     (*argCount)++;
-    Declaration *head = d;
-    d = NULL;
+    Declaration *d = NULL;
     while (1) {
         trySymbol(l, SYM_COMMA, head);
         if (!parseDeclaration(l, &d)) {
@@ -556,9 +555,14 @@ Declaration *parseArgListDecl(Lexer *l, int *argCount) {
                    "Expected a type on line %d:%d, received '%s'.\n",
                    t->lineNum, t->lineChar, t->original);
         }
+        Declaration *new = createDeclaration(d->type, d->name);
         (*argCount)++;
-        d->next = head;
-        head = d;
+        new->next = head;
+        head = new;
+        #ifdef DEBUG
+        printf("ARGCOUNT : %d\n", *argCount);
+        printDeclaration(new);
+        #endif
     }
 }
 

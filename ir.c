@@ -136,7 +136,7 @@ void printDeclaration(Declaration *d) {
     do {
         printf("%s %s", showValueType(d->type), d->name);
         if (d->next != NULL) {
-            printf(", ");
+            printf(" ---> ");
         }
         d = d->next;
     } while (d != NULL);
