@@ -408,6 +408,7 @@ Node *createFunctionNode(char *symbol, Function *f) {
 Node *createValueNode(char *symbol, Value *v) {
     Node *n = malloc(sizeof(Node));
     CHECK_ALLOC(n);
+    ht_insert(&alloc_tab, n);
     n->symbol = symbol;
     n->type = N_VALUE;
     n->data.value = v;
@@ -476,6 +477,7 @@ char *showNodeType(NodeType x) {
 SymbolTable *createSymbolTable()  {
     SymbolTable *t = malloc(sizeof(SymbolTable));
     CHECK_ALLOC(t);
+    ht_insert(&alloc_tab, t);
     t->root = NULL;
     return t;
 }
