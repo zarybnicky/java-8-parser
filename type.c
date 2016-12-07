@@ -81,20 +81,18 @@ Value *coerceTo(ValueType t, Value *v) {
             break;
         case T_INTEGER:
             bufSize = snprintf(NULL, 0, "%d", I(v));
-            buf = malloc_c(bufSize + 1);
+            buf = malloc(bufSize + 1);
             snprintf(buf, bufSize + 1, "%d", I(v));
             retVal=createValue(T_STRING);//malloc_c?
             retVal->data.str = buf;
             return retVal;
-            break;
         case T_DOUBLE:
             bufSize = snprintf(NULL, 0, "%g", D(v));
-            buf = malloc_c(bufSize + 1);
+            buf = malloc(bufSize + 1);
             snprintf(buf, bufSize + 1, "%g", D(v));
             retVal=createValue(T_STRING); //malloc_c?
             retVal->data.str = buf;
             return retVal;
-            break;
         default:
             FERROR(ERR_RUNTIME_MISC, "Cannot convert from %s to String",
                    showValueType(v->type));

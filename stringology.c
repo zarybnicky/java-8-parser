@@ -18,7 +18,9 @@ int readInt() { // Int celé nezáporné číslo (3.1)
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (c < '0' || '9' < c) {
-            FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing an integer, unexpected character: %c\n", c);
+            //return ERR_RUNTIME_INT_PARSE
+            fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
+            return ERR_RUNTIME_INT_PARSE;
         }
         vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
     }
@@ -31,8 +33,8 @@ double readDouble() { // TODO
     int c;
     short e_set = 0, dot_set = 0;
 
-    char *Str = malloc_c(Len);
-
+    char *Str = malloc(Len);
+    CHECK_ALLOC(Str);
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len += MAX_LEN;
@@ -41,14 +43,20 @@ double readDouble() { // TODO
         }
 
         if ((c < '0' || '9' < c) && c != '.' && c != 'e' && c != 'E' && c != '+' && c != '-') {
-            FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+            //return ERR_RUNTIME_INT_PARSE
+            fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
+            free(Str);
+            return ERR_RUNTIME_INT_PARSE;
         }
 
         switch(c) {
         case 'e':
         case 'E':
             if (e_set != 0) { // Vice exp za sebou, nebo exp neni cele cislo
-                FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+                //return ERR_RUNTIME_INT_PARSE
+                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
+                free(Str);
+                return ERR_RUNTIME_INT_PARSE;
             }
             if (dot_set == 0) {
                 for (unsigned j = 0; j < i; j++) { // Zapsani celych cisel
@@ -69,7 +77,10 @@ double readDouble() { // TODO
 
         case '.':
             if (e_set != 0 || dot_set != 0) { // Kontrola pro vice tecek nebo tecky po exp
-                FERROR(ERR_RUNTIME_INT_PARSE, "Error while parsing a float, unexpected character: %c\n", c);
+                //return ERR_RUNTIME_INT_PARSE
+                fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
+                free(Str);
+                return ERR_RUNTIME_INT_PARSE;
             }
             for (unsigned j = 0; j < i; j++) { // Zapsani celych cisel
                 vysledek = vysledek*10 + (Str[j] - '0');
@@ -123,7 +134,7 @@ double readDouble() { // TODO
         vysledek = vysledek + pom;
     }
 
-    free_c(&alloc_tab,Str);
+    free(Str);
     return vysledek;
 } // function end
 
@@ -132,12 +143,13 @@ char *readString() {
     int c;
     unsigned int i = 0;
 
-    char *Str = malloc_c(Len);
-
+    char *Str = malloc(Len);
+    CHECK_ALLOC(Str);
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
-            Str = realloc_c(Str, Len);
+            Str = realloc(Str, Len);
+            CHECK_ALLOC(Str);
         }
 
         Str[i] = c;
@@ -164,7 +176,7 @@ char *substr(char *s,int i, int n) {
         sLen = n+1;
     }
 
-    char *pom = malloc_c(sLen);
+    char *pom = malloc(sLen);
 
     strncpy(pom, s+i, n);
 

@@ -16,9 +16,11 @@
 Lexer *l;
 Interpret *i;
 void freeGlobalResources() {
-    freeLexer(l);
-    freeInterpret(i);
-    free_c_all(&alloc_tab);
+    if (l != NULL)
+        freeLexer(l);
+    if (i != NULL)
+        freeInterpret(i);
+    //free_c_all(&alloc_tab);
 }
 
 int main(int argc, char *argv[])

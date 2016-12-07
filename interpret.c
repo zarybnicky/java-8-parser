@@ -31,6 +31,7 @@ static bool returnFlag = FALSE;
     } while (0);
 
 Interpret *createInterpret(void) {
+    ///Invalid to free twice!?!?
     Interpret *i = malloc(sizeof(Interpret));
     CHECK_ALLOC(i);
     i->symTable.root = NULL;
@@ -73,6 +74,7 @@ int freeInterpret(Interpret *i) {
     if (i->symTable.root != NULL)
         freeNode(i->symTable.root);
     free(i);
+    i= NULL;
     return 0;
 }
 
@@ -96,13 +98,17 @@ int interpretFunc(Stack *stack, Node *node) {
     Function *f = node->data.function;
 
     SymbolTable *localTable = createSymbolTable();
-    ht_insert (&alloc_tab, localTable);
+    CHECK_ALLOC(localTable);
+    //ht_insert (&alloc_tab, localTable);
     dPrintf("%s", "Creating new local table.\n");
 
     for (Command *c = f->body.head; c != NULL; c = c->next) {
-        evalCommand(localTable, stack, c, getClassName(f->name));
+        char *className=getClassName(f->name);
+        evalCommand(localTable, stack, c, className);
+        free(className);
     }
-
+    if (localTable != NULL)
+        freeSymbolTable(localTable);
     return 0;
 }
 
@@ -138,8 +144,21 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
         case(C_DEFINE):
             val = evalExpression(symTable, stack, className, cmd->data.define.expr);
-            val = coerceTo(cmd->data.define.declaration.type, val);
-            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, val));
+            #ifdef DEBUG
+            printf("VALUE BEFORE:\n");
+            printValue(val);
+            #endif
+
+            Value *newValue = NULL;
+            newValue = coerceTo(cmd->data.define.declaration.type, val);
+
+            #ifdef DEBUG
+            printf("\nNEWVALUE AFTER:\n");
+            printValue(newValue);
+            printf("\n");
+            #endif
+
+            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, newValue));
             break;
 
         case(C_ASSIGN):
@@ -271,6 +290,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
 
     if(fn->builtin == TRUE){
         builtInFunc(localSymTable, localStack, fn);
+        //freeSymbolTable(localTable);
         return popFromStack(localStack);
     }
     Declaration *d=fn->argHead;
@@ -281,7 +301,6 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
         d=d->next;
     }
     val = createValue(fn->returnType);
-    ht_insert(&alloc_tab,val);
 
     evalBlock(localSymTable, localStack, &(fn->body), fn->name);
 
@@ -292,7 +311,6 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
  * Look for builtin functions
  */
 int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
-    (void) symTable;
     returnFlag = true;
     char *str = fn->name;
 
@@ -306,14 +324,26 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     else if(!strcmp(str, "ifj16.readInt") ){
         Value *val = createValue(T_INTEGER);
         I(val) = readInt();
-
+        if (I(val) == ERR_RUNTIME_INT_PARSE){
+            printSymbolTable(symTable);
+            if (symTable != NULL)
+                freeSymbolTable(symTable);
+            free(stack);
+            //free function?
+            MERROR(ERR_RUNTIME_INT_PARSE, "");
+        }
         pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.readDouble") ){
         Value *val = createValue(T_DOUBLE);
         D(val) = readDouble();
-
+        if (D(val) == ERR_RUNTIME_INT_PARSE){
+            freeSymbolTable(symTable);
+            free(stack);
+            //free function?
+            MERROR(ERR_RUNTIME_INT_PARSE, "");
+        }
         pushToStack(GlobalStack, val);
         return 0;
     }
@@ -407,8 +437,8 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
         }
         char *l = ( left->type == T_STRING) ? S( left) : S(coerceTo(T_STRING, left));
         char *r = (right->type == T_STRING) ? S(right) : S(coerceTo(T_STRING, right));
-        result->type = T_STRING;
-        S(result) = malloc(sizeof(char) * (strlen(l) + strlen(r) + 1));
+        result->type = T_STRING; // malloc_c
+        S(result) = malloc_c(sizeof(char) * (strlen(l) + strlen(r) + 1));
         strcpy(S(result), l);
         strcat(S(result), r);
         return result;
@@ -577,9 +607,11 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                          className);
 
             if(returnFlag == true){
+                //localStack?
                 val = popFromStack(GlobalStack);
                 returnFlag=false;
             }
+            free(localStack);
 
             return val;
 
@@ -588,10 +620,13 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
             printf("reference lookup: %s\n", e->data.reference);
             #endif
             node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
+            //val = createValue(node->data.value->type);
             return node->data.value;
-
+            //return val;
         case E_VALUE:
+            //val = createValue (e->data.value->type);
             return e->data.value;
+            //return val;
 
         case E_BINARY:
             return evalBinaryExpression(e->data.binary.op,
@@ -684,8 +719,8 @@ void printStack(Stack *stack){
 
 
 Stack *createLocalStack(Stack *stack){
-
-    Stack *tmp = malloc_c(sizeof(Stack) + 5 * sizeof(Value*));
+    //malloc
+    Stack *tmp = malloc(sizeof(Stack) + 5 * sizeof(Value*));
     CHECK_ALLOC(tmp);
 
     tmp->prev = stack;

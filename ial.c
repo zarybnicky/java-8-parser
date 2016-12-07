@@ -103,7 +103,10 @@ char *sort(char *s)
             count++;
             y++;
         }
+        free(left);
+        free(right);
     }   // if (len != 1)
+
     return s;
 }   // function
 
