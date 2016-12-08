@@ -166,7 +166,7 @@ int length(char *s) {
 char *substr(char *s,int i, int n) {
     int sLen = strlen(s);
 
-    if (sLen - 1 < i || sLen - 1 < n + i)
+    if (sLen - 1 < i || sLen - 1 < n - 1 + i)
         ERROR(ERR_RUNTIME_MISC); //
 
     if (n != 0) {

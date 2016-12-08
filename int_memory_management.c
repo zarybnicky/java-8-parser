@@ -35,7 +35,7 @@ void test_mem(){
     printf("\n\n-------------\n%s\n-------------\n", "3. dva prvky" );
     print_htTable(&alloc_tab);
 
-    free_c(&alloc_tab, a);
+    free_c(a);
     printf("\n\n-------------\n%s\n-------------\n", "4. jeden vymazem" );
     print_htTable(&alloc_tab);
 
@@ -153,16 +153,16 @@ void ht_del_item(T_HTable *tab, void *addr){
 
 }
 
-void free_c(T_HTable *tab, void *addr) {
+void free_c(void *addr) {
     // printf("free_c\naddr: %p\n", addr);
-    if (addr == NULL || tab == NULL) {
+    if (addr == NULL || alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
     unsigned index = hash_function(addr, HTAB_SIZE);
     // printf("index: %u\n", index);
 
-    T_HTItem *item = (*tab)[index];
+    T_HTItem *item = alloc_tab[index];
     T_HTItem *prv = NULL;
     // First item hit
     if (item == NULL)
@@ -176,10 +176,10 @@ void free_c(T_HTable *tab, void *addr) {
             free(item);
             return;
         }
-        item=item->next;
+        item = item->next;
     }
     // first node
-    (*tab)[index] = item->next;
+    alloc_tab[index] = item->next;
     free(addr);
     free(item);
 }
@@ -190,14 +190,15 @@ void free_c_all(T_HTable *tab) {
     }
     T_HTItem *tmp;
     T_HTItem *item=(*tab)[0];
-    for(unsigned i = 0; i < HTAB_SIZE; i++,item=(*tab)[i]){
+    for(unsigned i = 0; i < HTAB_SIZE; i++,item = (*tab)[i]){
         while(item != NULL){
             tmp = item->next;
             free(item->addr);
             free(item);
-            item= tmp;
+            item = tmp;
         }
-        (*tab)[i]=NULL;
+        free((*tab)[i]);
+        (*tab)[i] = NULL;
     }
 }
 

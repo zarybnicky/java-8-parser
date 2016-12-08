@@ -32,7 +32,7 @@ void *malloc_c (size_t size);
 void *calloc_c (unsigned num, size_t size);
 void *realloc_c (void *ptr, size_t size);
 void ht_del_item(T_HTable *tab, void *ptr);
-void free_c (T_HTable *, void *addr);
+void free_c (void *addr);
 void free_c_all(T_HTable *);
 unsigned hash_function(const void *, unsigned);
 void ht_init ( T_HTable *tab );

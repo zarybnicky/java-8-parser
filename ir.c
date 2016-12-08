@@ -12,9 +12,8 @@
 
 /* VALUE */
 Value *createValue(ValueType type) {
-    Value *v = malloc(sizeof(Value));
+    Value *v = malloc_c(sizeof(Value));
     CHECK_ALLOC(v);
-    ht_insert(&alloc_tab, v);
     v->type = type;
     v->undefined = false;
     return v;
@@ -113,9 +112,8 @@ void printExpression(Expression *e) {
 
 /* DECLARATION */
 Declaration *createDeclaration(ValueType type, char *name) {
-    Declaration *d = malloc(sizeof(Declaration));
+    Declaration *d = malloc_c(sizeof(Declaration));
     CHECK_ALLOC(d);
-    ht_insert(&alloc_tab, d);
     d->type = type;
     d->name = name;
     d->next = NULL;
