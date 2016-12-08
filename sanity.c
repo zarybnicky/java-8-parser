@@ -342,10 +342,6 @@ ValueType getExpressionType(Expression *e) {
                    e->data.funcall.name, e->data.funcall.argCount,
                    n->data.function->argCount);
         }
-        if (strcmp(e->data.funcall.name, "ifj16.print") == 0) {
-            //skip parameter typecheck in ifj16.print
-            return T_VOID;
-        }
 
         arg = e->data.funcall.argHead;
         #ifdef DEBUG
@@ -362,7 +358,7 @@ ValueType getExpressionType(Expression *e) {
             for (int i = n->data.function->argCount - 1; i --> argNum;)
                 d = d->next;
             ValueType rtype = getExpressionType(arg);
-            if (!isAssignCompatible(d->type, rtype)) {
+            if (!isAssignCompatible(d->type, rtype) && strcmp("ifj16.print", e->data.funcall.name) != 0) {
                 fprintf(stderr,
                        "Cannot convert %s to %s while calling function %s\n",
                        showValueType(rtype), showValueType(d->type),
