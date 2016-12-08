@@ -170,13 +170,13 @@ void free_c(void *addr) {
     //loop between items find exact address for 1 table-item
     while(item->addr != addr){
         prv = item;
-        prv->next = item->next;
+        item = item->next;
         if (item->addr == addr){
+            prv->next = item->next;
             free(addr);
             free(item);
             return;
-        }
-        item = item->next;
+        };
     }
     // first node
     alloc_tab[index] = item->next;
@@ -188,16 +188,18 @@ void free_c_all(T_HTable *tab) {
     if (tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
+
     T_HTItem *tmp;
     T_HTItem *item=(*tab)[0];
-    for(unsigned i = 0; i < HTAB_SIZE; i++,item = (*tab)[i]){
+
+    for(unsigned i = 0; i < HTAB_SIZE; i++, item = (*tab)[i]){
         while(item != NULL){
             tmp = item->next;
             free(item->addr);
             free(item);
             item = tmp;
         }
-        free((*tab)[i]);
+        //free((*tab)[i]);
         (*tab)[i] = NULL;
     }
 }

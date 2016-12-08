@@ -23,7 +23,7 @@ void freeValue(Value *v) {
         if (v->type == T_STRING && v->data.str != NULL && !v->undefined) {
             free(v->data.str);
         }
-        free(v);
+        free_c(v);
     }
 }
 void printValue(Value *v) {
@@ -123,7 +123,7 @@ void freeDeclaration(Declaration *d) {
     while (d != NULL) {
         Declaration *e = d->next;
         free(d->name);
-        free(d);
+        free_c(d);
         d = e;
     }
 }

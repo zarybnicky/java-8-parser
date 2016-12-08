@@ -20,7 +20,7 @@ void freeGlobalResources() {
         freeLexer(l);
     if (i != NULL)
         freeInterpret(i);
-    //free_c_all(&alloc_tab);
+    free_c_all(&alloc_tab);
 }
 
 int main(int argc, char *argv[])

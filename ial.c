@@ -396,7 +396,7 @@ Node *table_remove(SymbolTable *table, char *symbol){
 }
 
 Node *createFunctionNode(char *symbol, Function *f) {
-    Node *n = malloc(sizeof(Node));
+    Node *n = malloc_c(sizeof(Node));
     CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_FUNCTION;
@@ -406,9 +406,8 @@ Node *createFunctionNode(char *symbol, Function *f) {
     return n;
 }
 Node *createValueNode(char *symbol, Value *v) {
-    Node *n = malloc(sizeof(Node));
+    Node *n = malloc_c(sizeof(Node));
     CHECK_ALLOC(n);
-    ht_insert(&alloc_tab, n);
     n->symbol = symbol;
     n->type = N_VALUE;
     n->data.value = v;
@@ -417,7 +416,7 @@ Node *createValueNode(char *symbol, Value *v) {
     return n;
 }
 Node *createClassNode(char *symbol) {
-    Node *n = malloc(sizeof(Node));
+    Node *n = malloc_c(sizeof(Node));
     CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_CLASS;
@@ -442,7 +441,7 @@ void freeNode(Node *n) {
     free(n->symbol);
     freeNode(n->left);
     freeNode(n->right);
-    free(n);
+    free_c(n);
 }
 void printNode(Node *n)  {
     if (n == NULL) {
@@ -475,16 +474,15 @@ char *showNodeType(NodeType x) {
 
 /* SYMBOL TABLE */
 SymbolTable *createSymbolTable()  {
-    SymbolTable *t = malloc(sizeof(SymbolTable));
+    SymbolTable *t = malloc_c(sizeof(SymbolTable));
     CHECK_ALLOC(t);
-    ht_insert(&alloc_tab, t);
     t->root = NULL;
     return t;
 }
 void freeSymbolTable(SymbolTable *t)  {
     if (t != NULL) {
         freeNode(t->root);
-        free(t);
+        free_c(t);
     }
 }
 void printSymbolTable(SymbolTable *t) {
