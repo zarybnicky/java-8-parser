@@ -337,7 +337,6 @@ void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
     do {                                                    \
         c = fgetc(input);                                   \
         if (c == -1) {                                      \
-            state = END_OF_FILE;                            \
             return END_OF_FILE;                             \
         }                                                   \
         if (c == '\n') {                                    \
@@ -864,28 +863,29 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             }
             break;
         case AUT_BIN:
-         //printf("AUT BIN S%c",c);
-         string_end(string, c, &stringLength, &stringAlloc);
-         GET_CHAR(c, input, state, line, lineCol);
-         //printf("AUT BIN CH%c",c);
-         if (isdigit(c)) {
-			 // MUSEL SOM PRIDAT STRING END ABY NACITALO PREDOSLI !!
-			 string_end(string, c, &stringLength, &stringAlloc);
-             state = AUT_OCT;
-             
-              }
-         else if  (c == 'b') {
-                 state = AUT_BIN2;
-			 }
-	     else if  (c == 'x') {
-                 state = AUT_HEX;
-			 }
-		 
-         else {
-               state = Start_state;
-               return NUMBER;
-            }
-            break;
+        //printf("AUT BIN S%c",c);
+        string_end(string, c, &stringLength, &stringAlloc);
+        GET_CHAR(c, input, state, line, lineCol);
+        //printf("AUT BIN CH%c",c);
+        if (isdigit(c)) {
+            // MUSEL SOM PRIDAT STRING END ABY NACITALO PREDOSLI !!
+            string_end(string, c, &stringLength, &stringAlloc);
+            state = AUT_OCT;
+        }
+        else if  (c == 'b') {
+            state = AUT_BIN2;
+		}
+        else if  (c == 'x') {
+            state = AUT_HEX;
+		}
+        else if (c == '.') {
+            state = AUT_FLOAT1;
+        }
+        else {
+            state = Start_state;
+            return NUMBER;
+        }
+        break;
 
          case AUT_BIN2:
          //printf("%c",c);
