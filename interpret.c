@@ -552,7 +552,7 @@ Value *evalStaticExpression(Expression *e) {
     switch (e->type) {
         case E_FUNCALL:
         case E_REFERENCE:
-            MERROR(ERR_SYNTAX, "Cannot use dynamic expressions during static variable initialization!");
+            MERROR(ERR_SEM_MISC, "Cannot use dynamic expressions during static variable initialization!");
         case E_VALUE:
             return e->data.value;
         case E_BINARY:

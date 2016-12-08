@@ -11,6 +11,6 @@ class Main{
             b = 8;
         }
 
-        ifj16.print(b);
+        ifj16.print(b +"\n");
     }
 }

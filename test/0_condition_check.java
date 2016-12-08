@@ -12,7 +12,7 @@ class Main{
     if ((a+b+a)>5){
       b=5;
       abc();
-      ifj16.print(b);
+      ifj16.print(b + "\n");
     }
   }
 }
