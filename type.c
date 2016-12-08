@@ -56,7 +56,7 @@ bool isAssignCompatible(ValueType lvalue, ValueType rvalue) {
     if (lvalue == T_DOUBLE && (rvalue == T_DOUBLE || rvalue == T_INTEGER)) {
         return true;
     }
-    if (lvalue == T_STRING) {
+    if (lvalue == T_STRING && rvalue == T_STRING) {
         return true;
     }
     if (lvalue == T_BOOLEAN && rvalue == T_BOOLEAN) {
