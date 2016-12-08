@@ -520,6 +520,10 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 state = AUT_FLOAT1;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
+            // !!!!!!!! DALSAI OPRAVENA VEC BACHA NATO 
+            else if (isalpha(c)) {
+                state = Start_state;
+                return ERROR_NUMBER; }
             else {
                 state = Start_state;
                 return NUMBER;
@@ -542,13 +546,10 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 ;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
-             else if (((c >='!') && (c <= '/')) || ((c >='<') && // este si musim dat pozor na znak ':' ktory este berie v pohode
-					(c <= 'D'))|| ((c >='F') && (c <= 'd')) ||
-					((c >='f') && (c <= '~') ) )
-                  {   // OSETRTI CHYBU 5.5a -------- DONEEEE
-					  state = Start_state;
-                      return ERROR_NUMBER;
-			      }
+            // POZOR !!!!! ZNOVA ALPHA !!!!!!!
+            else if (isalpha(c)) {
+                state = Start_state;
+                return ERROR_NUMBER; }
             else {
                 state = Start_state;
                 return FLOAT;
