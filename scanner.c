@@ -376,7 +376,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             }
 
             // POZOR CISLA PRVE BRAT NEMOZE --DONE
-            else if ((c>='A' && c<='z') || c == '_' || c == '$')
+            else if ((c>='A' && c<='z') || (c>='a' && c<='z') || c == '_' || c == '$')
                 state = AUT_IDEN;
             //kvoli oktalovemu , string musi byt nulovy kedze 0 je prva
             else if ((c == '0') && *string== NULL)  //pokracujeme na stav cisla
