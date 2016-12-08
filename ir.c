@@ -19,9 +19,6 @@ Value *createValue(ValueType type) {
 }
 void freeValue(Value *v) {
     if (v != NULL) {
-        //if (v->type == T_STRING && v->data.str != NULL && !v->undefined) {
-            //free_c(v->data.str);
-        //}
         free_c(v);
     }
 }
