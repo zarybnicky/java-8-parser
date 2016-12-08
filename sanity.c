@@ -342,6 +342,10 @@ ValueType getExpressionType(Expression *e) {
                    e->data.funcall.name, e->data.funcall.argCount,
                    n->data.function->argCount);
         }
+        if (strcmp(e->data.funcall.name, "ifj16.print") == 0) {
+            //skip parameter typecheck in ifj16.print
+            return T_VOID;
+        }
 
         arg = e->data.funcall.argHead;
         #ifdef DEBUG
