@@ -14,7 +14,7 @@ EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbo
 
 LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
 
-.PHONY: all doc test clean
+.PHONY: all doc test val clean
 
 all: ifj16
 
@@ -27,6 +27,10 @@ debugInt: debug
 #doc
 test: ifj16 test/parser test/symbol-table
 	bash testsuite.sh
+
+#valgrind
+val: ifj16 test/parser
+	bash valgrind.sh
 
 clean:
 	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ) $(DOC_LOG)

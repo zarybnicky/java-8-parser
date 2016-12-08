@@ -75,6 +75,7 @@ int freeInterpret(Interpret *i) {
         freeNode(i->symTable.root);
     free(i);
     i= NULL;
+    //free(GlobalStack);
     return 0;
 }
 
@@ -90,7 +91,7 @@ int evalMain(Interpret *i) {
 
     interpretFunc(GlobalStack, mainFn);
 
-    free(GlobalStack);
+    free_c(GlobalStack);
     return 0;
 }
 
@@ -105,7 +106,7 @@ int interpretFunc(Stack *stack, Node *node) {
     for (Command *c = f->body.head; c != NULL; c = c->next) {
         char *className=getClassName(f->name);
         evalCommand(localTable, stack, c, className);
-        free(className);
+        free_c(className);
     }
     if (localTable != NULL)
         freeSymbolTable(localTable);
@@ -328,7 +329,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
             printSymbolTable(symTable);
             if (symTable != NULL)
                 freeSymbolTable(symTable);
-            free(stack);
+            free_c(stack);
             //free function?
             MERROR(ERR_RUNTIME_INT_PARSE, "");
         }
@@ -340,7 +341,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         D(val) = readDouble();
         if (D(val) == ERR_RUNTIME_INT_PARSE){
             freeSymbolTable(symTable);
-            free(stack);
+            free_c(stack);
             //free function?
             MERROR(ERR_RUNTIME_INT_PARSE, "");
         }
@@ -611,7 +612,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                 val = popFromStack(GlobalStack);
                 returnFlag=false;
             }
-            free(localStack);
+            free_c(localStack);
 
             return val;
 
@@ -720,8 +721,7 @@ void printStack(Stack *stack){
 
 Stack *createLocalStack(Stack *stack){
     //malloc
-    Stack *tmp = malloc(sizeof(Stack) + 5 * sizeof(Value*));
-    CHECK_ALLOC(tmp);
+    Stack *tmp = malloc_c(sizeof(Stack) + 5 * sizeof(Value*));
 
     tmp->prev = stack;
 
@@ -738,7 +738,7 @@ Stack *deleteLocaleStack(Stack *stack) {
     assert(stack != NULL);
 
     Stack *tmp = stack->prev;
-    free(stack);
+    free_c(stack);
 
     return tmp;
 }
@@ -751,8 +751,7 @@ int pushToStack(Stack *stack, Value *val){
 
     //reallocate whole stack if is no space in stack;
     if(stack->size == stack->cap){
-        stack = realloc( stack, sizeof(stack) + stack->cap * 2);
-        CHECK_ALLOC(stack->data);
+        stack = realloc_c( stack, sizeof(stack) + stack->cap * 2);
     }
 
     stack->data[stack->size] = val;

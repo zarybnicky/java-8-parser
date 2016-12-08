@@ -13,16 +13,15 @@
 /* VALUE */
 Value *createValue(ValueType type) {
     Value *v = malloc_c(sizeof(Value));
-    CHECK_ALLOC(v);
     v->type = type;
     v->undefined = false;
     return v;
 }
 void freeValue(Value *v) {
     if (v != NULL) {
-        if (v->type == T_STRING && v->data.str != NULL && !v->undefined) {
-            free(v->data.str);
-        }
+        //if (v->type == T_STRING && v->data.str != NULL && !v->undefined) {
+            //free_c(v->data.str);
+        //}
         free_c(v);
     }
 }
@@ -48,8 +47,7 @@ void printValue(Value *v) {
 
 /* EXPRESSION */
 Expression *createExpression(ExpressionType type) {
-    Expression *e = malloc(sizeof(Expression));
-    CHECK_ALLOC(e);
+    Expression *e = malloc_c(sizeof(Expression));
     e->type = type;
     e->next = NULL;
     return e;
@@ -59,21 +57,21 @@ void freeExpression(Expression *e) {
         Expression *f = e->next;
         switch (e->type) {
         case E_FUNCALL:
-            free(e->data.funcall.name);
+            free_c(e->data.funcall.name);
             freeExpression(e->data.funcall.argHead);
             break;
         case E_VALUE:
             freeValue(e->data.value);
             break;
         case E_REFERENCE:
-            free(e->data.reference);
+            free_c(e->data.reference);
             break;
         case E_BINARY:
             freeExpression(e->data.binary.left);
             freeExpression(e->data.binary.right);
             break;
         }
-        free(e);
+        free_c(e);
         e = f;
     }
 }
@@ -113,7 +111,6 @@ void printExpression(Expression *e) {
 /* DECLARATION */
 Declaration *createDeclaration(ValueType type, char *name) {
     Declaration *d = malloc_c(sizeof(Declaration));
-    CHECK_ALLOC(d);
     d->type = type;
     d->name = name;
     d->next = NULL;
@@ -122,7 +119,7 @@ Declaration *createDeclaration(ValueType type, char *name) {
 void freeDeclaration(Declaration *d) {
     while (d != NULL) {
         Declaration *e = d->next;
-        free(d->name);
+        free_c(d->name);
         free_c(d);
         d = e;
     }
@@ -163,8 +160,7 @@ void printBlock(Block *b) {
 
 /* COMMAND */
 #define CREATE_COMMAND(c, type_)                \
-    Command *c = malloc(sizeof(Command));       \
-    CHECK_ALLOC(c);                             \
+    Command *c = malloc_c(sizeof(Command));     \
     c->type = type_;                            \
     c->next = NULL;                             \
 
@@ -241,14 +237,14 @@ void freeCommand(Command *c) {
         Command *d = c->next;
         switch (c->type) {
         case C_DECLARE:
-            free(c->data.declare.name);
+            free_c(c->data.declare.name);
             break;
         case C_DEFINE:
-            free(c->data.define.declaration.name);
+            free_c(c->data.define.declaration.name);
             freeExpression(c->data.define.expr);
             break;
         case C_ASSIGN:
-            free(c->data.assign.name);
+            free_c(c->data.assign.name);
             freeExpression(c->data.assign.expr);
             break;
         case C_BLOCK:
@@ -268,7 +264,7 @@ void freeCommand(Command *c) {
             freeBlock(c->data.doWhileC.bodyBlock);
             break;
         case C_FOR:
-            free(c->data.forC.var.name);
+            free_c(c->data.forC.var.name);
             freeExpression(c->data.forC.initial);
             freeExpression(c->data.forC.cond);
             freeCommand(c->data.forC.iter);
@@ -282,7 +278,7 @@ void freeCommand(Command *c) {
         case C_BREAK:
             break;
         }
-        free(c);
+        free_c(c);
         c = d;
     }
 }
@@ -343,8 +339,7 @@ void printCommand(Command *c) {
 
 /* FUNCTION */
 Function *createFunction(char *name, ValueType type, int argCount, Declaration *argHead) {
-    Function *f = malloc(sizeof(Function));
-    CHECK_ALLOC(f);
+    Function *f = malloc_c(sizeof(Function));
     f->name = name;
     f->returnType = type;
     f->argCount = argCount;
@@ -355,10 +350,10 @@ Function *createFunction(char *name, ValueType type, int argCount, Declaration *
 }
 void freeFunction(Function *f) {
     if (f != NULL) {
-        free(f->name);
+        free_c(f->name);
         freeDeclaration(f->argHead);
         freeCommand(f->body.head);
-        free(f);
+        free_c(f);
     }
 }
 void printFunction(Function *f) {
@@ -483,8 +478,7 @@ char *getClassName(char *fn){
 char *strdup_(const char *s) {
     if (s == NULL)
         return NULL;
-    char *dup = malloc(strlen(s) + 1);
-    CHECK_ALLOC(dup);
+    char *dup = malloc_c(strlen(s) + 1);
     strcpy(dup, s);
     return dup;
 }

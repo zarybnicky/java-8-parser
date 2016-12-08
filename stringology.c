@@ -157,13 +157,12 @@ char *readString() {
     int c;
     unsigned int i = 0;
 
-    char *Str = malloc(Len);
-    CHECK_ALLOC(Str);
+    char *Str = malloc_c(Len);
+
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {
             Len = Len + MAX_LEN;
-            Str = realloc(Str, Len);
-            CHECK_ALLOC(Str);
+            Str = realloc_c(Str, Len);
         }
 
         Str[i] = c;
@@ -192,7 +191,7 @@ char *substr(char *s,int i, int n) {
         sLen = n+1;
     }
 
-    char *pom = malloc(sLen);
+    char *pom = malloc_c(sLen);
 
     strncpy(pom, s+i, n);
 

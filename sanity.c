@@ -32,7 +32,7 @@ void freeSemantic() {
         freeSymbolTable(localTable);
     }
     if (className != NULL) {
-        free(className);
+        free_c(className);
     }
 }
 

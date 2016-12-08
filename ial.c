@@ -105,8 +105,8 @@ char *sort(char *s)
             count++;
             y++;
         }
-        free(left);
-        free(right);
+        free_c(left);
+        free_c(right);
     }   // if (len != 1)
 
     return s;
@@ -399,7 +399,6 @@ Node *table_remove(SymbolTable *table, char *symbol){
 
 Node *createFunctionNode(char *symbol, Function *f) {
     Node *n = malloc_c(sizeof(Node));
-    CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_FUNCTION;
     n->data.function = f;
@@ -409,7 +408,6 @@ Node *createFunctionNode(char *symbol, Function *f) {
 }
 Node *createValueNode(char *symbol, Value *v) {
     Node *n = malloc_c(sizeof(Node));
-    CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_VALUE;
     n->data.value = v;
@@ -419,7 +417,6 @@ Node *createValueNode(char *symbol, Value *v) {
 }
 Node *createClassNode(char *symbol) {
     Node *n = malloc_c(sizeof(Node));
-    CHECK_ALLOC(n);
     n->symbol = symbol;
     n->type = N_CLASS;
     n->left = NULL;
@@ -440,7 +437,7 @@ void freeNode(Node *n) {
     case N_CLASS:
         break;
     }
-    free(n->symbol);
+    free_c(n->symbol);
     freeNode(n->left);
     freeNode(n->right);
     free_c(n);
@@ -477,7 +474,6 @@ char *showNodeType(NodeType x) {
 /* SYMBOL TABLE */
 SymbolTable *createSymbolTable()  {
     SymbolTable *t = malloc_c(sizeof(SymbolTable));
-    CHECK_ALLOC(t);
     t->root = NULL;
     return t;
 }
