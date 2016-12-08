@@ -12,6 +12,16 @@
 
 #include "stringology.h"
 
+int numberOfNum(char *s){
+    int num = 0;
+    while (*s != '\0'){
+        if (isdigit(*s))
+            num++;
+        s++;
+    }
+    return num;
+}
+
 int readInt() { // Int celé nezáporné číslo (3.1)
     int c; // Urceno dle max delky int
     unsigned vysledek = 0;
@@ -133,7 +143,11 @@ double readDouble() { // TODO
         pom = pom*0.1; // Posledni posun
         vysledek = vysledek + pom;
     }
-
+    if ( numberOfNum(Str) == 0 ){
+        fprintf(stderr, "Error while parsing a float, no number read\n");
+        free(Str);
+        return ERR_RUNTIME_INT_PARSE;
+    }
     free(Str);
     return vysledek;
 } // function end
@@ -164,6 +178,8 @@ int length(char *s) {
 }
 
 char *substr(char *s,int i, int n) {
+    if (s == NULL || *s == '\0' || i < 0 || n < 0)
+        ERROR(ERR_RUNTIME_MISC);
     int sLen = strlen(s);
 
     if (sLen - 1 < i || sLen - 1 < n - 1 + i)

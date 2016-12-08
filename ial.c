@@ -57,6 +57,8 @@ int find(char *s, char *search) {
 
 char *sort(char *s)
 {
+    if (*s == '\0')
+        return s;
     unsigned len = strlen(s);
 
     if (len != 1) {  // Split to smaller strings

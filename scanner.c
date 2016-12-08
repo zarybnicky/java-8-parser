@@ -19,12 +19,16 @@ Token *getNextToken(FILE *f) {
     int c = Get_Token(f, &str, &reserved, &symbol, &lineNum, &lineCol);
     Token *t = NULL;
     char *endptr = NULL;
-
     t = malloc(sizeof(Token));
     t->lineNum = lineNum;
     t->lineChar = lineCol;
     t->original = str;
     t->next = NULL;
+
+    #ifdef DEBUG
+    printf("TOKEN: %s\n", t->original);
+    #endif
+
     switch(c) {
     case RESERVED_WORD:
         t->type = RESERVED;
@@ -587,19 +591,23 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
         case AUT_STRING:
             GET_CHAR(c, input, state, line, lineCol);
-            if(!(isprint(c))) {
-                state = Start_state ;
-                return ERROR_ASCII; }
             if(c == '"') {
                 state = NEUTRAL_STATE;
-                return STRING; }
+                string_end(string, '\0', &stringLength, &stringAlloc);
+                return STRING;
+            }
             else if(c == '\\')
                 state = AUT_ESC; // NIESOM SI ISTY VO VSETKYCH VARIANTACH NEDOKONCENE ZATIAL
             else if(c == EOF) {
                state = Start_state;
                 return ERROR_ESC; }
-            else
+            else if (c > 31 && c <= 255) {
                 string_end(string, c, &stringLength, &stringAlloc);
+            }
+            else{
+                state = Start_state ;
+                return ERROR_ASCII;
+            }
             break;
         case AUT_ESC:
             GET_CHAR(c, input, state, line, lineCol);

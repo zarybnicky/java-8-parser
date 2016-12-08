@@ -12,11 +12,13 @@
 #define IFJ_STRINGOLOGY_H
 
 #include "int_memory_management.h"
+#include <ctype.h>
 
 #define MAX_LEN 10
 
 int readInt();
 double readDouble();
+int numberOfNum(char *);
 char *readString();
 void print(Value *v);
 int length(char *s);
