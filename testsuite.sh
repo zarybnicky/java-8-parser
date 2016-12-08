@@ -28,9 +28,9 @@ assert_raises "./ifj16 test/0_work_with_double.java" 0
 assert_raises "./ifj16 test/1_unknown_char.java" 1
 assert_raises "./ifj16 test/1_lex_double.java" 1
 assert_raises "./ifj16 test/1_simple_iden.java" 1
+assert_raises "./ifj16 test/1_badvalue_assign.java" 1
 
 assert_raises "./ifj16 test/2_no_class.java" 2
-assert_raises "./ifj16 test/2_badvalue_assign.java" 2
 
 assert_raises "./ifj16 test/3_assign_to_undec_var.java" 3
 assert_raises "./ifj16 test/3_bad_definition_of_run.java" 3
