@@ -75,7 +75,6 @@ int freeInterpret(Interpret *i) {
         freeNode(i->symTable.root);
     free(i);
     i= NULL;
-    free_c(GlobalStack);
     return 0;
 }
 
@@ -100,7 +99,6 @@ int interpretFunc(Stack *stack, Node *node) {
 
     SymbolTable *localTable = createSymbolTable();
     CHECK_ALLOC(localTable);
-    //ht_insert (&alloc_tab, localTable);
     dPrintf("%s", "Creating new local table.\n");
 
     for (Command *c = f->body.head; c != NULL; c = c->next) {
