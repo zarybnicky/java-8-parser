@@ -191,6 +191,8 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_RETURN):
+            if(cmd->data.expr == NULL)
+                break;
             val = evalExpression(symTable, stack, className, cmd->data.expr);
             //coerce to return type!!
             pushToStack(GlobalStack, val);

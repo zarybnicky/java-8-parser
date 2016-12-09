@@ -68,6 +68,7 @@ char *readString() {
     unsigned int i = 0;
 
     char *Str = calloc_c(Len,sizeof(char));
+
     *Str = '\0';
 
     while ((c = getchar()) != '\n' && c != EOF) {
