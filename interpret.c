@@ -75,7 +75,7 @@ int freeInterpret(Interpret *i) {
         freeNode(i->symTable.root);
     free(i);
     i= NULL;
-    //free(GlobalStack);
+    free_c(GlobalStack);
     return 0;
 }
 
@@ -330,7 +330,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
             if (symTable != NULL)
                 freeSymbolTable(symTable);
             free_c(stack);
-            //free function?
             MERROR(ERR_RUNTIME_INT_PARSE, "");
         }
         pushToStack(GlobalStack, val);
@@ -342,7 +341,6 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         if (D(val) == ERR_RUNTIME_INT_PARSE){
             freeSymbolTable(symTable);
             free_c(stack);
-            //free function?
             MERROR(ERR_RUNTIME_INT_PARSE, "");
         }
         pushToStack(GlobalStack, val);
@@ -591,7 +589,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                 if (node != NULL){
                     if (node->type == N_VALUE){
                         if (node->data.value->undefined == TRUE){
-                            MERROR(ERR_RUNTIME_UNINITIALIZED,"JUJDA")
+                            MERROR(ERR_RUNTIME_UNINITIALIZED,"Trying to work with uninitialized value")
                         }
                     }
                 }

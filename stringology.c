@@ -87,7 +87,6 @@ double readDouble() { // TODO
 
         case '.':
             if (e_set != 0 || dot_set != 0) { // Kontrola pro vice tecek nebo tecky po exp
-                //return ERR_RUNTIME_INT_PARSE
                 fprintf(stderr, "Error while parsing a float, unexpected character: %c\n", c);
                 free(Str);
                 return ERR_RUNTIME_INT_PARSE;

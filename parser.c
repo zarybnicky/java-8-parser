@@ -126,7 +126,7 @@ bool parseStaticDefinition(Lexer *l) {
     free_c(e);
     if (v->type != type) {
         free_c(name);
-        free(v);
+        free_c(v);
         FERROR(ERR_SEM_TYPECHECK,
                "Type error: variable has type %s but assigned expression has evaluated to %s\n",
                showValueType(type), showValueType(type));

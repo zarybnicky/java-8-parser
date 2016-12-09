@@ -154,13 +154,11 @@ void ht_del_item(T_HTable *tab, void *addr){
 }
 
 void free_c(void *addr) {
-    // printf("free_c\naddr: %p\n", addr);
     if (addr == NULL || alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
     }
 
     unsigned index = hash_function(addr, HTAB_SIZE);
-    // printf("index: %u\n", index);
 
     T_HTItem *item = alloc_tab[index];
     T_HTItem *prv = NULL;
@@ -199,7 +197,7 @@ void free_c_all(T_HTable *tab) {
             free(item);
             item = tmp;
         }
-        //free((*tab)[i]);
+
         (*tab)[i] = NULL;
     }
 }

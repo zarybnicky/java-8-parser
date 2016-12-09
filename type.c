@@ -83,14 +83,14 @@ Value *coerceTo(ValueType t, Value *v) {
             bufSize = snprintf(NULL, 0, "%d", I(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%d", I(v));
-            retVal=createValue(T_STRING);//malloc_c?
+            retVal=createValue(T_STRING);
             retVal->data.str = buf;
             return retVal;
         case T_DOUBLE:
             bufSize = snprintf(NULL, 0, "%g", D(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%g", D(v));
-            retVal=createValue(T_STRING); //malloc_c?
+            retVal=createValue(T_STRING);
             retVal->data.str = buf;
             return retVal;
         default:
