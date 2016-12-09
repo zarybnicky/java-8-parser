@@ -56,8 +56,8 @@ assert_raises "./ifj16 test/8_uninit_var.java" 8
 assert_raises "./ifj16 test/8_no_return.java" 8
 assert_raises "./ifj16 test/9_division_by_zero.java" 9
 
-assert_raises "printf abcd | ./ifj16 test/7_wrong_input_readDouble.java" 7
-assert_raises "printf abcd | ./ifj16 test/7_wrong_input_readInt.java" 7
+assert_raises "echo abcd | ./ifj16 test/7_wrong_input_readDouble.java" 7
+assert_raises "echo abcd | ./ifj16 test/7_wrong_input_readInt.java" 7
 
 assert_raises "./ifj16 test/10_substr_start_over.java" 10
 assert_raises "./ifj16 test/10_substr_read_over.java" 10

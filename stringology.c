@@ -28,7 +28,6 @@ int readInt() { // Int celé nezáporné číslo (3.1)
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (c < '0' || '9' < c) {
-            //return ERR_RUNTIME_INT_PARSE
             fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
             return ERR_RUNTIME_INT_PARSE;
         }
@@ -38,11 +37,24 @@ int readInt() { // Int celé nezáporné číslo (3.1)
 }
 
 double readDouble() { 
-    //FILE *f = stdin;
     Token *t = getNextToken(stdin);
-    double tmp = t->val.doubleVal;
-    freeToken(t);
-    return tmp;
+
+    switch(t->type){
+        case LIT_DOUBLE:;
+            double tmp = t->val.doubleVal;
+            freeToken(t);
+            return tmp;
+        
+        case LIT_INTEGER:;
+            double pom = (double)t->val.intVal;
+            freeToken(t);
+            return pom;
+
+        default:
+            freeToken(t);
+            fprintf(stderr, "Error while parsing an double, unexpected character\n");
+            return ERR_RUNTIME_INT_PARSE;
+    }
 }
 
 char *readString() {
