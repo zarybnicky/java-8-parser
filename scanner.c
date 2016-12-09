@@ -10,7 +10,8 @@
 //2.  LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
 //3. vyriesit num/nacitanie esc kodu
 #include "scanner.h"
-bool jirkaDouble = false;
+
+bool dbl_end = false; // Variable for readDouble
 
 Token *getNextToken(FILE *f) {
     char *str = NULL;
@@ -25,6 +26,10 @@ Token *getNextToken(FILE *f) {
     t->lineChar = lineCol;
     t->original = str;
     t->next = NULL;
+
+    if (dbl_end == true){
+        t->lineNum = -1;
+    }
 
     #ifdef DEBUG
     printf("TOKEN: %s\n", t->original);
@@ -353,6 +358,9 @@ void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
         if (c == '\n') {                                    \
             lineNum++;                                      \
             lineChar = 0;                                   \
+                if (input == stdin){                        \
+                    dbl_end = true;                        \
+                }                                           \
         } else {                                            \
             lineChar++;                                     \
         }                                                   \

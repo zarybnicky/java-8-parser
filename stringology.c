@@ -45,6 +45,12 @@ int readInt() { // Int celé nezáporné číslo (3.1)
 double readDouble() {
     Token *t = getNextToken(stdin);
 
+    if (t->lineNum != -1){
+        freeToken(t);
+        fprintf(stderr, "Error while parsing an double, unexpected character\n");
+        return ERR_RUNTIME_INT_PARSE;
+    }
+    
     switch(t->type){
         case LIT_DOUBLE:;
             double tmp = t->val.doubleVal;
