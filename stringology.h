@@ -13,6 +13,7 @@
 
 #include "int_memory_management.h"
 #include <ctype.h>
+#include "scanner.h"
 
 #define MAX_LEN 10
 
