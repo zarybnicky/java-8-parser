@@ -762,6 +762,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
            GET_CHAR(c, input, state, line, lineCol);
             if(c == '/')
                 state = NEUTRAL_STATE;
+            else if(c == '*')
+                state = AUT_CMTB_END;
             else
                 state = AUT_CMTB;
 
