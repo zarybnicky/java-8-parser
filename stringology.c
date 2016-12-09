@@ -37,7 +37,14 @@ int readInt() { // Int celé nezáporné číslo (3.1)
     return vysledek;
 }
 
-double readDouble() { // TODO
+double readDouble() { 
+    //FILE *f = stdin;
+    Token *t = getNextToken(stdin);
+    double tmp = t->val.doubleVal;
+    freeToken(t);
+    return tmp;
+}
+/*
     unsigned int Len = MAX_LEN, i = 0;
     double vysledek = 0;
     int c;
@@ -150,6 +157,7 @@ double readDouble() { // TODO
     free(Str);
     return vysledek;
 } // function end
+*/
 
 char *readString() {
     unsigned int Len = MAX_LEN;
