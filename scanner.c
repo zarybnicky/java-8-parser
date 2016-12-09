@@ -723,7 +723,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
         case AUT_DIV:
             GET_CHAR(c, input, state, line, lineCol);
             if(c== '/')
-                state = AUT_DIV2;
+                state = AUT_CMTL;
             else if(c=='*')
                 state = AUT_CMTB;// posleme do coment bloku
             else {
@@ -731,14 +731,6 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  *symbol = SYM_SLASH;
                 return AUT_SYMBOL;
             }
-            break;
-
-        case AUT_DIV2:
-            GET_CHAR(c, input, state, line, lineCol);
-            if(c == '\n')
-                state = NEUTRAL_STATE;
-            else
-                state = AUT_CMTL;
             break;
 
         case AUT_CMTL: //Coment Line
