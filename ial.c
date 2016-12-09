@@ -59,7 +59,9 @@ char *sort(char *s)
 {
     if (*s == '\0')
         return s;
-    unsigned len = strlen(s);
+    char *newString = strdup_(s);
+
+    unsigned len = strlen(newString);
 
     if (len != 1) {  // Split to smaller strings
         unsigned x = 0;
@@ -68,15 +70,15 @@ char *sort(char *s)
         unsigned half = len / 2;
         unsigned top;
 
-        char *left = substr(s, 0, half);
+        char *left = substr(newString, 0, half);
         char *right;
 
 
         if (len % 2 == 0) { // char *even X odd of members
-            right = substr(s, half, 0);
+            right = substr(newString, half, 0);
             top = half;
         } else {
-            right = substr(s, half, 0);
+            right = substr(newString, half, 0);
             top = half+1;
         }
 
@@ -85,10 +87,10 @@ char *sort(char *s)
 
         while (x < half && y < top) {  // Sort -> Counting from 0 to top - even X odd
             if (left[x] <= right[y]){
-                s[count] = left[x];
+                newString[count] = left[x];
                 x++;
             } else {
-                s[count] = right[y];
+                newString[count] = right[y];
                 y++;
             }   // if
             count++;
@@ -96,20 +98,19 @@ char *sort(char *s)
 
         // Adding the remaining characters
         while (x < half){
-            s[count] = left[x];
+            newString[count] = left[x];
             count++;
             x++;
         }
         while (y < top){
-            s[count] = right[y];
+            newString[count] = right[y];
             count++;
             y++;
         }
         free_c(left);
         free_c(right);
     }   // if (len != 1)
-
-    return s;
+    return newString;
 }   // function
 
 

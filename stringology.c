@@ -33,10 +33,16 @@ int readInt() { // Int celé nezáporné číslo (3.1)
         }
         vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
     }
+    //FIXME
+    if (c == EOF){
+        //return ERR_RUNTIME_INT_PARSE
+        fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
+        return ERR_RUNTIME_INT_PARSE;
+    }
     return vysledek;
 }
 
-double readDouble() { 
+double readDouble() {
     Token *t = getNextToken(stdin);
 
     switch(t->type){
@@ -44,7 +50,6 @@ double readDouble() {
             double tmp = t->val.doubleVal;
             freeToken(t);
             return tmp;
-        
         case LIT_INTEGER:;
             double pom = (double)t->val.intVal;
             freeToken(t);
@@ -62,7 +67,8 @@ char *readString() {
     int c;
     unsigned int i = 0;
 
-    char *Str = malloc_c(Len);
+    char *Str = calloc_c(Len,sizeof(char));
+    *Str = '\0';
 
     while ((c = getchar()) != '\n' && c != EOF) {
         if (i == Len) {

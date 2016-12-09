@@ -10,6 +10,7 @@
 //2.  LINE CHAR,LINE NUM Missing a nejake zvysne SYMBOLY
 //3. vyriesit num/nacitanie esc kodu
 #include "scanner.h"
+bool jirkaDouble = false;
 
 Token *getNextToken(FILE *f) {
     char *str = NULL;
@@ -78,7 +79,13 @@ Token *getNextToken(FILE *f) {
         break;
     case FLOAT:
         t->type = LIT_DOUBLE;
-        t->val.doubleVal = strtod(str,NULL);
+        t->val.doubleVal = strtod(str,&endptr);
+        if (*endptr != '\0'){
+            fprintf(stderr, "Invalid float read %s\n", t->original);
+            free(t->original);
+            free(t);
+            ERROR(ERR_LEXER);
+        }
         break;
     case STRING:
         t->type = LIT_STRING;
@@ -583,6 +590,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             break;
 
         case AUT_STRING:
+            num = 0;
             GET_CHAR(c, input, state, line, lineCol);
             if(c == '"') {
                 state = NEUTRAL_STATE;
@@ -616,15 +624,17 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             } else if(isdigit(c)) {
 				if(c > '0' && c <= '3' ) {// cislo moze byt iba v tomto rozmedzi
 				    num += (c - '0')*64;
-				    state = AUT_ESCN; }
+				    state = AUT_ESCN; 
+                }
 
                 else if (c == '0') {
-				    num += (c - '0')*64;
-				    state = AUT_ESC_ZERO; }
+				    state = AUT_ESC_ZERO; 
+                }
 
                 else {
 				    state = Start_state;
-                    return ERROR_ESC; }
+                    return ERROR_ESC; 
+                }
             }
             else {
                 state = Start_state;
@@ -658,7 +668,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 	    case AUT_ESCN:
 	        GET_CHAR(c, input, state, line, lineCol);
 	        if(isdigit(c)) {
-                if(c > '0' && c <= '7' ) {
+                if(c >= '0' && c <= '7' ) {
                     num += ((c - '0')*8);
                     state = AUT_ESCN2;
                 }
@@ -742,6 +752,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
         case AUT_CMTB :   //Coment Block
             // kvoli tomu som zmazal get char ze nebralo EOF
+            // printf("CMTBL: %c\n", case);
             c = fgetc(input);
             if(c == '*')
                 state = AUT_CMTB_END;
@@ -751,13 +762,16 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 return ERROR_CMTB;
             break;
         case AUT_CMTB_END:
+            // printf("BEFORE:%c\n", c);
            GET_CHAR(c, input, state, line, lineCol);
+
             if(c == '/')
                 state = NEUTRAL_STATE;
-            else if(c == '*')
+            else if (c == '*')
+
                 state = AUT_CMTB_END;
             else
-                state = AUT_CMTB;
+                state = AUT_CMTB; /***/
 
             break;
 

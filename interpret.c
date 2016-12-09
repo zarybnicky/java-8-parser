@@ -136,6 +136,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
     breakFlag = FALSE;
     returnFlag = FALSE;
 
+    dPrintf("CMD TYPE:%s",showCommandType(cmd->type));
     switch(cmd->type){
         case(C_DECLARE):
             table_insert_dummy(symTable, cmd->data.declare);
@@ -174,7 +175,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case(C_BLOCK):
-            evalBlock(symTable, stack, &(cmd->data.block), "Main");
+            evalBlock(symTable, stack, &(cmd->data.block), className);
             break;
 
         case(C_IF):
@@ -260,7 +261,7 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
 
     while (current != NULL) {
         if(continueFlag)
-            continueFlag = FALSE;
+            continueFlag = false;
         evalCommand(symTable, stack, current,className);
 
         if(continueFlag){
@@ -284,6 +285,9 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     (void) argHead;
 
     Value *val = NULL;
+    #ifdef DEBUG
+    printf("evalFunction name: %s\n evalFunction: className %s\n", name,className);
+    #endif
     Node *node = table_lookup_either(symTableGlob,NULL,className, name);
     Function *fn = node->data.function;
 
@@ -300,8 +304,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
         d=d->next;
     }
     val = createValue(fn->returnType);
-
-    evalBlock(localSymTable, localStack, &(fn->body), fn->name);
+    evalBlock(localSymTable, localStack, &(fn->body), className);
 
     return val;
 }
@@ -595,7 +598,11 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
                 pushToStack(localStack, evalExpression(symTable, localStack, className, exp));
                 exp = exp->next;
             }
-            //push return address to stack??
+            // printf("funcallname: %s\n classname: %s\n",e->data.funcall.name,className );
+            if ( strchr(e->data.funcall.name,'.') != NULL)
+                className = getClassName(e->data.funcall.name);
+            // printf("%s\n", className);
+            // //push return address to stack??
             evalFunction(localStack,
                          localSymTable,
                          e->data.funcall.name,

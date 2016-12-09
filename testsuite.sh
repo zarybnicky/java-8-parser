@@ -18,7 +18,7 @@ assert_raises "./ifj16 test/0_condition_check.java" 0
 assert_raises "echo 10 | ./ifj16 test/0_fact_iter.java" 0
 assert_raises "./ifj16 test/0_loops_etest_cond.java" 0
 assert_raises "./ifj16 test/0_return_var_declared.java" 0
-assert_raises "printf abcdefgh | ./ifj16 test/0_String\&IALString.java" 0
+assert_raises "echo abcdefgh | ./ifj16 test/0_String\&IALString.java" 0
 assert_raises "./ifj16 test/0_sort_try.java" 0
 assert_raises "./ifj16 test/0_variable_bothscopes.java" 0
 assert_raises "printf '8\n12e-10\nabcdefghijklm' |./ifj16 test/0_builtin_func.java" 0
@@ -28,8 +28,8 @@ assert_raises "./ifj16 test/0_work_with_double.java" 0
 assert_raises "./ifj16 test/1_unknown_char.java" 1
 assert_raises "./ifj16 test/1_lex_double.java" 1
 assert_raises "./ifj16 test/1_simple_iden.java" 1
-assert_raises "./ifj16 test/1_badvalue_assign.java" 1
 
+assert_raises "./ifj16 test/2_badvalue_assign.java" 2
 assert_raises "./ifj16 test/2_no_class.java" 2
 
 assert_raises "./ifj16 test/3_assign_to_undec_var.java" 3

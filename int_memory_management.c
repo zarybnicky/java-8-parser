@@ -169,17 +169,21 @@ void free_c(void *addr) {
     while(item->addr != addr){
         prv = item;
         item = item->next;
+        if (item == NULL)
+            return; // FIXME
         if (item->addr == addr){
             prv->next = item->next;
             free(addr);
             free(item);
+            item = NULL;
             return;
-        };
+        }
     }
     // first node
     alloc_tab[index] = item->next;
     free(addr);
     free(item);
+    item = NULL;
 }
 
 void free_c_all(T_HTable *tab) {
