@@ -29,6 +29,7 @@ assert_raises "./ifj16 test/0_boolop.java" 0
 assert_raises "./ifj16 test/0_boolop_1.java" 0
 assert_raises "./ifj16 test/0_boolop_2.java" 0
 
+assert_raises "./ifj16 test/0_function_call.java" 0
 
 assert_raises "./ifj16 test/1_unknown_char.java" 1
 assert_raises "./ifj16 test/1_lex_double.java" 1
