@@ -10,7 +10,7 @@
 \usepackage{lmodern}
 
 % TODO
-% - 
+% -
 
 % FIXME img link, compiling with make [Table of Content]
 
@@ -28,12 +28,12 @@
 \small\textbf{BRNO UNIVERSITY OF TECHNOLOGY}\\\vfill\hspace{-0.7cm}
 \Large\textbf{FAKULTA INFORMAČNÍCH TECHNOLOGIÍ}\\
 \small\textbf{FACULTY OF INFORMATION TECHNOLOGY}\\\vfill\hspace{-0.7cm}
-\Large\textbf{IFJ dokumentácia}\\
-\small\textbf{IFJ documentation}\\\vfill\hspace{-0.7cm}
+\Large\textbf{IFJ - DOKUMENTACE PROJEKTU}\\
+\small\textbf{IFJ - PROJECT DOCUMENTATION}\\\vfill\hspace{-0.7cm}
 \Large\textbf{SEMESTRÁLNÍ PROJEKT}\\
 \small\textbf{TERM PROJECT}\\\vfill\hspace{-0.7cm}
 \Large\textbf{AUTORI PRÁCE \hfill \normalsize{Marek Tamaškovič, Martin Vaško,}}\\
-\small\textbf{AUTHORS} \hfill \normalsize\textbf{Michal Vaško, Jirka Záleský,Jakub Zárybnický}
+\small\textbf{AUTHORS} \hfill \normalsize\textbf{Michal Vaško, Jirka Záleský, Jakub Zárybnický}
 \vfill\hspace{-0.7cm}
 \large\textbf{BRNO 2017}
 
@@ -61,6 +61,8 @@ asdf
 \section{Sémantická analýza}
 asdf
 \section{Interpret}
+Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpretovaného programu. Náš interpret interpretuje abstraktný syntaktický strom, ktorý vytvorila syntaktická analýza. Ten lineárne prechádza a vyhodnocuje výrazy pokým nenastane volanie funkcie. V tom momente si vyhľadá v tabuľke symbolov abstraktný syntaktický strom danej funkcie, vytvorí lokálnu tabuľku symbolov, ktorú bude používať volaná funkcia, vloží do nej argumenty funkcie a začne vykonávať telo funkcie. Pri ukončovaní funkcie interpret vloží návratovú hodnotu z funkcie na zásobník a ukončí interpretáciu funkcie. Následne si interpret danú hodnotu vyberie zo zásobníka a použije ju v interpretácii pôvodného abstraktného syntaktického stromu. Vstavané funkcie sú riešené obdobne. Taktiež si pri interpretácii interpret kontroluje behové chyby ako napríklad delenie nulou alebo práca s neinicializovanými premennými. Ak taká situácia nastane interpret sa ukončuje s chybovou hláškou a príslušným návratovým kódom pre danú chybu.
+
 
 \chapter{Príloha}
 
