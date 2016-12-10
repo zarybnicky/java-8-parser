@@ -41,6 +41,7 @@ typedef struct Stack{
     Value *data[];
 } Stack;
 
+// enum for builtins
 typedef enum{
     FN_PRINT,
     FN_READINT,
@@ -61,7 +62,7 @@ Interpret *createInterpret(void);
 
 int freeInterpret(Interpret *);
 
-
+//  Main interpret function
 int evalMain(Interpret *);
 
 //Static variables can be initialiezd using an expression as well, though I
@@ -71,17 +72,19 @@ int interpretNode(Stack *, Node *);
 int interpretFunc(Stack *, Node *);
 int builtInFunc(SymbolTable *, Stack *, Function *);
 
+// These functions are needed to evaluate abstract syntax tree.
 Value *evalStaticExpression(Expression *);
 bool evalCondition(SymbolTable *, Stack *, char *, Expression *);
 Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
 Value *evalFunction(Stack *,SymbolTable *,char *,int,Expression *,char *);
-
 Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
 
+// Return content of value
 Value *coerceTo(ValueType, Value *);
 
+// Constructor and destructor for STACK
 Stack *createLocalStack(Stack *);
 Stack *deleteLocaleStack(Stack *);
 

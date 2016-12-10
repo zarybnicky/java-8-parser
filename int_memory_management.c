@@ -11,6 +11,8 @@
 // Mini garbage collector
 #include "int_memory_management.h"
 
+
+// MEMORY MANAGEMENT TESTING
 void test_mem(){
     ht_init (&alloc_tab);
     //printf("\n\n-------------\n%s\n-------------\n", "1. prazdna tab" );
@@ -76,6 +78,8 @@ void print_htTable(T_HTable *t){
     }
 }
 
+
+// custom malloc for our memory management
 void *malloc_c(size_t size){
     if (alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
@@ -90,6 +94,8 @@ void *malloc_c(size_t size){
     return tmp;
 }
 
+
+// custom calloc for our memory management
 void *calloc_c(unsigned num, size_t size){
     if (alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
@@ -105,6 +111,7 @@ void *calloc_c(unsigned num, size_t size){
 
 }
 
+// custom realloc for our memory management
 void *realloc_c (void *ptr, size_t size){
     if (alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
@@ -121,6 +128,7 @@ void *realloc_c (void *ptr, size_t size){
     return ptr;
 }
 
+// delete item in memory management
 void ht_del_item(T_HTable *tab, void *addr){
 
     unsigned index = hash_function(addr, HTAB_SIZE);
@@ -153,6 +161,7 @@ void ht_del_item(T_HTable *tab, void *addr){
 
 }
 
+// custom free for our memory management
 void free_c(void *addr) {
     if (addr == NULL || alloc_tab == NULL) {
         ERROR(ERR_INTERNAL);
@@ -187,6 +196,7 @@ void free_c(void *addr) {
     item = NULL;
 }
 
+// Release the CRACK.. ehm... MEMORYY!
 void free_c_all(T_HTable *tab) {
     if (tab == NULL) {
         ERROR(ERR_INTERNAL);
@@ -207,12 +217,14 @@ void free_c_all(T_HTable *tab) {
     }
 }
 
+// Initializer for memory management
 void ht_init ( T_HTable *tab ) {
     for(unsigned i = 0; i < HTAB_SIZE; i++){
         (*tab)[i] = NULL;
     }
 }
 
+// Search address in memory management
 T_HTItem* ht_search ( T_HTable* tab, void *addr ) {
 
     unsigned index = hash_function(addr, HTAB_SIZE);
@@ -231,6 +243,7 @@ T_HTItem* ht_search ( T_HTable* tab, void *addr ) {
     return NULL;
 }
 
+// insert address in memory management
 void ht_insert ( T_HTable* tab, void *addr ) {
     unsigned index = hash_function(addr, HTAB_SIZE);
 
@@ -246,6 +259,7 @@ void ht_insert ( T_HTable* tab, void *addr ) {
 
 }
 
+// hash function for mem. management
 unsigned hash_function(const void *addr, unsigned htab_size){
 
     assert(addr != NULL);

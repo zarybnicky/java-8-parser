@@ -11,15 +11,14 @@
 
 #include "interpret.h"
 
-#define TRUE true
-#define FALSE false
-
 static SymbolTable *symTableGlob = NULL;
 static Stack *GlobalStack = NULL;
 
-static bool continueFlag = FALSE;
-static bool breakFlag = FALSE;
-static bool returnFlag = FALSE;
+
+// cycle helpers.
+static bool continueFlag = false;
+static bool breakFlag = false;
+static bool returnFlag = false;
 
 
 
@@ -67,7 +66,7 @@ Interpret *createInterpret(void) {
     return i;
 }
 
-
+// Free symbolTable
 int freeInterpret(Interpret *i) {
     if (i == NULL)
         return 1;
@@ -111,6 +110,7 @@ int interpretFunc(Stack *stack, Node *node) {
     return 0;
 }
 
+// A core of every cycle is basicaly the same -> why not use some macros?
 #define CYCLE_INNER(symTable, stack, funcName, body, end)       \
     do {                                                        \
         for (Command *c = body.head; c != NULL; c = c->next) {  \
@@ -132,10 +132,12 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
     Node *node;
     Value *val = NULL;
 
-    continueFlag = FALSE;
-    breakFlag = FALSE;
-    returnFlag = FALSE;
+    // Initialize cycle helpers
+    continueFlag = false;
+    breakFlag = false;
+    returnFlag = false;
 
+    //switch for command type
     dPrintf("CMD TYPE:%s",showCommandType(cmd->type));
     switch(cmd->type){
         case(C_DECLARE):
@@ -144,6 +146,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
         case(C_DEFINE):
             val = evalExpression(symTable, stack, className, cmd->data.define.expr);
+
             #ifdef DEBUG
             printf("VALUE BEFORE:\n");
             printValue(val);
@@ -293,11 +296,13 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
     Node *node = table_lookup_either(symTableGlob,NULL,className, name);
     Function *fn = node->data.function;
 
-    if(fn->builtin == TRUE){
+    // First check for builtins
+    if(fn->builtin == true){
         builtInFunc(localSymTable, localStack, fn);
         //freeSymbolTable(localTable);
         return popFromStack(localStack);
     }
+    // Else push params to local sym table
     Declaration *d=fn->argHead;
     while (localStack->size != -1){
         val = popFromStack(localStack);
@@ -591,7 +596,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
 
                 if (node != NULL){
                     if (node->type == N_VALUE){
-                        if (node->data.value->undefined == TRUE){
+                        if (node->data.value->undefined == true){
                             MERROR(ERR_RUNTIME_UNINITIALIZED,"Trying to work with uninitialized value")
                         }
                     }
@@ -644,6 +649,7 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~Function handling~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
+//  STACK TESTING
 //  Stack Init Del Push Pop
 
 void testStack(){
