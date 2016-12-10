@@ -55,7 +55,7 @@ http://citace.info/norma1/webova-stranka/
 \chapter{Implementačné detaily}
 
 \section{Lexikálna analýza}
-asdf
+Lexikálna analýza alebo teda Scanner funguje na princípe konečného automatu. Postupne načitáva  znaky zo vstupného súboru a posiela ich syntaktickému analýzatoru vo forme tokenov.Poslany token obsahuje informácie o type, obsahu a pozicii(riadok,stĺpec) na ktorej sa v interpretovanom subore nachádza.Všetky tieto informácie su potrebné pre uľahčenie práce parseru.V prípade ,že načítame niečo čo nezapadá do pravidiel programovacieho jazyka IFJ16 nastane lexikálna chyba. Náš scanner podporuje aj všetky dostupne a povolené rozšírenia ako napríklad unárne operatory či rozširenie BASE a dalšie. Diagram konečnéh automatu si možete prezrieť v priloženej prílohe. Je robený čo najprehladnejšie a preto došlo k par upravám ktoré uplne nezodpovedajú stavom v kóde.
 \section{Syntaktická analýza}
 asdf
 \section{Sémantická analýza}
