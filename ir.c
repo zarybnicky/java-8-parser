@@ -501,3 +501,84 @@ Value *copyValue (Value *val){
         return retValue;
     }
 }
+
+double hexToDbl(char *str){
+    int sLen = strlen(str);
+    int count = 0;
+    double significant1 = 0;
+    double significant2 = 0;
+    long int exp = 0;
+    int p = 0;
+    int dot = 0;
+    char *check = NULL;
+    char *stmp = malloc_c(sLen*sizeof(char));
+
+    for (int i = 0; i < sLen; i++){
+        stmp[i] = '\0';
+
+        if (str[i] != '_'){
+            stmp[count] = str[i];
+            count++;
+        }
+
+        if (str[i] == 'p'){
+            if (p != 0){
+                MERROR(ERR_INTERNAL, "Too many 'p' in expression.");
+            }
+            p = i;
+        }
+
+        if (str[i] == '.'){
+            if (dot != 0){
+                MERROR(ERR_INTERNAL, "Too many '.' in expression.");
+            }
+            dot = i;
+        }
+    }
+
+    if (dot == p+1 || dot == p-1){
+        MERROR(ERR_INTERNAL, "Missing numeric literal.");
+    }
+
+    significant1 = (double)strtol(stmp, &check, 0);
+
+    if (check[0] != '\0' && check[0] != '.' && check[0] != 'p'){
+        MERROR(ERR_INTERNAL, "Unexpected char in hexadecimal number.");
+    }
+
+    if (check[0] != '\0' && check[0] == '.'){
+        check++;
+        significant2 = (double)strtol(check, &check, 16);
+
+        if (check[0] != '\0' && check[0] != 'p'){
+            MERROR(ERR_INTERNAL, "Unexpected char in hexadecimal number.");
+        }
+
+        while(significant2 > 1){
+            significant2 = significant2 * 0.1;
+            printf("%g\n", significant2);
+        }
+
+        significant1 += significant2;
+    }
+
+    if (check[0] != '\0' && check[0] == 'p'){
+        check++;
+        exp = strtol(check, &check, 16);
+
+        if (check[0] != '\0'){
+            MERROR(ERR_INTERNAL, "Unexpected char in hexadecimal number.");
+        }
+
+        if (exp > 0){
+            for (long int i = 0; i < exp; i++){
+                significant1 = significant1 * 10;
+            }
+        } else {
+            for (long int i = 0; i < abs(exp); i++){
+                significant1 = significant1 * 0.1;
+            }
+        }
+    }
+    return significant1;
+}

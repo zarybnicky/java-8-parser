@@ -186,5 +186,6 @@ char *showCommandType(CommandType);
 char *getClassName(char *);
 char *strdup_(const char *);
 Value *copyValue (Value *);
+double hexToDbl(char *str);
 
 #endif /* IFJ_IR_H */

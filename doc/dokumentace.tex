@@ -64,6 +64,21 @@ asdf
 Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpretovaného programu. Náš interpret interpretuje abstraktný syntaktický strom, ktorý vytvorila syntaktická analýza. Ten lineárne prechádza a vyhodnocuje výrazy pokým nenastane volanie funkcie. V tom momente si vyhľadá v tabuľke symbolov abstraktný syntaktický strom danej funkcie, vytvorí lokálnu tabuľku symbolov, ktorú bude používať volaná funkcia, vloží do nej argumenty funkcie a začne vykonávať telo funkcie. Pri ukončovaní funkcie interpret vloží návratovú hodnotu z funkcie na zásobník a ukončí interpretáciu funkcie. Následne si interpret danú hodnotu vyberie zo zásobníka a použije ju v interpretácii pôvodného abstraktného syntaktického stromu. Vstavané funkcie sú riešené obdobne. Taktiež si pri interpretácii interpret kontroluje behové chyby ako napríklad delenie nulou alebo práca s neinicializovanými premennými. Ak taká situácia nastane interpret sa ukončuje s chybovou hláškou a príslušným návratovým kódom pre danú chybu.
 
 
+\section{Algoritmy}
+// Nejak zvýraznit názvy funkcí?
+List-Merge sort // Nejaky podnadpis?
+
+Jako řadící algoritmus jsme využili algoritmu typu divide et impera (angl. Divide and Conquer) zvaný Merge sort. Princip algoritmu spočívá v postupném rozdělení pole na podpole, která následně po dvojicích spojujeme tak, aby následně pole vzniklé spojením bylo seřazené. Takto postupujeme do te doby dokud, není seřazeno celé pole. Časová složitost algoritmu je O(n.log(n))
+
+Naše implementace využívá rekurzivního volání samotné funkce sort. Celý proces je rozdělen na dvě fáze. V první fázi každá rekurzivně volaná funkce využívá vestavěné funkce interpretu substr pro rozdělení pole na podpole a to dokud nejsou všechna podpole velikosti 1. Následně započne fáze skládání, kdy se podle váhy vybírají prvky z podpolí a řadí v odpovídajícím pořadí.
+
+KMP Vyhledání podřetězce // Nejaky podnadpis?
+
+Knuth-Morris-Prattův algoritmus se využívá pro urychlení hledání výskytu stejných podřetězců v hledaném řetězci. Algoritmus využívá pomocného pole obsahující informace o hledaném podřetězci. Toto pole musí být vytvořeno ještě předtím než je zahájeno hledání. Složitost algoritmu je O(n).
+
+V první fázi je zavolána pomocná funkce Prefixcreator, která do pomocného pole uchovávajícího pozice od kterých se má pokračovat ve porovnávání, umístí hodnoty na základě nalezených podřetězců. Není-li podřetězec větší než 1 pak je pomocná tabulka vyplněna -1.
+Ve fázi druhé již probíhá porovnávání hledaného řetězce s řetězcem vstupním. Výsledkem je pozice na, které začíná hledaný řetězec.
+
 \chapter{Príloha}
 
 príloha
