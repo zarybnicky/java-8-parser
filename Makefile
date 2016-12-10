@@ -58,3 +58,4 @@ document: $(DOC_OUT)
 	cd doc && pdflatex $(DOC_SRC)
 	mv ./doc/dokumentace.pdf ./dokumentace.pdf
 	cd doc && rm $(DOC_LOG)
+	cd ../
