@@ -25,6 +25,11 @@ assert_raises "printf '8\n12e-10\nabcdefghijklm' |./ifj16 test/0_builtin_func.ja
 #assert "./ifj16 test/0_priority_operation.java" "50"
 assert_raises "./ifj16 test/0_work_with_double.java" 0
 
+assert_raises "./ifj16 test/0_boolop.java" 0
+assert_raises "./ifj16 test/0_boolop_1.java" 0
+assert_raises "./ifj16 test/0_boolop_2.java" 0
+
+
 assert_raises "./ifj16 test/1_unknown_char.java" 1
 assert_raises "./ifj16 test/1_lex_double.java" 1
 assert_raises "./ifj16 test/1_simple_iden.java" 1
