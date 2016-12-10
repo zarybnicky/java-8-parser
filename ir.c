@@ -556,7 +556,6 @@ double hexToDbl(char *str){
 
         while(significant2 > 1){
             significant2 = significant2 * 0.1;
-            printf("%g\n", significant2);
         }
 
         significant1 += significant2;
