@@ -8,8 +8,6 @@
  *          xzales12 - Záleský Jiří
  */
 
-// Dopsat chybu 10
-
 #include "stringology.h"
 
 int numberOfNum(char *s){
@@ -25,16 +23,16 @@ int numberOfNum(char *s){
 int readInt() { // Int celé nezáporné číslo (3.1)
     int c; // Urceno dle max delky int
     unsigned vysledek = 0;
-
+    bool empty=true;
     while ((c = getchar()) != '\n' && c != EOF) {
+        empty=false;
         if (c < '0' || '9' < c) {
             fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
             return ERR_RUNTIME_INT_PARSE;
         }
         vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
     }
-    //FIXME
-    if (c == EOF){
+    if ( empty == true ){
         //return ERR_RUNTIME_INT_PARSE
         fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
         return ERR_RUNTIME_INT_PARSE;
@@ -50,7 +48,6 @@ double readDouble() {
         fprintf(stderr, "Error while parsing an double, unexpected character\n");
         return ERR_RUNTIME_INT_PARSE;
     }
-    
     switch(t->type){
         case LIT_DOUBLE:;
             double tmp = t->val.doubleVal;
@@ -118,10 +115,12 @@ char *substr(char *s,int i, int n) {
 }
 
 int compare(char *s1, char *s2) {
+    /* go to the end of one or both strings based on '\0' character */
     while (*s1 != '\0' && *s2 != '\0'){
         s1++;
         s2++;
     }
+    /* then check where we stopped, if both string are on end, then they are equal else not equal based on '\0' in which string returns s1>s2=return 1 or  s1<s2=return -1 */
     if (*s1 == '\0' && *s2 == '\0')
         return 0;
     else if (*s1 != '\0' && *s2 == '\0')

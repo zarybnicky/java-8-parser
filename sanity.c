@@ -19,6 +19,7 @@ void runSemanticAnalysis(SymbolTable *s) {
     symTable = s;
     Node *root = symTable->root;
 
+    /* iterates global table with Root Nodes and function which should compare operators, types, arguments, classes , methods etc... */
     checkMainRunPresence();
     table_iterate_fn(root, checkReturnPresence);
     table_iterate_fn(root, checkTopLevel);
@@ -95,6 +96,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_ASSIGN:
+        /* EXAMPLE: a = 5, first lookup Node if exists then do value type compare, and chceck assign to a function */
         n = table_lookup_either(symTable, localTable, className,
                                 c->data.assign.name);
         if (n == NULL) {
@@ -158,6 +160,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         }
         table_insert_dummy(localTable, c->data.forC.var);
 
+        /* compare expression type of for condition if both types are ocmpatible */
         rtype = getExpressionType(c->data.forC.cond);
         if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
@@ -233,6 +236,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
             MERROR(ERR_INTERNAL, "C_DEFINE located in a nested block.");
             break;
         case C_CONTINUE:
+            /* same as break, cannot continue without loop */
             if (cycle == false) {
                 freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
@@ -240,6 +244,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
             }
             break;
         case C_BREAK:
+            /* same as continue, cannot break without loop */
             if (cycle == false) {
                 freeSemantic();
                 fprintf(stderr, "In function %s:\n", f->name);
@@ -272,7 +277,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
     }
 }
 
-// Aplikace v pruchodu stromu
+// Application at traversing of symbolTable
 void checkTopLevel(Function *f) {
     for (Command *c = f->body.head; c != NULL; c = c->next) {
         switch (c->type) {
@@ -323,6 +328,7 @@ ValueType getExpressionType(Expression *e) {
         return e->data.value->type;
 
     case E_FUNCALL:
+        /* EXAMPLE - foo(a,b,c); check wether function exists(symTable[global table] is enough to check, no local functions allowed)*/
         n = table_lookup_either(symTable, NULL, className, e->data.funcall.name);
         if (n == NULL) {
             freeSemantic();
@@ -330,6 +336,7 @@ ValueType getExpressionType(Expression *e) {
                    "Trying to call a non-existent function %s",
                    e->data.reference);
         }
+        /* check type of Node if it is function, then its arguements */
         if (n->type != N_FUNCTION) {
             freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Trying to call a variable %s",

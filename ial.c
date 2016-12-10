@@ -309,6 +309,7 @@ void table_insert_function(SymbolTable *t, Function *f) {
     table_insert(t, createFunctionNode(strdup_(f->name), f));
 }
 
+/** General Lookup of ptr in symbolTable **/
 Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
     if (tree == NULL || tree->root == NULL)
         return NULL;
@@ -328,6 +329,7 @@ Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
         return NULL;
     return current;
 }
+/* Lookup only for symbol */
 Node *table_lookup(SymbolTable *tree, char *symbol) {
     Node **n = table_lookup_ptr(tree, symbol);
     if (n == NULL)
@@ -493,9 +495,7 @@ void printSymbolTable(SymbolTable *t) {
 }
 
 /**
- * fn calling to iterate over every object in table TODO, no tree calling just
- * object better is to call tree and traverse table by it, we can hit object
- * with not left, right node
+ * fn calling to iterate over every object in table, object si better to call  * tree and traverse table by it, we can hit object with not left, right node
  */
 void table_iterate_fn(Node *object, void (*fn)(Function *)){
     if (fn == NULL)

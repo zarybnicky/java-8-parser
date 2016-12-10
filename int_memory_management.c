@@ -169,8 +169,9 @@ void free_c(void *addr) {
     while(item->addr != addr){
         prv = item;
         item = item->next;
+        /* no next item found just return; */
         if (item == NULL)
-            return; // FIXME
+            return;
         if (item->addr == addr){
             prv->next = item->next;
             free(addr);
@@ -207,8 +208,6 @@ void free_c_all(T_HTable *tab) {
 }
 
 void ht_init ( T_HTable *tab ) {
-
-    // tab = NULL;
     for(unsigned i = 0; i < HTAB_SIZE; i++){
         (*tab)[i] = NULL;
     }
@@ -233,15 +232,6 @@ T_HTItem* ht_search ( T_HTable* tab, void *addr ) {
 }
 
 void ht_insert ( T_HTable* tab, void *addr ) {
-
-    //check for update
-    // T_HTItem *tmp = ht_search(tab, addr);
-    // if (tmp != NULL){
-    //     // tmp->addr = addr;
-    //     return;
-    // }
-
-    // vars
     unsigned index = hash_function(addr, HTAB_SIZE);
 
     // create new item
@@ -249,12 +239,9 @@ void ht_insert ( T_HTable* tab, void *addr ) {
     CHECK_ALLOC(item);
     item->addr = addr;
 
+    /* Link item with table index */
     item->next = (*tab)[index];
-
     (*tab)[index] = item;
-
-    // printf("NULL: %p, p: %p, index: %u\n", NULL, (void*)(*tab)[index], index);
-
     return;
 
 }

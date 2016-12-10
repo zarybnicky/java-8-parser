@@ -68,36 +68,45 @@ bool isAssignCompatible(ValueType lvalue, ValueType rvalue) {
 Value *coerceTo(ValueType t, Value *v) {
     if (v == NULL || t == v->type || t == T_VOID)
         return v;
-
+    Value *retVal = copyValue(v);
+    #ifdef DEBUG
+    printf("\n");
+    printValue(v);
+    printf("\nRET VAL:");
+    printValue(retVal);
+    printf("\n");
+    #endif
     if (t == T_STRING) {
-        Value *retVal; size_t bufSize; char *buf;
+        size_t bufSize; char *buf;
         switch (v->type) {
         case T_BOOLEAN:
+            /* if boolean/integer/double and type of return value is T_STRING we need to retype */
             if (B(v) == true) {
-                S(v) = strdup_("true");
+                retVal->data.str = strdup_("true");
             } else {
-                S(v) = strdup_("false");
+                retVal->data.str = strdup_("false");
             }
             break;
         case T_INTEGER:
+            /* retype and take buffer of integer or double retyped inside retVal */
             bufSize = snprintf(NULL, 0, "%d", I(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%d", I(v));
-            retVal=createValue(T_STRING);
-            retVal->data.str = buf;
+            S(retVal) = buf;
+            retVal->type = T_STRING;
             return retVal;
         case T_DOUBLE:
             bufSize = snprintf(NULL, 0, "%g", D(v));
             buf = malloc_c(bufSize + 1);
             snprintf(buf, bufSize + 1, "%g", D(v));
-            retVal=createValue(T_STRING);
-            retVal->data.str = buf;
+            S(retVal) = buf;
+            retVal->type = T_STRING;
             return retVal;
         default:
             FERROR(ERR_RUNTIME_MISC, "Cannot convert from %s to String",
                    showValueType(v->type));
         }
-        v->type = T_STRING;
+        retVal->type = T_STRING;
     }
     if (t == T_INTEGER || t == T_BOOLEAN) {
         //no valid conversions (except for int -> int)
@@ -106,12 +115,12 @@ Value *coerceTo(ValueType t, Value *v) {
     }
     if (t == T_DOUBLE) {
         if (v->type == T_INTEGER) {
-            D(v) = (double) I(v);
-            v->type = T_DOUBLE;
+            retVal->data.dbl = (double) I(v);
+            retVal->type = T_DOUBLE;
         } else {
             FERROR(ERR_RUNTIME_MISC, "Cannot convert from %s to double",
                    showValueType(v->type));
         }
     }
-    return v;
+    return retVal;
 }

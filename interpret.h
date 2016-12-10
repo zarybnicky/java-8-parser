@@ -85,10 +85,10 @@ Value *coerceTo(ValueType, Value *);
 Stack *createLocalStack(Stack *);
 Stack *deleteLocaleStack(Stack *);
 
+/* Work with Stack*/
 int pushToStack(Stack *, Value *);
 Value *popFromStack(Stack *);
 int pushParamToStack(SymbolTable *, Stack *, char *, Expression *);
-
 void testStack();
 void printStack(Stack *);
 Stack *createLocalStack(Stack *stack);

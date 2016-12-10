@@ -35,6 +35,7 @@ typedef struct {
     Node *root;
 } SymbolTable;
 
+/* Support functions for IAL algorithms - symbolTable */
 Node *createFunctionNode(char *, Function *);
 Node *createValueNode(char *, Value *);
 Node *createClassNode(char *);
@@ -46,6 +47,7 @@ SymbolTable *createSymbolTable();
 void freeSymbolTable(SymbolTable *);
 void printSymbolTable(SymbolTable *);
 
+/* IAL Start */
 int *Prefixcreator( char *, int );
 char *sort( char * );
 int find( char *, char * );
@@ -96,7 +98,6 @@ Node *table_remove(SymbolTable *, char *);
 Node **table_lookup_ptr(SymbolTable *, char *);
 Node *table_lookup(SymbolTable *, char *);
 Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, char *var);
-
 void table_iterate_fn(Node *, void (*fn)(Function *));
 
 #endif /* IFJ_IAL_H */

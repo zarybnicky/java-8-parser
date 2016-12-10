@@ -72,6 +72,7 @@ typedef struct tValue {
     } data;
 } Value;
 
+/* to shorten assigns or comparision data content of value */
 #define I(x) (x)->data.integer
 #define D(x) (x)->data.dbl
 #define B(x) (x)->data.boolean
@@ -183,7 +184,7 @@ char *showBinaryOperation(BinaryOperation);
 char *showCommandType(CommandType);
 
 char *getClassName(char *);
-
 char *strdup_(const char *);
+Value *copyValue (Value *);
 
 #endif /* IFJ_IR_H */

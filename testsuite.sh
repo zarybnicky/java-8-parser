@@ -7,7 +7,7 @@ assert_raises "./ifj16 test/0_assign.java" 0
 assert_raises "./ifj16 test/0_block_continue.java" 0
 assert_raises "./ifj16 test/0_cycle_continue_break.java" 0
 assert_raises "./ifj16 test/0_declare.java" 0
-assert_raises "./ifj16 test/0_fact_rekur.java" 0
+assert "echo 5 | ./ifj16 test/0_fact_rekur.java" "Zadejte cislo pro vypocet faktorialu: Vysledek: 120 (zaporny: -120)"
 assert_raises "./ifj16 test/0_fib_recurs.java" 0
 assert_raises "./ifj16 test/0_for_run.java" 0
 assert_raises "./ifj16 test/0_if.java" 0

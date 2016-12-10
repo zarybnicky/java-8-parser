@@ -459,6 +459,7 @@ char *showCommandType(CommandType x) {
     return "Unknown CommandType"; //Just to pacify the compiler...
 }
 
+/* Takes ClassName of function(fn->name), everything before character '.' */
 char *getClassName(char *fn){
     char *dot = strchr(fn, '.');
     if (dot == NULL) {
@@ -471,11 +472,32 @@ char *getClassName(char *fn){
     return class;
 }
 
-/* Not in POSIX... */
+/* Not in POSIX... Makes a copy of string s to char *dup */
 char *strdup_(const char *s) {
     if (s == NULL)
         return NULL;
     char *dup = malloc_c(strlen(s) + 1);
     strcpy(dup, s);
     return dup;
+}
+
+/* Makes a copy of Value val to new retValue */
+Value *copyValue (Value *val){
+    if (val == NULL)
+        return NULL;
+    Value *retValue = createValue(val->type);
+    switch(val->type){
+    case T_BOOLEAN:
+        retValue->data.boolean = B(val);
+        return retValue;
+    case T_INTEGER:
+        retValue->data.integer = I(val);
+        return retValue;
+    case T_DOUBLE:
+        retValue->data.dbl = D(val);
+        return retValue;
+    default:
+        retValue->data.str = S(val);
+        return retValue;
+    }
 }

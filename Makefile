@@ -1,5 +1,4 @@
 CC=gcc
-#Werror add?
 CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99 -g
 LDFLAGS=-L.
@@ -7,7 +6,6 @@ LDFLAGS=-L.
 DOC_SRC=./dokumentace.tex
 PACK_CONT=Makefile rozdeleni rozsireni
 
-#Removed files after compilation
 DOC_LOG=./dokumentace.log ./dokumentace.aux ./dokumentace.toc
 EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe
 
@@ -23,7 +21,6 @@ debug: all
 debugInt: CFLAGS += -DDEBUG
 debugInt: debug
 
-#doc
 test: ifj16 test/parser test/symbol-table
 	bash testsuite.sh
 
@@ -39,7 +36,7 @@ ifj16: ifj16.o $(LIBOBJ)
 test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
 
-#doc
+#documentation + pack
 dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT)
 	make document
 	tar cvzf xzaryb00.tgz $^ dokumentace.pdf
