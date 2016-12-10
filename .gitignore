@@ -31,3 +31,8 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Tex files
+*.aux
+*.log
+*.toc

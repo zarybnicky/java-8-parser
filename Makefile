@@ -45,7 +45,7 @@ dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT) doc
 	tar cvzf xzaryb00.tgz $^
 
 doc: $(DOC_OUT)
-	cd doc && pdflatex  $(DOC_SRC)
-	cd doc && pdflatex  $(DOC_SRC)
+	cd doc && pdflatex $(DOC_SRC)
+	cd doc && pdflatex $(DOC_SRC)
 	mv ./doc/dokumentace.pdf ./dokumentace.pdf
-	cd doc && rm $(DOC_LOG)
+	# cd doc && rm $(DOC_LOG)
