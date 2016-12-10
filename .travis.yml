@@ -1,5 +1,11 @@
+sudo: required
+dist: trusty
+install:
+    - sudo apt-get install texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+    - sudo apt-get install chktex
 language: c
-script: make && make test
+script:
+- make && make test
 compiler:
   - clang
   - gcc
