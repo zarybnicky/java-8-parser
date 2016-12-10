@@ -41,7 +41,7 @@ test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
 
 #doc
-dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT) dokumentace.pdf
+dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT) doc
 	tar cvzf xzaryb00.tgz $^
 
 doc: $(DOC_OUT)
