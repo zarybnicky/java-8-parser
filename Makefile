@@ -42,7 +42,9 @@ dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT)
 	tar cvzf xzaryb00.tgz $^ dokumentace.pdf
 
 document: $(DOC_OUT)
+	# WARNING WARNING WARNING WARNING
+	# musi to tu byt dva krat ten preklad nevymazavajte to !
+	cd doc && pdflatex $(DOC_SRC)
 	cd doc && pdflatex $(DOC_SRC)
 	mv ./doc/dokumentace.pdf ./dokumentace.pdf
 	cd doc && rm $(DOC_LOG)
-	cd ../
