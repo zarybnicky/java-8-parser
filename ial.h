@@ -35,6 +35,11 @@ typedef struct {
     Node *root;
 } SymbolTable;
 
+typedef struct tList {
+    int index;
+    struct tList *next;
+} List;
+
 /* Support functions for IAL algorithms - symbolTable */
 Node *createFunctionNode(char *, Function *);
 Node *createValueNode(char *, Value *);
@@ -49,8 +54,11 @@ void printSymbolTable(SymbolTable *);
 
 /* IAL Start */
 int *Prefixcreator( char *, int );
-char *sort( char * );
 int find( char *, char * );
+void deleteFirst();
+void insertList(int val);
+int *makeComponents(char* s);
+char *sort( char * );
 
 /**
   * Rotation of tree left right , left left

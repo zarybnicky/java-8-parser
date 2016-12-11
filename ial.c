@@ -10,6 +10,9 @@
 
 #include "ial.h"
 
+List *lStart;
+List *lEnd;
+
 int *Prefixcreator(char *search, int seaLen){ // Auxiliary function of find
     int *array = malloc(sizeof(int)*seaLen);
     CHECK_ALLOC(array);
@@ -55,6 +58,49 @@ int find(char *s, char *search) {
     return -1;
 }
 
+void deleteFirst(){
+    List *pom = lStart;
+    lStart = lStart->next;
+    free_c(pom);
+}
+
+void insertList(int val){
+    List *new = malloc(sizeof(struct tList));
+    CHECK_ALLOC(new);
+
+    if (lStart == NULL){
+        new->next = NULL;
+        lEnd = new;        
+    } else {
+        new->next = NULL;
+        lEnd->next = new;  
+        lEnd = new;
+    }
+    new->index = val;
+
+    if (lStart == NULL){
+        lStart = lEnd;
+    }
+}
+
+int *makeComponents(char* s){
+    int sLen = strlen(s); 
+    int *array = malloc(sLen * sizeof(int));
+
+    insertList(0);
+
+    for (int i = 0; i < sLen-1; i++){
+        if (s[i] < s[i+1]){
+            array[i] = i + 1;
+        } else {
+            array[i] = 0;
+
+            insertList(i+1);
+        }
+    }
+    return array;
+}
+
 char *sort(char *s)
 {
     if (*s == '\0')
@@ -63,55 +109,61 @@ char *sort(char *s)
 
     unsigned len = strlen(newString);
 
-    if (len != 1) {  // Split to smaller strings
-        unsigned x = 0;
-        unsigned y = 0;
-        unsigned count = 0; // Array counter
-        unsigned half = len / 2;
-        unsigned top;
+    int *array = makeComponents(newString);
+    unsigned first, second, counterF, counterS,pom;
+    char tmp;
+    bool end = false;
 
-        char *left = substr(newString, 0, half);
-        char *right;
+    while (lStart != lEnd) {
+        first = lStart->index;
+        counterF = first;
+        deleteFirst();
+        second = lStart->index;
+        counterS = second;
+        deleteFirst();
 
+        while (counterF != counterS){ // Sort in list
+            printf("%d  %d\n",counterF,counterS);
+            printf("%c  %c\n", newString[counterF], newString[counterS]);
+                if (first < second){
+                    if (newString[counterF] > newString[counterS]){
+                    tmp = newString[counterF];
+                    for (int i = counterF ; array[i] != 0; i++){
+                        
+                    }
 
-        if (len % 2 == 0) { // char *even X odd of members
-            right = substr(newString, half, 0);
-            top = half;
+                    printf("%s\n", newString);
+                    } 
+                } else {
+                    if (newString[counterF] > newString[counterS]){
+                        tmp = newString[counterS];
+                        newString[counterS] = newString[counterF];
+                        newString[counterF] = tmp;
+                        printf("%s\n", newString);
+                    } 
+                }
+            counterF++;
+            if (counterF == counterS && array[counterS] == 0) break;
+
+            if (counterF == len){
+                counterF = 0;
+                break;
+            }
+            if (counterF == counterS && array[counterS] != 0){
+                second++;
+            }
+            if (array[counterF] == 0 && counterS != counterF){
+                array[counterF] = counterF + 1;
+            }
+        }
+        if (first < second){
+            insertList(first);
         } else {
-            right = substr(newString, half, 0);
-            top = half+1;
-        }
-
-        left = sort(left);
-        right = sort(right);
-
-        while (x < half && y < top) {  // Sort -> Counting from 0 to top - even X odd
-            if (left[x] <= right[y]){
-                newString[count] = left[x];
-                x++;
-            } else {
-                newString[count] = right[y];
-                y++;
-            }   // if
-            count++;
-        }   // while
-
-        // Adding the remaining characters
-        while (x < half){
-            newString[count] = left[x];
-            count++;
-            x++;
-        }
-        while (y < top){
-            newString[count] = right[y];
-            count++;
-            y++;
-        }
-        free_c(left);
-        free_c(right);
-    }   // if (len != 1)
+            insertList(second);
+        } 
+    }
     return newString;
-}   // function
+}
 
 
 /* Right left rotation of object */
@@ -309,7 +361,6 @@ void table_insert_function(SymbolTable *t, Function *f) {
     table_insert(t, createFunctionNode(strdup_(f->name), f));
 }
 
-/** General Lookup of ptr in symbolTable **/
 Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
     if (tree == NULL || tree->root == NULL)
         return NULL;
@@ -329,7 +380,6 @@ Node **table_lookup_ptr(SymbolTable *tree, char *symbol) {
         return NULL;
     return current;
 }
-/* Lookup only for symbol */
 Node *table_lookup(SymbolTable *tree, char *symbol) {
     Node **n = table_lookup_ptr(tree, symbol);
     if (n == NULL)
@@ -495,7 +545,9 @@ void printSymbolTable(SymbolTable *t) {
 }
 
 /**
- * fn calling to iterate over every object in table, object si better to call  * tree and traverse table by it, we can hit object with not left, right node
+ * fn calling to iterate over every object in table TODO, no tree calling just
+ * object better is to call tree and traverse table by it, we can hit object
+ * with not left, right node
  */
 void table_iterate_fn(Node *object, void (*fn)(Function *)){
     if (fn == NULL)
