@@ -369,7 +369,7 @@ AUTSTATES Get_Token(FILE *input, char **orig, char **string, ReservedWord *reser
 
         case NEUTRAL_STATE :   // nacitame znak
             GET_CHAR(c, input, state, line, lineCol);
-
+         //zacaitocny stav 
         case Start_state :
             *lineNumToken = lineNum;
             *lineColToken = lineCol;
@@ -472,7 +472,7 @@ AUTSTATES Get_Token(FILE *input, char **orig, char **string, ReservedWord *reser
                 }
             }
             break;
-
+        
         case AUT_IDEN:
             string_end(string, c, &stringLength, &stringAlloc);
             GET_CHAR(c, input, state, line, lineCol);
