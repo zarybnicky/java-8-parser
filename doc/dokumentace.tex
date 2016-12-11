@@ -32,7 +32,7 @@
 \Large\textbf{SEMESTRÁLNÍ PROJEKT}\\
 \small\textbf{TERM PROJECT}\\\vfill\hspace{-0.7cm}
 \Large\textbf{AUTORI PRÁCE \hfill \normalsize{Marek Tamaškovič, Martin Vaško,}}\\
-\small\textbf{AUTHORS} \hfill \normalsize\textbf{Michal Vaško, Jirka Záleský, Jakub Zárybnický}
+\small\textbf{AUTHORS} \hfill \normalsize\textbf{Michal Vaško, Jiří Záleský, Jakub Zárybnický}
 \vfill\hspace{-0.7cm}
 \large\textbf{BRNO 2017}
 
@@ -51,14 +51,23 @@ http://citace.info/norma1/webova-stranka/
 
 \tableofcontents
 
-\chapter{Implementačné detaily}
+\chapter{Úvod}
+Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
+\begin{list}
+\item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
+\item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
+\item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
+\item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
+\end{list}
+
+\chapter{Štruktúra projektu}
 
 \section{Lexikálna analýza}
-Lexikálna analýza alebo teda Scanner funguje na princípe konečného automatu. Postupne načitáva  znaky zo vstupného súboru a posiela ich syntaktickému analýzatoru vo forme tokenov.Poslany token obsahuje informácie o type, obsahu a pozicii(riadok,stĺpec) na ktorej sa v interpretovanom subore nachádza.Všetky tieto informácie su potrebné pre uľahčenie práce parseru.V prípade ,že načítame niečo čo nezapadá do pravidiel programovacieho jazyka IFJ16 nastane lexikálna chyba. Náš scanner podporuje aj všetky dostupne a povolené rozšírenia ako napríklad unárne operatory či rozširenie BASE a dalšie. Diagram konečnéh automatu si možete prezrieť v priloženej prílohe. Je robený čo najprehladnejšie a preto došlo k par upravám ktoré uplne nezodpovedajú stavom v kóde.
+Lexikálna analýza alebo teda Scanner funguje na princípe konečného automatu. Postupne načitáva  znaky zo vstupného súboru a posiela ich syntaktickému analýzatoru vo forme tokenov.Poslany token obsahuje informácie o type, obsahu a pozicii(riadok,stĺpec) na ktorej sa v interpretovanom subore nachádza.Všetky tieto informácie su potrebné pre uľahčenie práce parseru.V prípade ,že načítame niečo čo nezapadá do pravidiel programovacieho jazyka IFJ16 nastane lexikálna chyba. Náš scanner podporuje aj všetky dostupne a povolené rozšírenia ako napríklad unárne operatory či rozširenie BASE a dalšie. Diagram konečného automatu si možete prezrieť v priloženej prílohe.V diagrame došlo k  upravám, kvôli prehľadnosti stavov, preto stavy v diagrame úplne nezodpovedajú stavom v kóde.
 \section{Syntaktická analýza}
 \textbf{\textit{TODO}}
 \section{Sémantická analýza}
-\textbf{\textit{TODO}}
+Sémantická analýza kódu prebieha samostatne po syntaktickej analýze, z dôvodu jazyka IFJ16(Podmnožina java8), ktorý podporuje používanie staticky typovaných premenných aj v iných triedach.Dochádzalo by preto ku konfliktom(nevyplneným údajom v tabuľke symbolov) v prvom prechode syntaktickej analýzy. Rozšírenia ako CYCLES a BOOLOP museli rozšíriť sémantické kontroly o príkazy - break,continue, a rekurzívne spracovanie booleovských podmienok.
 \section{Interpret}
 Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpretovaného programu. Náš interpret interpretuje abstraktný syntaktický strom, ktorý vytvorila syntaktická analýza. Ten lineárne prechádza a vyhodnocuje výrazy pokým nenastane volanie funkcie. V tom momente si vyhľadá v tabuľke symbolov abstraktný syntaktický strom danej funkcie, vytvorí lokálnu tabuľku symbolov, ktorú bude používať volaná funkcia, vloží do nej argumenty funkcie a začne vykonávať telo funkcie. Pri ukončovaní funkcie interpret vloží návratovú hodnotu z funkcie na zásobník a ukončí interpretáciu funkcie. Následne si interpret danú hodnotu vyberie zo zásobníka a použije ju v interpretácii pôvodného abstraktného syntaktického stromu. Vstavané funkcie sú riešené obdobne. Taktiež si pri interpretácii interpret kontroluje behové chyby ako napríklad delenie nulou alebo práca s neinicializovanými premennými. Ak taká situácia nastane interpret sa ukončuje s chybovou hláškou a príslušným návratovým kódom pre danú chybu.
 
@@ -74,6 +83,31 @@ Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpre
 \par V první fázi je zavolána pomocná funkce Prefixcreator, která do pomocného pole uchovávajícího pozice od kterých se má pokračovat ve porovnávání, umístí hodnoty na základě nalezených podřetězců. Není-li podřetězec větší než 1 pak je pomocná tabulka vyplněna -1.
 Ve fázi druhé již probíhá porovnávání hledaného řetězce s řetězcem vstupním. Výsledkem je pozice na, které začíná hledaný řetězec.
 
+
+\subsection{Binárny vyhľadávací strom - BVS}
+\par Pre vkladanie premenných,funkcii a tried sme v zadaní využili binárny vyhľadávací strom AVL. Základom stromu je vloženie a nájdenie uzlu.Vrámci vloženia navyše strom vyvažujeme čo uľahčuje následne vyhľadanie uzlu v strome.Pre vkladanie máme 3 typy uzlov- uzly pre vstavané funkcie, uzly pre jednoduchú sémantickú kontrolu a uzly s konkrétnymi hodnotami.Pre jazyk IFJ16 sme zaviedli aj vyhľadávanie v dvoch stromoch naraz(lokálny a globálny) spolu so zistením mena triedy, z dôvodu rovnakých názvov funkcií vrámci rôznych tried.
+
+\chapter{Vývoj}
+
+\section{Rozdelenie práce}
+\textbf{Martin Vaško}-Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
+\textbf{Marek Tamaškovič}-Interpretácia AST, dokumentácia, garbage-collector,testovanie.
+\textbf{Michal Vaško}-Lexikálny analyzátor,dokumentácia,prezentácia.
+\textbf{Jiří Záleský}-Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
+\textbf{Jakub Zárybnický}-Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
+
+\section{Komunikačné kanály}
+\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello}- kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na ḱomunikačnom kanály \textbf{Slack}- kde sme si spisovali blížiace sa termíny a do osobitnej zložky #announcements sa nám zasielal výpis z prekladu(odkaz na travis CI??).
+\par Ako verzovací systém sme si zvolili \textbf{Git}.
+\par Ako tým sme mali naplánované stretnutia pravidelne každé 2 až 3 týždne, kde sme preberali náš aktuálny stav a prognózu do ďalších dní, riešili rozhrania jednotlivých modulov a implementáciu rozšírení.
+
+\chapter{Záver}
+\section{Metriky}
+\begin{metriky}
+\item Počet súborov: \textbf{24}
+\item celkový počet riadkov zdrojového kódu: \textbf{8102}
+\item Počet Git commitov: \textbf{360}
+\end{metriky}
 \chapter{Príloha}
 \includegraphics[width=1\textwidth]{./img/lex1.png}\\
 
