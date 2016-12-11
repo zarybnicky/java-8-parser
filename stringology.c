@@ -115,18 +115,7 @@ char *substr(char *s,int i, int n) {
 }
 
 int compare(char *s1, char *s2) {
-    /* go to the end of one or both strings based on '\0' character */
-    while (*s1 != '\0' && *s2 != '\0'){
-        s1++;
-        s2++;
-    }
-    /* then check where we stopped, if both string are on end, then they are equal else not equal based on '\0' in which string returns s1>s2=return 1 or  s1<s2=return -1 */
-    if (*s1 == '\0' && *s2 == '\0')
-        return 0;
-    else if (*s1 != '\0' && *s2 == '\0')
-        return 1;
-    else
-        return -1;
+    return strcmp(s1,s2);
 }
 
 void print(Value *term){

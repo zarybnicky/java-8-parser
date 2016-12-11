@@ -44,19 +44,23 @@
 \newgeometry{margin=2.5cm}
 
 \begin{abstract}
-Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
-\begin{itemize}
-\item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
-\item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
-\item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
-\item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
-\end{itemize}
+Nas abstrakt\\
 http://www.fit.vutbr.cz/info/szz/bib\_citace.html\\
 http://www.fit.vutbr.cz/info/szz/psani\_textu.php\\
 http://citace.info/norma1/webova-stranka/
 \end{abstract}
 
 \tableofcontents
+
+\chapter{Úvod}
+Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
+
+\begin{itemize}
+\item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
+\item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
+\item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
+\item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
+\end{itemize}
 
 \chapter{Štruktúra projektu}
 
@@ -73,10 +77,8 @@ Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpre
 \section{Algoritmy}
 % Nejak zvýraznit názvy funkcí?
 \subsection{List-Merge sort}
-\par Metoda řazení pole využívající princip slučování (mergování) seznamů.
-V první fázi je vytvořeno pomocné pole indexů, které je následně využito pro najití začátků neklesajících poslupností. Konec posloupnosti je v pomocném poli vyznačen pomocí 0. Začátek každé posloupnosti je uložen do pomocné datové struktury typu seznam a přidán do fronty.
-
-\par Ve fázi druhé, pak vždy vezmene první dva prvky fronty a seřadíme je. Z těchto dvou prvků vznikne jeden větší, který umístíme na konec fronty. Takto postupujeme dokud nezůstane ve frontě pouze jeden seznam, který je výsledkem řazení. Pro větší jednoduchost kódu, je před spojováním a řazením zaručeno pořadí tak, aby seznam obsahující nižší index byl vždy první z dvojice pro seřazení.
+\par Jako řadící algoritmus jsme využili algoritmu typu divide et impera (angl. Divide and Conquer) zvaný Merge sort. Princip algoritmu spočívá v postupném rozdělení pole na podpole, která následně po dvojicích spojujeme tak, aby následně pole vzniklé spojením bylo seřazené. Takto postupujeme do te doby dokud, není seřazeno celé pole. Časová složitost algoritmu je $\mathcal{O}(n\log{}n)$
+\par Naše implementace využívá rekurzivního volání samotné funkce sort. Celý proces je rozdělen na dvě fáze. V první fázi každá rekurzivně volaná funkce využívá vestavěné funkce interpretu substr pro rozdělení pole na podpole a to dokud nejsou všechna podpole velikosti 1. Následně započne fáze skládání, kdy se podle váhy vybírají prvky z podpolí a řadí v odpovídajícím pořadí.
 
 \subsection{KMP Vyhledání podřetězce}
 \par Knuth-Morris-Prattův algoritmus se využívá pro urychlení hledání výskytu stejných podřetězců v hledaném řetězci. Algoritmus využívá pomocného pole obsahující informace o hledaném podřetězci. Toto pole musí být vytvořeno ještě předtím než je zahájeno hledání. Složitost algoritmu je $\mathcal{O}(n)$.
@@ -86,21 +88,22 @@ Ve fázi druhé již probíhá porovnávání hledaného řetězce s řetězcem 
 
 \subsection{Binárny vyhľadávací strom - BVS}
 \par Pre vkladanie premenných,funkcii a tried sme v zadaní využili binárny vyhľadávací strom AVL. Základom stromu je vloženie a nájdenie uzlu.Vrámci vloženia navyše strom vyvažujeme čo uľahčuje následne vyhľadanie uzlu v strome.Pre vkladanie máme 3 typy uzlov- uzly pre vstavané funkcie, uzly pre jednoduchú sémantickú kontrolu a uzly s konkrétnymi hodnotami.Pre jazyk IFJ16 sme zaviedli aj vyhľadávanie v dvoch stromoch naraz(lokálny a globálny) spolu so zistením mena triedy, z dôvodu rovnakých názvov funkcií vrámci rôznych tried.
+\par Vkladanie je založené na porovnávaní kľúčov. Ak je kľúč ktorź vkladáme menší(v abecede viac na ľavo) vkladáme do ľavého uzlu podstromu, inak vkladáme do pravého uzlu podstromu. Pri zhode kľúčov nastáva sémanticka chyba z dôvodu možného pretypovania už existujucého kľúča(názvu funkcie, premennej alebo triedy)
 
 \chapter{Vývoj}
 
 \section{Rozdelenie práce}
 \begin{itemize}
-\item \textbf{Martin Vaško} - Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
-\item \textbf{Marek Tamaškovič} - Interpretácia AST, dokumentácia, garbage-collector,testovanie.
-\item \textbf{Michal Vaško} - Lexikálny analyzátor,dokumentácia,prezentácia.
-\item \textbf{Jiří Záleský} - Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
-\item \textbf{Jakub Zárybnický} - Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
+\item \textbf{Martin Vaško}-Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
+\item \textbf{Marek Tamaškovič}-Interpretácia AST, dokumentácia, garbage-collector,testovanie.
+\item \textbf{Michal Vaško}-Lexikálny analyzátor,dokumentácia,prezentácia.
+\item \textbf{Jiří Záleský}-Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
+\item \textbf{Jakub Zárybnický}-Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
 \end{itemize}
 
 \section{Komunikačné kanály}
-\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello}\footnote{https://trello.com/} kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na komunikačnom kanály \textbf{Slack}\footnote{https://slack.com/} - kde sme si spisovali blížiace sa termíny a do osobitnej zložky \#announcements sa nám zasielal výpis z prekladu \textbf{Travis-CI}\footnote{https://travis-ci.org/}.
-\par Ako verzovací systém sme si zvolili \textbf{Git}\footnote{https://git-scm.com/}.
+\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello} kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na komunikačnom kanály \textbf{Slack} - kde sme si spisovali blížiace sa termíny a do osobitnej zložky \#announcements sa nám zasielal výpis z prekladu(odkaz na travis CI??).
+\par Ako verzovací systém sme si zvolili \textbf{Git}.
 \par Ako tím sme mali naplánované stretnutia pravidelne každé 2 až 3 týždne, kde sme preberali náš aktuálny stav a prognózu do ďalších dní, riešili rozhrania jednotlivých modulov a implementáciu rozšírení.
 
 \chapter{Záver}
@@ -108,9 +111,9 @@ Modely pre tvorbu informačného systému? prípadne nejaké zhrnutie klady a z�
 \section{Metriky}
 
 \begin{itemize}
-\item Počet súborov: \textbf{24}
-\item celkový počet riadkov zdrojového kódu: \textbf{8102}
-\item Počet Git commitov: \textbf{360}
+\item Počet súborov: \textbf{26}
+\item celkový počet riadkov zdrojového kódu a testov: \textbf{7950}
+\item Počet Git commitov: \textbf{380}
 \end{itemize}
 
 
