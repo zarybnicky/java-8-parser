@@ -961,7 +961,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
          case AUT_OCT:
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
-            if(isdigit(c)) {
+            if(c>='0' && c<='7') {
                  state = AUT_OCT;
             } else {
                  state = Start_state;
