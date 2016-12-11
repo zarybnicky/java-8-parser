@@ -53,12 +53,13 @@ http://citace.info/norma1/webova-stranka/
 
 \chapter{Úvod}
 Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
-\begin{list}
+
+\begin{itemize}
 \item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
 \item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
 \item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
 \item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
-\end{list}
+\end{itemize}
 
 \chapter{Štruktúra projektu}
 
@@ -90,24 +91,25 @@ Ve fázi druhé již probíhá porovnávání hledaného řetězce s řetězcem 
 \chapter{Vývoj}
 
 \section{Rozdelenie práce}
-\textbf{Martin Vaško}-Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
-\textbf{Marek Tamaškovič}-Interpretácia AST, dokumentácia, garbage-collector,testovanie.
-\textbf{Michal Vaško}-Lexikálny analyzátor,dokumentácia,prezentácia.
-\textbf{Jiří Záleský}-Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
-\textbf{Jakub Zárybnický}-Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
+\par \textbf{Martin Vaško}-Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
+\par \textbf{Marek Tamaškovič}-Interpretácia AST, dokumentácia, garbage-collector,testovanie.
+\par \textbf{Michal Vaško}-Lexikálny analyzátor,dokumentácia,prezentácia.
+\par \textbf{Jiří Záleský}-Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
+\par \textbf{Jakub Zárybnický}-Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
 
 \section{Komunikačné kanály}
-\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello}- kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na ḱomunikačnom kanály \textbf{Slack}- kde sme si spisovali blížiace sa termíny a do osobitnej zložky #announcements sa nám zasielal výpis z prekladu(odkaz na travis CI??).
+\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello} kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na komunikačnom kanály \textbf{Slack} - kde sme si spisovali blížiace sa termíny a do osobitnej zložky \#announcements sa nám zasielal výpis z prekladu(odkaz na travis CI??).
 \par Ako verzovací systém sme si zvolili \textbf{Git}.
-\par Ako tým sme mali naplánované stretnutia pravidelne každé 2 až 3 týždne, kde sme preberali náš aktuálny stav a prognózu do ďalších dní, riešili rozhrania jednotlivých modulov a implementáciu rozšírení.
+\par Ako tím sme mali naplánované stretnutia pravidelne každé 2 až 3 týždne, kde sme preberali náš aktuálny stav a prognózu do ďalších dní, riešili rozhrania jednotlivých modulov a implementáciu rozšírení.
 
 \chapter{Záver}
+Modely pre tvorbu informačného systému? prípadne nejaké zhrnutie klady a zápory prekážky v Česko slovenskej komunikácii?
 \section{Metriky}
-\begin{metriky}
+\begin{itemize}
 \item Počet súborov: \textbf{24}
 \item celkový počet riadkov zdrojového kódu: \textbf{8102}
 \item Počet Git commitov: \textbf{360}
-\end{metriky}
+\end{itemize}
 \chapter{Príloha}
 \includegraphics[width=1\textwidth]{./img/lex1.png}\\
 
