@@ -44,6 +44,7 @@ ifj16: ifj16.o $(LIBOBJ)
 test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
 test/stack: test/stack.o $(LIBOBJ)
+test/memory: test/memory.o $(LIBOBJ)
 
 xzaryb00.tgz: $(wildcard *.c) $(wildcard *.h) Makefile rozdeleni rozsireni dokumentace.pdf
 	tar cvzf $@ $^

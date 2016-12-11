@@ -55,30 +55,27 @@ int evalMain(Interpret *);
 
 int interpretNode(Stack *, Node *);
 int interpretFunc(Stack *, Node *);
-int builtInFunc(SymbolTable *, Stack *, Function *);
+int builtInFunc(Stack *, Function *);
 
 // These functions are needed to evaluate abstract syntax tree.
 Value *evalStaticExpression(Expression *);
 bool evalCondition(SymbolTable *, Stack *, char *, Expression *);
-Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
+Value *evalExpression(SymbolTable *, Stack *, char *, Expression *, UnaryOperation);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
-Value *evalFunction(Stack *,SymbolTable *,char *,int,Expression *,char *);
+void evalFunction(Stack *, SymbolTable *, Function *, char *);
 Value *evalUnaryExpression(UnaryOperation, Value *);
 Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
 
-// Constructor and destructor for STACK
+// Stack constructor
 Stack *createLocalStack(Stack *);
-Stack *deleteLocaleStack(Stack *);
 
-/* Work with Stack*/
+// Work with Stack
 int pushToStack(Stack *, Value *);
 Value *popFromStack(Stack *);
 int pushParamToStack(SymbolTable *, Stack *, char *, Expression *);
-void testStack();
 void printStack(Stack *);
 Stack *createLocalStack(Stack *stack);
-Stack *deleteLocaleStack(Stack *stack);
 int pushToStack(Stack *stack, Value *val);
 Value *popFromStack(Stack *stack);
 

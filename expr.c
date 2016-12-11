@@ -12,11 +12,8 @@
 
 PredStack *createPStack() {
     PredStack *s = malloc_c(sizeof(PredStack));
-    CHECK_ALLOC(s);
     s->sStack = malloc_c(20 * sizeof(PredSymbol));
-    CHECK_ALLOC(s->sStack);
     s->tStack = malloc_c(20 * sizeof(Token *));
-    CHECK_ALLOC(s->tStack);
     s->stackSize = 20;
     s->stackPtr = 0;
     return s;
@@ -27,10 +24,8 @@ bool emptyPStack(PredStack *s) {
 void pushPStack(PredStack *x, PredSymbol s, void *t) {
     if (x->stackPtr == x->stackSize) {
         x->stackSize *= 2;
-        x->sStack = realloc(x->sStack, x->stackSize * sizeof(PredSymbol));
-        CHECK_ALLOC(x->sStack);
-        x->tStack = realloc(x->tStack, x->stackSize * sizeof(void *));
-        CHECK_ALLOC(x->tStack);
+        x->sStack = realloc_c(x->sStack, x->stackSize * sizeof(PredSymbol));
+        x->tStack = realloc_c(x->tStack, x->stackSize * sizeof(void *));
     }
     x->sStack[x->stackPtr] = s;
     x->tStack[x->stackPtr] = t;
@@ -39,10 +34,8 @@ void pushPStack(PredStack *x, PredSymbol s, void *t) {
 void markTerminal(PredStack *s) {
     if (s->stackPtr == s->stackSize) {
         s->stackSize *= 2;
-        s->sStack = realloc(s->sStack, s->stackSize * sizeof(PredSymbol));
-        CHECK_ALLOC(s->sStack);
-        s->tStack = realloc(s->tStack, s->stackSize * sizeof(void *));
-        CHECK_ALLOC(s->tStack);
+        s->sStack = realloc_c(s->sStack, s->stackSize * sizeof(PredSymbol));
+        s->tStack = realloc_c(s->tStack, s->stackSize * sizeof(void *));
     }
     //Find out where to place the mark...
     int mark = -1;
@@ -131,12 +124,22 @@ void reduce(PredStack *s) {
     case P_LP:
     case P_MARK:
     case P_NON:
+    case P_END:
         FERROR(ERR_INTERNAL, "Unexpected symbol %s",
                showPredSymbol(peekTerminal(s, &t)));
     case P_RP:
         e = parseFuncallExpr(s);
         break;
+    case P_INC:
+    case P_DEC:
+        e = parseIncExpr(s);
+        break;
+    case P_NOT:
+    case P_NEG:
+        e = parseUnaryExpr(s);
+        break;
     case P_ADD:
+    case P_SUB:
     case P_MUL:
     case P_DIV:
     case P_LT:
@@ -169,10 +172,17 @@ Expression *parseExpression(Lexer *l, SymbolType end) {
     PredStack *s = createPStack();
     pushPStack(s, P_END, NULL);
 
+    bool minusIsUnary = true;
+
     while ((translatePred(peekToken(l)) != P_END && !isSymbol(l, end)) || peekTerminal(s, &t) != P_END) {
         PredSymbol a = peekTerminal(s, &t);
         t = peekToken(l);
         PredSymbol b = translatePred(t);
+
+        if (b == P_SUB && minusIsUnary) {
+            b = P_NEG;
+        }
+        minusIsUnary = b == P_LP || (b > P_NOT && b < P_ID);
 
         switch (predTable[a][b]) {
         case O:
@@ -416,7 +426,59 @@ Expression *parseBinExpr(PredStack *s) {
 
     Expression *e = createExpression(E_BINARY);
     e->data.binary.op = op;
-    e->data.binary.left = a;
-    e->data.binary.right = b;
+    e->data.binary.left = b;
+    e->data.binary.right = a;
+    return e;
+}
+
+Expression *parseIncExpr(PredStack *s) {
+    Token *t;
+    Expression *operand;
+    UnaryOperation op;
+
+    if (peekPStack(s) == P_NON) {
+        operand = peekNonTerminal(s);
+        popPStack(s);
+        peekTerminal(s, &t);
+        if (peekPStack(s) >= P_END) {
+            FERROR(ERR_SYNTAX, "Unexpected symbol on line %d:%d '%s'",
+                   t->lineNum, t->lineChar, t->original);
+        }
+        popPStack(s);
+        op = t->val.symbol == SYM_UNARY_PLUS ? U_PREINC : U_PREDEC;
+    } else {
+        peekTerminal(s, &t);
+        popPStack(s);
+        if (peekPStack(s) != P_NON) {
+            FERROR(ERR_SYNTAX, "Unexpected symbol on line %d:%d '%s'",
+                   t->lineNum, t->lineChar, t->original);
+        }
+        operand = peekNonTerminal(s);
+        popPStack(s);
+        op = t->val.symbol == SYM_UNARY_PLUS ? U_POSTINC : U_POSTDEC;
+    }
+
+    Expression *e = createExpression(E_UNARY);
+    e->data.unary.op = op;
+    e->data.unary.e = operand;
+    return e;
+}
+
+Expression *parseUnaryExpr(PredStack *s) {
+    Token *t;
+    Expression *operand;
+
+    operand = peekNonTerminal(s);
+    popPStack(s);
+    peekTerminal(s, &t);
+    if (peekPStack(s) >= P_END) {
+        FERROR(ERR_SYNTAX, "Unexpected symbol on line %d:%d '%s'",
+               t->lineNum, t->lineChar, t->original);
+    }
+    popPStack(s);
+
+    Expression *e = createExpression(E_UNARY);
+    e->data.unary.op = t->val.symbol == SYM_MINUS ? U_NEG : U_NOT;
+    e->data.unary.e = operand;
     return e;
 }

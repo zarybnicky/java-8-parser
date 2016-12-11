@@ -25,6 +25,7 @@ typedef enum {
     P_INC,
     P_DEC,
     P_NEG,
+    P_NOT,
     P_MUL,
     P_DIV,
     P_ADD,
@@ -78,7 +79,8 @@ static inline char *showPredSymbol(PredSymbol s) {
     case P_LP:   return "(";
     case P_INC:  return "++";
     case P_DEC:  return "--";
-    case P_NEG:  return "!";
+    case P_NEG:  return "u-";
+    case P_NOT:  return "!";
     case P_MUL:  return "*";
     case P_DIV:  return "/";
     case P_ADD:  return "+";
@@ -156,7 +158,7 @@ static inline PredSymbol translatePred(Token *x) {
         case SYM_NOT_EQUALS:
             return P_NEQ;
         case SYM_NOT:
-            return P_NEG;
+            return P_NOT;
         case SYM_AND:
             return P_AND;
         case SYM_OR:
@@ -167,34 +169,37 @@ static inline PredSymbol translatePred(Token *x) {
 }
 
 const int predTable[][P_END + 1] = {
-    /*(, ),++,--, !, *, /, +, -, <, >,<=,>=,==,!=,&&,||,id,li,tf, ,, $ |*/
-    { L, E, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E, O }, //(
-    { O, G, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //)
-    { O, G, G, G, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //++
-    { O, G, G, G, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //--
-    { L, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, L, O, L, O, O }, //!
-    { L, G, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //*
-    { L, G, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, ///
-    { L, G, L, L, L, L, L, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //+
-    { L, G, L, L, L, L, L, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //-
-    { L, G, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //<
-    { L, G, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //>
-    { L, G, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //<=
-    { L, G, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //>=
-    { L, G, L, L, L, L, L, L, L, L, L, L, L, G, G, G, G, L, L, L, G, G }, //==
-    { L, G, L, L, L, L, L, L, L, L, L, L, L, G, G, G, G, L, L, L, G, G }, //!=
-    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, L, G, G, L, L, L, G, G }, //&&
-    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, L, L, G, L, L, L, G, G }, //||
-    { E, G, G, G, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //id
-    { O, G, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //lit
-    { O, G, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //t/f
-    { L, E, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E, O }, //,
-    { L, O, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, O, O }, //$
+    /*(, ),++,--,u-, !, *, /, +, -, <, >,<=,>=,==,!=,&&,||,id,li,tf, ,, $ |*/
+    { L, E, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E, O }, //(
+    { O, G, O, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //)
+    { O, G, G, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //++
+    { O, G, G, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //--
+    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, O }, //u-
+    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, O }, //!
+    { L, G, L, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //*
+    { L, G, L, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, ///
+    { L, G, L, L, L, L, L, L, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //+
+    { L, G, L, L, L, L, L, L, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //-
+    { L, G, L, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //<
+    { L, G, L, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //>
+    { L, G, L, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //<=
+    { L, G, L, L, L, L, L, L, L, L, G, G, G, G, G, G, G, G, L, L, L, G, G }, //>=
+    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, G, G, G, G, L, L, L, G, G }, //==
+    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, G, G, G, G, L, L, L, G, G }, //!=
+    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, L, L, G, G, L, L, L, G, G }, //&&
+    { L, G, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, G, L, L, L, G, G }, //||
+    { E, G, G, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //id
+    { O, G, O, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //lit
+    { O, G, O, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //t/f
+    { L, E, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, E, O }, //,
+    { L, O, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, L, O, O }, //$
 };
 
 Expression *parseExpression(Lexer *, SymbolType end);
 Expression *parseTerm(Token *);
 Expression *parseFuncallExpr(PredStack *);
 Expression *parseBinExpr(PredStack *);
+Expression *parseIncExpr(PredStack *);
+Expression *parseUnaryExpr(PredStack *);
 
 #endif /* IFJ_EXPR_H */

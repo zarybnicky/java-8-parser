@@ -436,6 +436,7 @@ char *showExpressionType(ExpressionType x) {
 }
 char *showUnaryOperation(UnaryOperation x) {
     switch (x) {
+    case U_ID:      return "Id";
     case U_NEG:     return "Negate";
     case U_NOT:     return "Not";
     case U_PREINC:  return "PreIncrement";

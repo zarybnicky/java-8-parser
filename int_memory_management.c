@@ -164,7 +164,7 @@ void ht_del_item(T_HTable *tab, void *addr){
 // custom free for our memory management
 void free_c(void *addr) {
     if (addr == NULL || alloc_tab == NULL) {
-        ERROR(ERR_INTERNAL);
+        return;
     }
 
     unsigned index = hash_function(addr, HTAB_SIZE);

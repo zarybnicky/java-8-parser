@@ -73,9 +73,8 @@ Value *coerceTo(ValueType t, Value *v) {
         return v;
     Value *retVal = copyValue(v);
     #ifdef DEBUG
-    printf("\n");
     printValue(v);
-    printf("\nRET VAL:");
+    printf(" -> ");
     printValue(retVal);
     printf("\n");
     #endif

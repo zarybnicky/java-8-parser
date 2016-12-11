@@ -357,15 +357,6 @@ ValueType getExpressionType(Expression *e) {
         }
 
         arg = e->data.funcall.argHead;
-        #ifdef DEBUG
-        printf("\n");
-        printExpression(arg);
-        printf("\n");
-        printSymbolTable(localTable);
-        printSymbolTable(symTable);
-        printFunction(n->data.function);
-        printf("\n");
-        #endif
         for (int argNum = 0; arg != NULL; argNum++, arg = arg->next) {
             Declaration *d = n->data.function->argHead;
             for (int i = n->data.function->argCount - 1; i --> argNum;)
@@ -414,6 +405,8 @@ ValueType getExpressionType(Expression *e) {
     case E_UNARY:
         t = getExpressionType(e->data.unary.e);
         switch (e->data.unary.op) {
+        case U_ID:
+            return t;
         case U_PREINC:
         case U_POSTINC:
         case U_PREDEC:

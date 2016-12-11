@@ -14,8 +14,7 @@ List *lStart;
 List *lEnd;
 
 int *Prefixcreator(char *search, int seaLen){ // Auxiliary function of find
-    int *array = malloc(sizeof(int)*seaLen);
-    CHECK_ALLOC(array);
+    int *array = malloc_c(sizeof(int) * seaLen);
 
     int a = -1;
     array[0] = a;
@@ -50,11 +49,11 @@ int find(char *s, char *search) {
             a++;
         }
         if (a == seaLen-1){ // Match found
-            free(Parray);
+            free_c(Parray);
             return i - a;
         }
     }
-    free(Parray);
+    free_c(Parray);
     return -1;
 }
 
@@ -66,14 +65,14 @@ void deleteFirst(){
 }
 
 void insertList(int val, int length){
-    List *new = malloc_c(sizeof(struct tList));
+    List *new = malloc_c(sizeof(List));
 
-    if (lStart == NULL){    // First list
+    if (lStart == NULL) {
         new->next = NULL;
-        lEnd = new;        
+        lEnd = new;
     } else {
         new->next = NULL;
-        lEnd->next = new;  
+        lEnd->next = new;
         lEnd = new;
     }
     new->index = val;   // Set values
@@ -86,7 +85,7 @@ void insertList(int val, int length){
 
 // Preparation for sort
 void makeComponents(char* s){
-    int sLen = strlen(s); 
+    int sLen = strlen(s);
     int *array = malloc_c(sLen * sizeof(int));
 
     int length = 1;
@@ -100,31 +99,29 @@ void makeComponents(char* s){
         }
     }
 
-    for (int i = 0; i<sLen; i++){   // Add lists to queue 
+    for (int i = 0; i<sLen; i++){   // Add lists to queue
         if (array[i] != 0){
             length++;
         } else {
             insertList(i - (length - 1), length);
-            length = 1; 
+            length = 1;
         }
     }
     free_c(array);
 }
 
-char *sort(char *s)
-{
+char *sort(char *s) {
     if (*s == '\0')
         return s;
-    char *newString = strdup_(s);
 
+    char *newString = strdup_(s);
     unsigned len = strlen(newString);
 
     makeComponents(newString);
-    
+
     unsigned first, second, counterF, counterS, pom, lengthF, lengthS;
     char tmp;
-    bool posun = false;
-    bool presun = false;
+    bool posun;
 
     while (lStart != lEnd) {
 
@@ -134,7 +131,7 @@ char *sort(char *s)
                 insertList(lStart->index, lStart->length);
                 deleteFirst();
             }
-        } 
+        }
 
         first = lStart->index;
         lengthF = lStart->length;
@@ -171,7 +168,7 @@ char *sort(char *s)
                     tmp = newString[counterS];
                     newString[counterS] = newString[counterF];
                     newString[counterF] = tmp;
-                } 
+                }
 
                 // Prepare next test
                 if (posun == false && counterS >= first + lengthF){
@@ -201,7 +198,8 @@ char *sort(char *s)
             counterF++;
 
             // Preparen next cycle of sorting
-            if (second < first && counterF == second) presun = true;
+            if (second < first && counterF == second)
+                posun = true;
             if (counterF == len){
                 posun = false;
                 break;
@@ -210,7 +208,7 @@ char *sort(char *s)
                 counterS = second;
             } else {
                 counterS = counterF;
-            }  
+            }
 
             if (counterS < counterF){
                 counterS = counterF;
@@ -462,15 +460,14 @@ Node *table_lookup_either(SymbolTable *global, SymbolTable *local, char *class, 
 
     int classLength = strlen(class);
     int idLength = strlen(var);
-    char *qualified = malloc((classLength + 1 + idLength + 1));
-    CHECK_ALLOC(qualified);
+    char *qualified = malloc_c((classLength + 1 + idLength + 1));
     strcpy(qualified, class);
     qualified[classLength] = '.';
     strcpy(qualified + classLength + 1, var);
     qualified[classLength + 1 + idLength] = '\0';
 
     n = table_lookup(global, qualified);
-    free(qualified);
+    free_c(qualified);
     return n;
 }
 
