@@ -111,6 +111,8 @@ void makeComponents(char* s){
 }
 
 char *sort(char *s) {
+    if (s == NULL) 
+        return s;
     if (*s == '\0')
         return s;
 
