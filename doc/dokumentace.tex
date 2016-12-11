@@ -66,13 +66,15 @@ Sémantická analýza kódu prebieha samostatne po syntaktickej analýze, z dôv
 \section{Interpret}
 Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpretovaného programu. Náš interpret interpretuje abstraktný syntaktický strom, ktorý vytvorila syntaktická analýza. Ten lineárne prechádza a vyhodnocuje výrazy pokým nenastane volanie funkcie. V tom momente si vyhľadá v tabuľke symbolov abstraktný syntaktický strom danej funkcie, vytvorí lokálnu tabuľku symbolov, ktorú bude používať volaná funkcia, vloží do nej argumenty funkcie a začne vykonávať telo funkcie. Pri ukončovaní funkcie interpret vloží návratovú hodnotu z funkcie na zásobník a ukončí interpretáciu funkcie. Následne si interpret danú hodnotu vyberie zo zásobníka a použije ju v interpretácii pôvodného abstraktného syntaktického stromu. Vstavané funkcie sú riešené obdobne. Taktiež si pri interpretácii interpret kontroluje behové chyby ako napríklad delenie nulou alebo práca s neinicializovanými premennými. Ak taká situácia nastane interpret sa ukončuje s chybovou hláškou a príslušným návratovým kódom pre danú chybu.
 
+\section{Garbage collector}
+\par Pro lepší správu paměti jsme implementovali garbage collector. Je implementován jako statické pole struktury obsahující void ukazatel a ukazatel na další prvek stejného typu. Což umožňuje za sebou prvky řadit jako lineární spojový seznam. Po naalokování paměti je volána funkce, která vytvoří nový prvek. Na základě adresy je posléze pomocí hashovací funkce určeno nové umístění prvku. Je-li již na daném umístění nějaký prvek, je umístěn za poslední prvek v pořadí. Při mazání prvku je použita hashovací funkce a následným porovnáváním se najde daný prvek ve spojovém seznamu a po přepojení prvků je paměť, a následně i prvek, uvolněna.
+\par Součástí jsou i modifikované funkce pro alokoci, realokaci a dealokaci paměti. Ve funkcích pro alokaci a realokaci je také kontrola toho, zda alokace proběhla úspěšně.
 
 \section{Algoritmy}
 % Nejak zvýraznit názvy funkcí?
 \subsection{List-Merge sort}
 \par Metoda řazení pole využívající princip slučování (mergování) seznamů.
 V první fázi je vytvořeno pomocné pole indexů, které je následně využito pro najití začátků neklesajících poslupností. Konec posloupnosti je v pomocném poli vyznačen pomocí 0. Začátek každé posloupnosti je uložen do pomocné datové struktury typu seznam a přidán do fronty.
-
 \par Ve fázi druhé, pak vždy vezmene první dva prvky fronty a seřadíme je. Z těchto dvou prvků vznikne jeden větší, který umístíme na konec fronty. Takto postupujeme dokud nezůstane ve frontě pouze jeden seznam, který je výsledkem řazení. Pro větší jednoduchost kódu, je před spojováním a řazením zaručeno pořadí tak, aby seznam obsahující nižší index byl vždy první z dvojice pro seřazení.
 
 \subsection{KMP Vyhledání podřetězce}
