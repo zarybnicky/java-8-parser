@@ -319,7 +319,7 @@ AUTSTATES control_res_key_word(char *str, ReservedWord *reserved)
 }
 
 
-
+//funkcia pre string
 void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
     if (*string == NULL) {
         *string = malloc_c(*stringAlloc * sizeof(char));
