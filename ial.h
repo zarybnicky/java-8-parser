@@ -37,7 +37,7 @@ typedef struct {
 
 typedef struct tList {
     int index;
-    int length;
+    unsigned length;
     struct tList *next;
 } List;
 
