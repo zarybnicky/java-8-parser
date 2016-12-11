@@ -896,7 +896,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
          case AUT_BIN2:
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
-            if(isdigit(c)) {
+            if(c>='0' && c<='1') {
                  state = AUT_BIN2;
             } else {
                  state = Start_state;
