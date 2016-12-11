@@ -89,8 +89,12 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         rtype = getExpressionType(c->data.define.expr);
         if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
-            if (rtype == T_VOID)
-                FERROR(ERR_RUNTIME_UNINITIALIZED, "Cannot assign a(n) %s to %s.\n",showValueType(rtype), showValueType(ltype));
+
+            if (c->data.define.expr->type == E_FUNCALL && rtype != ltype && rtype == T_VOID){
+                FERROR(ERR_RUNTIME_UNINITIALIZED, "Cannot assign a(n) %s to %s.\n",
+                   showValueType(rtype), showValueType(ltype));
+            }
+
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
         }
@@ -230,7 +234,7 @@ void checkTopLevelInner(Function *f, Command *c, bool cycle) {
         case C_DECLARE:
             freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_INTERNAL, "C_DECLARE located in a nested block.");
+            MERROR(ERR_SYNTAX, "C_DECLARE located in a nested block.");
             break;
         case C_DEFINE:
             freeSemantic();
@@ -403,7 +407,7 @@ ValueType getExpressionType(Expression *e) {
                    showValueType(getExpressionType(e->data.binary.left)),
                    showValueType(getExpressionType(e->data.binary.right)));
             freeSemantic();
-            ERROR(ERR_SEM_TYPECHECK);
+            ERROR(ERR_SYNTAX);
         }
         return t;
 

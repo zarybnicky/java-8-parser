@@ -9,6 +9,8 @@
  */
 #include "scanner.h"
 
+extern bool jirkaDouble;
+
 bool dbl_end = false; // Variable for readDouble
 // GETNEXTTOKEN
 Token *getNextToken(FILE *f) {
@@ -60,7 +62,7 @@ Token *getNextToken(FILE *f) {
         }
         break;
     case EXT_HEX:
-		t->type = LIT_DOUBLE;
+        t->type = LIT_DOUBLE;
         t->val.doubleVal=hexToDbl(t->original);
         break;
     case EXT_OCT:
@@ -97,7 +99,12 @@ Token *getNextToken(FILE *f) {
         fprintf(stderr, "Invalid string occurred %s\n", t->original);
         free(t->original);
         free(t);
-        ERROR(ERR_LEXER);
+        if(jirkaDouble == true){
+            ERROR(ERR_RUNTIME_INT_PARSE);
+        }
+        else{
+            ERROR(ERR_LEXER);
+        }
     }
     return t;
 }
@@ -327,8 +334,8 @@ AUTSTATES control_res_key_word(char *str, ReservedWord *reserved)
 
 void string_end(char **string, char c, int *stringLength, int *stringAlloc) {
     if (*string == NULL) {
-		*string = malloc(*stringAlloc * sizeof(char));
-		CHECK_ALLOC(*string);
+        *string = malloc(*stringAlloc * sizeof(char));
+        CHECK_ALLOC(*string);
     }
     if ((*stringLength) + 1 >= (*stringAlloc)) {
         *stringAlloc <<= 1;
@@ -467,8 +474,13 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             else if (c == '"')
                 state = AUT_STRING;
             else {
-				//chybovy stav
-                FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
+                if(jirkaDouble == false){
+                    FERROR(ERR_LEXER, "Invalid character occurred (%c)", c);
+                }
+                else{
+                    FERROR(ERR_RUNTIME_INT_PARSE, "Invalid character occurred (%c)", c);
+                }
+
             }
             break;
 
@@ -477,9 +489,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             GET_CHAR(c, input, state, line, lineCol);
             //ak to uz nie je jedno z povolenych znakov tak..
             if (! (isalnum(c) || c == '_' ||c == '$' )) {
-				if  (c == '.') {
+                if  (c == '.') {
                     state = AUT_IDEN2;
-				}  else {
+                }  else {
                     state = Start_state;
                     return control_res_key_word(*string, reserved);
                 }
@@ -489,41 +501,46 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
 
         case AUT_IDEN2:
            control_res_key_word(*string, reserved);
+
            //kvoli lavej strane zlozeneho iden ! void. napr..
             if(c =='.' && *reserved != 0){
-				state=Start_state;
-				return ERROR_IDEN;
-			}
+                state=Start_state;
+                return ERROR_IDEN;
+            }
             string_end(string, c, &stringLength, &stringAlloc);
             GET_CHAR(c, input, state, line, lineCol);
+
             if ((c>='A' && c<='z') || c == '_' || c == '$') {
                     state = AUT_IDEN3;
             } else {
                     state = Start_state;
-					return ERROR_IDEN;
+                    return ERROR_IDEN;
             }
+
             break;
 
         case AUT_IDEN3:
            control_res_key_word(*string, reserved);
             if(c =='.' && *reserved != 0){
-				//kvoli lavej strane compound ! void. napr..
-				state=Start_state;
-				return ERROR_IDEN;
-			}
+                //kvoli lavej strane compound ! void. napr..
+                state=Start_state;
+                return ERROR_IDEN;
+            }
             string_end(string, c, &stringLength, &stringAlloc);
             GET_CHAR(c, input, state, line, lineCol);
+
             if(! (isalnum(c) || c == '_' ||c == '$' )) {
-				// vezme bodku a zprava string napr .for
-				if(strchr(*string,'.'))
-				// strch +1 vymaze bodku a ostane mi uz iba  res a neres
-					control_res_key_word(strchr(*string,'.')+1, reserved);
-				if(*reserved != 0){
-					state = Start_state;
-					return ERROR_IDEN;
-				}
-				state = Start_state;
-				return IDEN_COMPOUND;
+
+                // vezme bodku a zprava string napr .for
+                if(strchr(*string,'.'))
+                // strch +1 vymaze bodku a ostane mi uz iba  res a neres
+                    control_res_key_word(strchr(*string,'.')+1, reserved);
+                if(*reserved != 0){
+                    state = Start_state;
+                    return ERROR_IDEN;
+                }
+                state = Start_state;
+                return IDEN_COMPOUND;
             }
             break;
         case AUT_NUM:
@@ -531,11 +548,12 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             GET_CHAR(c, input, state, line, lineCol);
             //podmienka if aby pri cislach sa vzdy vracalo spat na num
             if (isdigit(c))
-				;
+                ;
             else if (c == '.')
                 state = AUT_FLOAT1;
             else if (c == 'E' || c == 'e')
                 state = AUT_EX1;
+
             else {
                 state = Start_state;
                 return NUMBER;
@@ -557,7 +575,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             GET_CHAR(c, input, state, line, lineCol);
             //podmienka if aby pri cislach sa vzdy vracalo spat na float
             if (isdigit(c))
-				;
+                ;
             else if (c == 'E' || c == 'e')
                 //prechadzame do stavu s exponentom
                 state = AUT_EX1;
@@ -633,14 +651,16 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 state = AUT_STRING;
                 string_end(string, c, &stringLength, &stringAlloc);
             } else if(isdigit(c)) {
-				// cislo moze byt iba v tomto rozmedzi
-				if(c > '0' && c <= '3' ) {
-				    num += (c - '0')*64;
-				    state = AUT_ESCN;
-                } else if (c == '0') {
-				    state = AUT_ESC_ZERO;
-                } else {
-				    state = Start_state;
+                // cislo moze byt iba v tomto rozmedzi
+                if(c > '0' && c <= '3' ) {
+                    num += (c - '0')*64;
+                    state = AUT_ESCN;
+                }
+                else if (c == '0') {
+                    state = AUT_ESC_ZERO;
+                }
+                else {
+                    state = Start_state;
                     return ERROR_ESC;
                 }
             }
@@ -651,13 +671,13 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             break;
         //nulovy stav
         case AUT_ESC_ZERO:
-	        GET_CHAR(c, input, state, line, lineCol);
-	        if(isdigit(c)) {
+            GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
                 if (c == '0'){
-					// ak dva nuly
+                    // ak dva nuly
                     state = AUT_ESC_ZERO2;
                 } else if (c > '0' && c <= '7' ) {
-					//moznost dostat sa do stavu z cislami > 0
+                    //moznost dostat sa do stavu z cislami > 0
                     num += (c - '0')*8;
                     state = AUT_ESCN2;
                 } else {
@@ -665,16 +685,16 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     return ERROR_ESC_ZERO;
                 }
             }
-			else {
-				state = Start_state;
-				return ERROR_ESC_ZERO;
-			}
-			break;
+            else {
+                state = Start_state;
+                return ERROR_ESC_ZERO;
+            }
+            break;
 
         // stav s cislami >0
-	    case AUT_ESCN:
-	        GET_CHAR(c, input, state, line, lineCol);
-	        if(isdigit(c)) {
+        case AUT_ESCN:
+            GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
                 if(c >= '0' && c <= '7' ) {
                     num += ((c - '0')*8);
                     state = AUT_ESCN2;
@@ -682,17 +702,17 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                     state = Start_state;
                     return ERROR_ESCN;
                 }
-			}
-			else {
-			    state = Start_state;
-			    return ERROR_ESCN;
             }
-		    break;
+            else {
+                state = Start_state;
+                return ERROR_ESCN;
+            }
+            break;
 
         case AUT_ESC_ZERO2:
-		    GET_CHAR(c, input, state, line, lineCol);
-		    if(isdigit(c)) {
-				// mame tri 0 cize error
+            GET_CHAR(c, input, state, line, lineCol);
+            if(isdigit(c)) {
+                // mame tri 0 cize error
                 if (c == '0') {
                     state = Start_state;
                     return ERROR_ESC_ZERO2;
@@ -714,7 +734,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
         case AUT_ESCN2:
             GET_CHAR(c, input, state, line, lineCol);
             if(isdigit(c)) {
-				// ziskame povolene cislo pozostavajuce z 3 cislic
+                // ziskame povolene cislo pozostavajuce z 3 cislic
                 if(c >= '0' && c <= '7' ) {
                     num +=(c - '0');
                     string_end(string, num, &stringLength, &stringAlloc);
@@ -725,8 +745,8 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 }
             }
             else {
-			    state = Start_state;
-			    return ERROR_ESCN2;
+                state = Start_state;
+                return ERROR_ESCN2;
             }
             break;
 
@@ -740,7 +760,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                 // posleme do coment bloku
                 state = AUT_CMTB;
             else {
-				//mozem hned vratit SLASH
+                //mozem hned vratit SLASH
                 state = Start_state;
                  *symbol = SYM_SLASH;
                 return AUT_SYMBOL;
@@ -775,7 +795,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             break;
         // vsety mozne symboly
         //equals alebo assign
-		case AUT_EQUALS:
+        case AUT_EQUALS:
             GET_CHAR(c, input, state, line, lineCol);
             if(c == '=') {
                 state = NEUTRAL_STATE;
@@ -879,13 +899,13 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
           case AUT_BIN:
           string_end(string, c, &stringLength, &stringAlloc);
           GET_CHAR(c, input, state, line, lineCol);
-			if (c>='0' && c<='7') {
-				state = AUT_OCT;
+            if (c>='0' && c<='7') {
+                state = AUT_OCT;
             } else if  (c == 'b') {
                 state = AUT_BIN2;
-		    } else if  (c == 'x') {
+            } else if  (c == 'x') {
                 state = AUT_HEX;
-		    } else if (c == '.') {
+            } else if (c == '.') {
                 state = AUT_FLOAT1;
             } else {
                 state = Start_state;
@@ -903,7 +923,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  return EXT_BASE;
             }
             break;
-          //dostavame sa do 16kovej sustavy
+
          case AUT_HEX:
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
@@ -924,7 +944,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
             if((isdigit(c)) || (c>='A' && c<='F') || (c>='a' && c<='f') ) {
                  state = AUT_HEX1;
             }  else if ( c == 'p' || c == 'P') {
-				 // po nacitani p,P ideme do dalsieho potrebneho stavu
+                 // po nacitani p,P ideme do dalsieho potrebneho stavu
                  state = AUT_HEX2;
             }  else {
                  state = Start_state;
@@ -936,7 +956,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
             if ( c == '-') {
-				 //po nacitani - sa dostavame do posledneho stavu
+                 //po nacitani - sa dostavame do posledneho stavu
                  state = AUT_HEX3;
             } else {
                  state = Start_state;
@@ -948,7 +968,7 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);
             if (isdigit(c))  {
-				 string_end(string, c, &stringLength, &stringAlloc);
+                 string_end(string, c, &stringLength, &stringAlloc);
                  state = Start_state;
                  return EXT_HEX;
             } else {
@@ -956,7 +976,9 @@ AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reserved, SymbolTy
                  return ERROR_HEX;
             }
             break;
+
           //oktalova sustava
+
          case AUT_OCT:
          string_end(string, c, &stringLength, &stringAlloc);
          GET_CHAR(c, input, state, line, lineCol);

@@ -11,6 +11,8 @@
 
 #include "interpret.h"
 
+bool jirkaDouble = false;
+
 static SymbolTable *symTableGlob = NULL;
 static Stack *GlobalStack = NULL;
 
@@ -320,6 +322,7 @@ Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, i
  */
 int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
     returnFlag = true;
+    jirkaDouble = true;
     char *str = fn->name;
 
     if(!strcmp(str, "ifj16.print")){
