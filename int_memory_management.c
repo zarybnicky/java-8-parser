@@ -196,7 +196,7 @@ void free_c(void *addr) {
     item = NULL;
 }
 
-// Release the CRACK.. ehm... MEMORYY!
+// Release the KRAK.. ehm... MEMORYY!
 void free_c_all(T_HTable *tab) {
     if (tab == NULL) {
         ERROR(ERR_INTERNAL);
