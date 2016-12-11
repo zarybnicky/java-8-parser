@@ -44,7 +44,13 @@
 \newgeometry{margin=2.5cm}
 
 \begin{abstract}
-Nas abstrakt\\
+Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
+\begin{itemize}
+\item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
+\item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
+\item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
+\item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
+\end{itemize}
 http://www.fit.vutbr.cz/info/szz/bib\_citace.html\\
 http://www.fit.vutbr.cz/info/szz/psani\_textu.php\\
 http://citace.info/norma1/webova-stranka/
@@ -52,15 +58,7 @@ http://citace.info/norma1/webova-stranka/
 
 \tableofcontents
 
-\chapter{Úvod}
-Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu jazyka java8, bez podpory objektového programovania.Projekt sa dá rozdeliť na štyri hlavné časti, z ktorých bude každej venovaná osobitná kapitola.
 
-\begin{itemize}
-\item Lexikálny analyzátor, ktorý zo zdrojového programu získava tokeny
-\item Syntaktický analzátor, ktorý rozdeľujeme na dve podčasti- syntaktický analyzátor jazykových konštrukcií a na analyzátor výrazov.
-\item Sémantický analyzátor, ktorý v zdrojovom programe zisťuje, či konštrukcie s ktorými sa pracuje v programe nachádzajú v globálnom resp. lokálnom priestore.
-\item Interpret, ktorź ma za úlohu previesť interpretáciu programu.
-\end{itemize}
 
 \chapter{Štruktúra projektu}
 
@@ -95,16 +93,16 @@ Ve fázi druhé již probíhá porovnávání hledaného řetězce s řetězcem 
 
 \section{Rozdelenie práce}
 \begin{itemize}
-\item \textbf{Martin Vaško}-Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
-\item \textbf{Marek Tamaškovič}-Interpretácia AST, dokumentácia, garbage-collector,testovanie.
-\item \textbf{Michal Vaško}-Lexikálny analyzátor,dokumentácia,prezentácia.
-\item \textbf{Jiří Záleský}-Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
-\item \textbf{Jakub Zárybnický}-Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
+\item \textbf{Martin Vaško} - Algoritmy(BVS),sémantické kontroly,testovanie,správa, návrh a výpomoc vrámci interpretu.
+\item \textbf{Marek Tamaškovič} - Interpretácia AST, dokumentácia, garbage-collector,testovanie.
+\item \textbf{Michal Vaško} - Lexikálny analyzátor,dokumentácia,prezentácia.
+\item \textbf{Jiří Záleský} - Algoritmy(List-Merge sort,KMP), sémantické kontroly, vstavané funkcie, testovanie.
+\item \textbf{Jakub Zárybnický} - Parser, precedenčná a syntaktická analýza, návrh, rozdelenie práce a štýl kódu.
 \end{itemize}
 
 \section{Komunikačné kanály}
-\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello} kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na komunikačnom kanály \textbf{Slack} - kde sme si spisovali blížiace sa termíny a do osobitnej zložky \#announcements sa nám zasielal výpis z prekladu(odkaz na travis CI??).
-\par Ako verzovací systém sme si zvolili \textbf{Git}.
+\par Online komunikácia prebiehala v 3 typoch - pre rozdelenie práce sme používali \textbf{Trello}\footnote{https://trello.com/} kde sme si rozdeľovali nové úlohy, rozšírenia a detaily. Pre menej formálnu komunikáciu a výpomoc navzájom sme sa stretávali na komunikačnom kanály \textbf{Slack}\footnote{https://slack.com/} - kde sme si spisovali blížiace sa termíny a do osobitnej zložky \#announcements sa nám zasielal výpis z prekladu \textbf{Travis-CI}\footnote{https://travis-ci.org/}.
+\par Ako verzovací systém sme si zvolili \textbf{Git}\footnote{https://git-scm.com/}.
 \par Ako tím sme mali naplánované stretnutia pravidelne každé 2 až 3 týždne, kde sme preberali náš aktuálny stav a prognózu do ďalších dní, riešili rozhrania jednotlivých modulov a implementáciu rozšírení.
 
 \chapter{Záver}
