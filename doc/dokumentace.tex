@@ -9,9 +9,7 @@
 \usepackage{graphicx}
 \usepackage{lmodern}
 \usepackage{enumitem}
-
-% TODO
-% -
+\usepackage{listings}
 
 
 \begin{document}
@@ -116,7 +114,76 @@ Tento projekt, implementácia interpretu IFJ16, bol veľkou výzvou hlavne po ko
 
 
 \chapter{Príloha}
-\includegraphics[width=1\textwidth]{./img/lex1.pdf}\\
+\section{Diagram lexeru}
+\includegraphics[width=1\textwidth]{./img/lex1.pdf}
+\newpage
+\section{LL gramatika}
 
+\begin{lstlisting}
+ifj16 = \$ | class ifj16
+class = "class" "{" classBody
+classBody = "}" | "static" type simpleId classBody'
+classBody' = ";"
+           | "=" expression ";"
+           | "(" declarationList "{" functionBody
+functionBody = "}"
+             | type simpleId(q) functionBody'
+             | command
+functionBody' = ";" | "=" expression ";"
+command = "if" "(" expression ")" command
+        | "while" "(" expression ")" command
+        | "do" command "while" "(" expression ")" ";"
+        | "for" "(" type simpleId for'
+        | "return" return'
+        | "{" commandList
+        | "break" ";"
+        | "continue" ";"
+        | anyId command'
+for' = ";" for'' | "=" expression ";" for''
+for'' = expression ";" anyId "=" expression ")" command
+return' = ";" | expression ";"
+commandList = "}" | command commandList
+command' = "(" argumentList ";" | "=" expression ";"
+declarationList  = ")" | type simpleId declarationList'
+declarationList' = ")" | "," type simpleId declarationList'
+argumentList  = ")" | expression argumentList'
+argumentList' = ")" | "," expression argumentList'
+type = "int" | "double" | "boolean" | "String" | "void"
+anyId = simpleId | compoundId
 
+expression = [see operator-precedence grammar]
+\end{lstlisting}
+
+\newpage
+
+\section{Precedenční tabulka}
+
+\scalebox{0.8}{
+\begin{tabular}[pos]{r|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l}
+    &(&)&++&--&u-& !& *& /& +& -& <& >&<=&>=&==&!=&\&\&&$\|$&id&li&tf&,& \$ \\
+    (& L& E& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& E& O \\
+    )& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    ++& O& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& L& O& O& G& G \\
+    --& O& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& L& O& O& G& G \\
+    u-& L& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& G& G& L& G& L& O& G \\
+    !& L& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& G& G& L& G& L& O& G \\
+    *& L& G& L& L& L& L& G& G& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    /& L& G& L& L& L& L& G& G& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    +& L& G& L& L& L& L& L& L& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    -& L& G& L& L& L& L& L& L& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    <& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    >& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    <=& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    >=& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    ==& L& G& L& L& L& L& L& L& L& L& L& L& L& L& G& G& G& G& L& L& L& G& G \\
+    !=& L& G& L& L& L& L& L& L& L& L& L& L& L& L& G& G& G& G& L& L& L& G& G \\
+    \&\&& L& G& L& L& L& L& L& L& L& L& L& L& L& L& L& L& G& G& L& L& L& G& G \\
+    $\|$& L& G& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& G& L& L& L& G& G \\
+    id& E& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    literal& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    true/false& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    ,& L& E& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& E& O \\
+    \$& L& O& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& O& O
+\end{tabular}
+}
 \end{document}

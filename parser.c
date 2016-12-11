@@ -94,91 +94,79 @@ void parseClass(Lexer *l) {
 }
 
 bool parseClassBody(Lexer *l) {
-    bracket_(l, parseFunction);
-    bracket_(l, parseStaticDeclaration);
-    bracket_(l, parseStaticDefinition);
-    return false;
-}
-
-bool parseStaticDeclaration(Lexer *l) {
-    tryReserved(l, RES_STATIC, false);
-    ValueType type = parseType(l);
-    char *name = parseAndQualifySimpleId(l);
-    trySymbol(l, SYM_SEMI, (free_c(name), false));
-
-    Value *v = createValue(type);
-    v->undefined = true;
-    table_insert(&l->interpret->symTable, createValueNode(name, v));
-    return true;
-}
-
-bool parseStaticDefinition(Lexer *l) {
-    tryReserved(l, RES_STATIC, false);
-    ValueType type = parseType(l);
-    char *name = parseAndQualifySimpleId(l);
-    trySymbol(l, SYM_ASSIGN, (free_c(name), false));
-    PARSE_EXPRESSION(e, l, SYM_SEMI);
-
-    Value *v = evalStaticExpression(e);
-    free_c(e);
-    if (v->type != type) {
-        FERROR(ERR_SEM_TYPECHECK,
-               "Type error: variable has type %s but assigned expression has evaluated to %s\n",
-               showValueType(type), showValueType(type));
+    if (isSymbol(l, SYM_BRACE_CLOSE)) {
+        return false;
     }
-    expectSymbol(l, SYM_SEMI);
-    table_insert(&l->interpret->symTable, createValueNode(name, v));
-    return true;
-}
 
-bool parseFunction(Lexer *l) {
-    tryReserved(l, RES_STATIC, false);
+    expectReserved(l, RES_STATIC);
     ValueType type = parseReturnType(l);
     char *name = parseAndQualifySimpleId(l);
-    trySymbol(l, SYM_PAREN_OPEN, (free_c(name), false));
 
-    int argCount = 0;
-    Declaration *argList = parseArgListDecl(l, &argCount);
-    expectSymbol(l, SYM_PAREN_CLOSE);
-    expectSymbol(l, SYM_BRACE_OPEN);
+    if (isSymbol(l, SYM_SEMI)) {
+        nextToken(l);
+        Value *v = createValue(type);
+        v->undefined = true;
+        table_insert(&l->interpret->symTable, createValueNode(name, v));
+        return true;
+    }
 
-    Function *f = createFunction(name, type, argCount, argList);
-    while (parseFunctionBody(l, &f->body))
-        ;
-    expectSymbol(l, SYM_BRACE_CLOSE);
+    if (isSymbol(l, SYM_ASSIGN)) {
+        nextToken(l);
+        PARSE_EXPRESSION(e, l, SYM_SEMI);
 
-    table_insert(&l->interpret->symTable, createFunctionNode(strdup_(name), f));
-    return true;
+        Value *v = evalStaticExpression(e);
+        free_c(e);
+        if (v->type != type) {
+            FERROR(ERR_SEM_TYPECHECK,
+                   "Type error: variable has type %s but assigned expression has evaluated to %s\n",
+                   showValueType(type), showValueType(type));
+        }
+        expectSymbol(l, SYM_SEMI);
+        table_insert(&l->interpret->symTable, createValueNode(name, v));
+        return true;
+    }
+
+    if (isSymbol(l, SYM_PAREN_OPEN)) {
+        nextToken(l);
+        int argCount = 0;
+        Declaration *argList = parseArgListDecl(l, &argCount);
+        expectSymbol(l, SYM_PAREN_CLOSE);
+        expectSymbol(l, SYM_BRACE_OPEN);
+
+        Function *f = createFunction(name, type, argCount, argList);
+        while (parseFunctionBody(l, &f->body))
+            ;
+        expectSymbol(l, SYM_BRACE_CLOSE);
+
+        table_insert(&l->interpret->symTable, createFunctionNode(strdup_(name), f));
+        return true;
+    }
+
+    return false;
 }
 
 bool parseFunctionBody(Lexer *l, Block *b) {
-    bracket(l, parseLocalDeclaration, b);
-    bracket(l, parseLocalDefinition, b);
-    bracket(l, parseCommand, b);
-    return false;
-}
-
-bool parseLocalDeclaration(Lexer *l, Block *b) {
-    Declaration d, *dPtr = &d;
-    if (!parseDeclaration(l, &dPtr)) {
+    if (isSymbol(l, SYM_BRACE_CLOSE)) {
         return false;
     }
-    trySymbol(l, SYM_SEMI, (free_c(d.name), false));
-    appendToBlock(b, createCommandDeclare(d));
-    return true;
-}
 
-bool parseLocalDefinition(Lexer *l, Block *b) {
     Declaration d, *dPtr = &d;
-    if (!parseDeclaration(l, &dPtr)) {
-        return false;
+    if (parseDeclaration(l, &dPtr)) {
+        if (isSymbol(l, SYM_SEMI)) {
+            nextToken(l);
+            appendToBlock(b, createCommandDeclare(d));
+            return true;
+        }
+        if (isSymbol(l, SYM_ASSIGN)) {
+            nextToken(l);
+            PARSE_EXPRESSION(e, l, SYM_SEMI);
+            expectSymbol(l, SYM_SEMI);
+            appendToBlock(b, createCommandDefine(d, e));
+            return true;
+        }
     }
-    expectSymbol(l, SYM_ASSIGN);
-    PARSE_EXPRESSION(e, l, SYM_SEMI);
-    expectSymbol(l, SYM_SEMI);
 
-    appendToBlock(b, createCommandDefine(d, e));
-    return true;
+    return parseCommand(l, b);
 }
 
 bool parseCommand(Lexer *l, Block *b) {
