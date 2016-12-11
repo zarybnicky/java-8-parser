@@ -10,6 +10,8 @@
 
 #include "../interpret.h"
 
+void freeGlobalResources() {}
+
 int main() {
     printf("%s\n", "TEST STACK");
 

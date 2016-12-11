@@ -30,6 +30,7 @@ void checkOperatorAssignmentType(Function *);
 void checkTopLevelInner(Function *, Command *, bool cycle);
 void checkTopLevel(Function *);
 
-ValueType getExpressionType(Expression *);
+ValueType getExpressionType(Expression *, bool hasString);
+bool hasString(Expression *);
 
 #endif /* IFJ_SANITY_H */

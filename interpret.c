@@ -469,8 +469,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             B(result) = B(left) || B(right);
             return result;
         default:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 
@@ -514,8 +513,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             I(result) = I(left) / I(right);
             return result;
         default:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 
@@ -561,8 +559,7 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             return result;
         case EB_AND:
         case EB_OR:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 

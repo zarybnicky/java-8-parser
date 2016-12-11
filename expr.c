@@ -182,7 +182,6 @@ Expression *parseExpression(Lexer *l, SymbolType end) {
         if (b == P_SUB && minusIsUnary) {
             b = P_NEG;
         }
-        minusIsUnary = b == P_LP || (b > P_NOT && b < P_ID);
 
         switch (predTable[a][b]) {
         case O:
@@ -193,10 +192,12 @@ Expression *parseExpression(Lexer *l, SymbolType end) {
             markTerminal(s);
             pushPStack(s, b, t);
             nextToken(l);
+            minusIsUnary = b == P_LP || (b > P_NOT && b < P_ID);
             break;
         case E:
             pushPStack(s, b, t);
             nextToken(l);
+            minusIsUnary = b == P_LP || (b > P_NOT && b < P_ID);
             break;
         case G:
             reduce(s);
@@ -472,6 +473,7 @@ Expression *parseUnaryExpr(PredStack *s) {
     popPStack(s);
     peekTerminal(s, &t);
     if (peekPStack(s) >= P_END) {
+        printToken(t);
         FERROR(ERR_SYNTAX, "Unexpected symbol on line %d:%d '%s'",
                t->lineNum, t->lineChar, t->original);
     }

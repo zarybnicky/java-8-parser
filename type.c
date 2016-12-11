@@ -71,6 +71,8 @@ bool isAssignCompatible(ValueType lvalue, ValueType rvalue) {
 Value *coerceTo(ValueType t, Value *v) {
     if (v == NULL || t == v->type || t == T_VOID)
         return v;
+    if (v->undefined)
+        ERROR(ERR_RUNTIME_UNINITIALIZED);
     Value *retVal = copyValue(v);
     #ifdef DEBUG
     printValue(v);

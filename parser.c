@@ -237,7 +237,7 @@ bool parseDoWhile(Lexer *l, Block *b) {
 
     expectReserved(l, RES_WHILE);
     expectSymbol(l, SYM_PAREN_OPEN);
-    PARSE_EXPRESSION(e, l, SYM_PAREN_OPEN);
+    PARSE_EXPRESSION(e, l, SYM_PAREN_CLOSE);
     c->data.doWhileC.cond = e;
     expectSymbol(l, SYM_PAREN_CLOSE);
     expectSymbol(l, SYM_SEMI);

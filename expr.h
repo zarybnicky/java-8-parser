@@ -174,8 +174,8 @@ const int predTable[][P_END + 1] = {
     { O, G, O, O, O, O, G, G, G, G, G, G, G, G, G, G, G, G, O, O, O, G, G }, //)
     { O, G, G, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //++
     { O, G, G, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, L, O, O, G, G }, //--
-    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, O }, //u-
-    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, O }, //!
+    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, G }, //u-
+    { L, G, O, O, G, G, G, G, G, G, G, G, G, G, G, G, G, G, L, G, L, O, G }, //!
     { L, G, L, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //*
     { L, G, L, L, L, L, G, G, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, ///
     { L, G, L, L, L, L, L, L, G, G, G, G, G, G, G, G, G, G, L, L, L, G, G }, //+
