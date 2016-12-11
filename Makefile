@@ -13,12 +13,15 @@ CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99 -g
 LDFLAGS=-L.
 
+DOC_SRC=./dokumentace.tex
+PACK_CONT=Makefile rozdeleni rozsireni
+
 DOC_LOG=./dokumentace.log ./dokumentace.aux ./dokumentace.toc
 EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe
 
-LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o expr.o
+LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
 
-.PHONY: all doc test val clean
+.PHONY: all document test val clean
 
 all: ifj16
 
@@ -28,29 +31,29 @@ debug: all
 debugInt: CFLAGS += -DDEBUG
 debugInt: debug
 
-test: ifj16 test/parser test/symbol-table test/stack
+test: ifj16 test/parser test/symbol-table
 	bash testsuite.sh
 
 #valgrind
 val: ifj16 test/parser
 	bash valgrind.sh
 
-#documentation + pack
-dist: $(wildcard *.c) $(wildcard *.h) Makefile rozdeleni rozsireni dokumentace.pdf
-	tar cvzf xzaryb00.tgz $^
-
-doc: dokumentace.pdf
-
 clean:
-	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ) dokumentace.pdf
-
+	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ) $(DOC_LOG)
 ifj16: ifj16.o $(LIBOBJ)
+
 test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
-test/stack: test/stack.o $(LIBOBJ)
 
-dokumentace.pdf: doc/dokumentace.tex
-	cd doc && pdflatex $(notdir $^) # musi to tu byt dva krat ten preklad nevymazavajte to !
-	cd doc && pdflatex $(notdir $^)
-	mv doc/dokumentace.pdf .
+#documentation + pack
+dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT)
+	tar cvzf xzaryb00.tgz $^ dokumentace.pdf
+
+document: $(DOC_OUT)
+	# WARNING WARNING WARNING WARNING
+	# musi to tu byt dva krat ten preklad nevymazavajte to !
+	cd doc && pdflatex $(DOC_SRC)
+	cd doc && pdflatex $(DOC_SRC)
+	mv ./doc/dokumentace.pdf ./dokumentace.pdf
 	cd doc && rm $(DOC_LOG)
+	cd ../

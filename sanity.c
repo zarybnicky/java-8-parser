@@ -89,6 +89,8 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         rtype = getExpressionType(c->data.define.expr);
         if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
+            if (rtype == T_VOID)
+                FERROR(ERR_RUNTIME_UNINITIALIZED, "Cannot assign a(n) %s to %s.\n",showValueType(rtype), showValueType(ltype));
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
                    showValueType(rtype), showValueType(ltype));
         }
@@ -109,7 +111,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         if (n->type != N_VALUE) {
             freeSemantic();
             fprintf(stderr, "In function %s:\n", f->name);
-            MERROR(ERR_SEM_TYPECHECK, "Can't assign to a function");
+            MERROR(ERR_SEM_UNDEFINED, "Can't assign to a function");
         }
         ltype = n->data.value->type;
         rtype = getExpressionType(c->data.assign.expr);
