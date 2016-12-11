@@ -168,11 +168,11 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
         case C_ASSIGN:
             node = table_lookup_either(symTableGlob, symTable, className, cmd->data.assign.name);
             if(node == NULL)
-                PERROR("Interpret: CMD: Assign: Variable not found in local or global symbol table.");
+                MERROR(ERR_INTERNAL, "Interpret: CMD: Assign: Variable not found in local or global symbol table.");
             val = evalExpression(symTable, stack, className, cmd->data.assign.expr);
             // printValue(val);
             if(val == NULL)
-                PERROR("Interpret: CMD: Assign: Evaluation of value was not successful.")
+                MERROR(ERR_INTERNAL, "Interpret: CMD: Assign: Evaluation of value was not successful.")
 
             // assign
             node->data.value = coerceTo(node->data.value->type, val);
@@ -195,11 +195,10 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case C_RETURN:
-            if(cmd->data.expr == NULL)
-                break;
-            val = evalExpression(symTable, stack, className, cmd->data.expr);
-            //coerce to return type!!
-            pushToStack(GlobalStack, val);
+            if(cmd->data.expr != NULL){
+                val = evalExpression(symTable, stack, className, cmd->data.expr);
+                pushToStack(GlobalStack, val);
+            }
             returnFlag = true;
             break;
 
@@ -694,6 +693,9 @@ Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expr
             return evalBinaryExpression(e->data.binary.op,
                                         evalExpression(symTable, stack, className, e->data.binary.left),
                                         evalExpression(symTable, stack, className, e->data.binary.right));
+        case E_UNARY:
+            // FIXME
+            break;
     }
     return NULL; //Just to pacify the compiler...
 }
