@@ -86,7 +86,7 @@ bool commit(Lexer *l) {
 void parseClass(Lexer *l) {
     expectReserved(l, RES_CLASS);
     char *name = parseSimpleId(l);
-    expectSymbol_(l, SYM_BRACE_OPEN, free_c(name));
+    expectSymbol(l, SYM_BRACE_OPEN);
 
     table_insert(&l->interpret->symTable, createClassNode(name));
     l->lastClassName = name;
@@ -120,18 +120,16 @@ bool parseStaticDefinition(Lexer *l) {
     ValueType type = parseType(l);
     char *name = parseAndQualifySimpleId(l);
     trySymbol(l, SYM_ASSIGN, (free_c(name), false));
-    PARSE_EXPRESSION(e, l);
+    PARSE_EXPRESSION(e, l, SYM_SEMI);
 
     Value *v = evalStaticExpression(e);
     free_c(e);
     if (v->type != type) {
-        free_c(name);
-        free_c(v);
         FERROR(ERR_SEM_TYPECHECK,
                "Type error: variable has type %s but assigned expression has evaluated to %s\n",
                showValueType(type), showValueType(type));
     }
-    expectSymbol_(l, SYM_SEMI, (free_c(name), freeValue(v)));
+    expectSymbol(l, SYM_SEMI);
     table_insert(&l->interpret->symTable, createValueNode(name, v));
     return true;
 }
@@ -144,13 +142,13 @@ bool parseFunction(Lexer *l) {
 
     int argCount = 0;
     Declaration *argList = parseArgListDecl(l, &argCount);
-    expectSymbol_(l, SYM_PAREN_CLOSE, (free_c(name), freeDeclaration(argList)));
-    expectSymbol_(l, SYM_BRACE_OPEN, (free_c(name), freeDeclaration(argList)));
+    expectSymbol(l, SYM_PAREN_CLOSE);
+    expectSymbol(l, SYM_BRACE_OPEN);
 
     Function *f = createFunction(name, type, argCount, argList);
     while (parseFunctionBody(l, &f->body))
         ;
-    expectSymbol_(l, SYM_BRACE_CLOSE, freeFunction(f));
+    expectSymbol(l, SYM_BRACE_CLOSE);
 
     table_insert(&l->interpret->symTable, createFunctionNode(strdup_(name), f));
     return true;
@@ -178,9 +176,9 @@ bool parseLocalDefinition(Lexer *l, Block *b) {
     if (!parseDeclaration(l, &dPtr)) {
         return false;
     }
-    expectSymbol_(l, SYM_ASSIGN, free_c(d.name));
-    PARSE_EXPRESSION(e, l);
-    expectSymbol_(l, SYM_SEMI, (free_c(d.name), freeExpression(e)));
+    expectSymbol(l, SYM_ASSIGN);
+    PARSE_EXPRESSION(e, l, SYM_SEMI);
+    expectSymbol(l, SYM_SEMI);
 
     appendToBlock(b, createCommandDefine(d, e));
     return true;
@@ -204,12 +202,11 @@ bool parseIf(Lexer *l, Block *b) {
     tryReserved(l, RES_IF, false);
 
     expectSymbol(l, SYM_PAREN_OPEN);
-    PARSE_EXPRESSION(e, l);
-    expectSymbol_(l, SYM_PAREN_CLOSE, freeExpression(e));
+    PARSE_EXPRESSION(e, l, SYM_PAREN_CLOSE);
+    expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommandIf(e);
     if (!parseCommand(l, &c->data.ifC.thenBlock)) {
-        freeCommand(c);
         errorExpectedCommand(l);
     }
     appendToBlock(b, c);
@@ -223,12 +220,11 @@ bool parseIf(Lexer *l, Block *b) {
 bool parseWhile(Lexer *l, Block *b) {
     tryReserved(l, RES_WHILE, false);
     expectSymbol(l, SYM_PAREN_OPEN);
-    PARSE_EXPRESSION(e, l);
-    expectSymbol_(l, SYM_PAREN_CLOSE, freeExpression(e));
+    PARSE_EXPRESSION(e, l, SYM_PAREN_CLOSE);
+    expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommandWhile(e);
     if (!parseCommand(l, &c->data.whileC.bodyBlock)) {
-        freeCommand(c);
         errorExpectedCommand(l);
     }
     appendToBlock(b, c);
@@ -239,16 +235,15 @@ bool parseDoWhile(Lexer *l, Block *b) {
     tryReserved(l, RES_DO, false);
     Command *c = createCommandDoWhile();
     if (!parseCommand(l, &c->data.doWhileC.bodyBlock)) {
-        freeCommand(c);
         errorExpectedCommand(l);
     }
 
-    expectReserved_(l, RES_WHILE, freeCommand(c));
-    expectSymbol_(l, SYM_PAREN_OPEN, freeCommand(c));
-    PARSE_EXPRESSION(e, l);
+    expectReserved(l, RES_WHILE);
+    expectSymbol(l, SYM_PAREN_OPEN);
+    PARSE_EXPRESSION(e, l, SYM_PAREN_OPEN);
     c->data.doWhileC.cond = e;
-    expectSymbol_(l, SYM_PAREN_CLOSE, freeCommand(c));
-    expectSymbol_(l, SYM_SEMI, freeCommand(c));
+    expectSymbol(l, SYM_PAREN_CLOSE);
+    expectSymbol(l, SYM_SEMI);
 
     appendToBlock(b, c);
     return true;
@@ -265,24 +260,22 @@ bool parseFor(Lexer *l, Block *b) {
     Expression *init;
     if (t->type == SYMBOL && t->val.symbol == SYM_ASSIGN) {
         nextToken(l);
-        PARSE_EXPRESSION(init_, l);
+        PARSE_EXPRESSION(init_, l, SYM_SEMI);
         init = init_;
     } else {
         init = NULL;
     }
-    expectSymbol_(l, SYM_SEMI, (free_c(d.name)));
-    PARSE_EXPRESSION(cond, l);
-    expectSymbol_(l, SYM_SEMI, (free_c(d.name), freeExpression(cond)));
+    expectSymbol(l, SYM_SEMI);
+    PARSE_EXPRESSION(cond, l, SYM_SEMI);
+    expectSymbol(l, SYM_SEMI);
     Block dummy; dummy.head = dummy.tail = NULL;
-    if (!parseAssignExpression(l, &dummy)) {
-        free_c(d.name), freeExpression(cond);
+    if (!parseAssignExpression(l, &dummy, SYM_PAREN_CLOSE)) {
         errorExpectedCommand(l);
     }
-    expectSymbol_(l, SYM_PAREN_CLOSE, (free_c(d.name), freeExpression(cond), freeCommand(dummy.head)));
+    expectSymbol(l, SYM_PAREN_CLOSE);
 
     Command *c = createCommandFor(d, init, cond, dummy.head);
     if (!parseCommand(l, &c->data.forC.bodyBlock)) {
-        freeCommand(c);
         errorExpectedCommand(l);
     }
     appendToBlock(b, c);
@@ -290,29 +283,29 @@ bool parseFor(Lexer *l, Block *b) {
 }
 
 bool parseAssign(Lexer *l, Block *b) {
-    if (!parseAssignExpression(l, b))
+    if (!parseAssignExpression(l, b, SYM_SEMI))
         return false;
     expectSymbol(l, SYM_SEMI);
     return true;
 }
 
-bool parseAssignExpression(Lexer *l, Block *b) {
+bool parseAssignExpression(Lexer *l, Block *b, SymbolType end) {
     Token *t = peekToken(l);
     if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
         return false;
     char *name = parseAnyId(l);
     trySymbol(l, SYM_ASSIGN, (free_c(name), false));
-    PARSE_EXPRESSION(e, l);
+    PARSE_EXPRESSION(e, l, end);
     appendToBlock(b, createCommandAssign(name, e));
     return true;
 }
 
 bool parseFuncall(Lexer *l, Block *b) {
-    Expression *e = NULL;
-    if (!parseExpressionFuncall(l, &e)) {
+    Expression *e = parseExpression(l, SYM_SEMI);
+    if (e == NULL) {
         return false;
     }
-    expectSymbol_(l, SYM_SEMI, freeExpression(e));
+    expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandExpression(e));
     return true;
 }
@@ -338,8 +331,8 @@ bool parseReturn(Lexer *l, Block *b) {
         appendToBlock(b, createCommandReturn(NULL));
         return true;
     }
-    PARSE_EXPRESSION(e, l);
-    expectSymbol_(l, SYM_SEMI, freeExpression(e));
+    PARSE_EXPRESSION(e, l, SYM_SEMI);
+    expectSymbol(l, SYM_SEMI);
     appendToBlock(b, createCommandReturn(e));
     return true;
 }
@@ -349,28 +342,95 @@ bool parseBlock(Lexer *l, Block *b) {
     Command *c = createCommandBlock();
     while (parseFunctionBody(l, &c->data.block))
         ;
-    expectSymbol_(l, SYM_BRACE_CLOSE, freeCommand(c));
+    expectSymbol(l, SYM_BRACE_CLOSE);
     appendToBlock(b, c);
     return true;
 }
 
-bool parseExpression(Lexer *l, Expression **e) {
+bool parseExpressionLiteral(Lexer *l, Expression **e) {
+    return l && e;
+}
+
+bool parseExpressionVar(Lexer *l, Expression **e) {
+    Token *t = peekToken(l);
+    if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
+        return false;
+    char *name = parseAnyId(l);
+    *e = createExpression(E_REFERENCE);
+    (*e)->data.reference = name;
+    return true;
+}
+
+bool parseExpressionParen(Lexer *l, Expression **e) {
+    trySymbol(l, SYM_PAREN_OPEN, false);
+    PARSE_EXPRESSION(e_, l, SYM_PAREN_CLOSE);
+    *e = e_;
+    expectSymbol(l, SYM_PAREN_CLOSE);
+    return true;
+}
+
+bool parseExpressionFuncall(Lexer *l, Expression **e) {
+    Token *t = peekToken(l);
+    if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
+        return false;
+    char *name = parseAnyId(l);
+    trySymbol(l, SYM_PAREN_OPEN, (free_c(name), false));
+    int argCount = 0;
+    Expression *argHead = parseArgListCall(l, &argCount);
+    expectSymbol(l, SYM_PAREN_CLOSE);
+    *e = createExpression(E_FUNCALL);
+    (*e)->data.funcall.name = name;
+    (*e)->data.funcall.argCount = argCount;
+    (*e)->data.funcall.argHead = argHead;
+    return true;
+}
+
+bool parseExpressionTerm(Lexer *l, Expression **e) {
+    bracket(l, parseExpressionParen, e);
+    bracket(l, parseExpressionFuncall, e);
+    bracket(l, parseExpressionLiteral, e);
+    bracket(l, parseExpressionVar, e);
+    return false;
+}
+
+bool parseExpressionAdd(Lexer *l, Expression **e) {
     Expression *left = NULL;
-    if (!parseExpressionCmp(l, &left)) {
+    if (!parseExpressionTerm(l, &left)) {
         return false;
     }
     Token *t = peekToken(l);
-    if (t->type != SYMBOL || (t->val.symbol != SYM_EQUALS &&
-                              t->val.symbol != SYM_NOT_EQUALS)) {
+    if (t->type != SYMBOL || (t->val.symbol != SYM_PLUS &&
+                              t->val.symbol != SYM_MINUS)) {
         *e = left;
         return true;
     }
     nextToken(l);
-    PARSE_EXPRESSION(right, l);
+    PARSE_EXPRESSION(right, l, SYM_SEMI);
+
+    *e = createExpression(E_BINARY);
+    (*e)->data.binary.op = t->val.symbol == SYM_PLUS ? EB_ADD : EB_SUBTRACT;
+    (*e)->data.binary.left = left;
+    (*e)->data.binary.right = right;
+    return true;
+}
+
+bool parseExpressionMul(Lexer *l, Expression **e) {
+    Expression *left = NULL;
+    if (!parseExpressionAdd(l, &left)) {
+        return false;
+    }
+    Token *t = peekToken(l);
+    if (t->type != SYMBOL || (t->val.symbol != SYM_STAR &&
+                              t->val.symbol != SYM_SLASH)) {
+        *e = left;
+        return true;
+    }
+    nextToken(l);
+    PARSE_EXPRESSION(right, l, SYM_SEMI);
 
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
-        = t->val.symbol == SYM_EQUALS ? EB_EQUAL : EB_NOT_EQUAL;
+        = t->val.symbol == SYM_STAR ? EB_MULTIPLY : EB_DIVIDE;
     (*e)->data.binary.left = left;
     (*e)->data.binary.right = right;
     return true;
@@ -390,7 +450,7 @@ bool parseExpressionCmp(Lexer *l, Expression **e) {
         return true;
     }
     nextToken(l);
-    PARSE_EXPRESSION(right, l);
+    PARSE_EXPRESSION(right, l, SYM_SEMI);
 
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op =
@@ -402,125 +462,25 @@ bool parseExpressionCmp(Lexer *l, Expression **e) {
     return true;
 }
 
-bool parseExpressionMul(Lexer *l, Expression **e) {
+bool parseExpression_(Lexer *l, Expression **e) {
     Expression *left = NULL;
-    if (!parseExpressionAdd(l, &left)) {
+    if (!parseExpressionCmp(l, &left)) {
         return false;
     }
     Token *t = peekToken(l);
-    if (t->type != SYMBOL || (t->val.symbol != SYM_STAR &&
-                              t->val.symbol != SYM_SLASH)) {
+    if (t->type != SYMBOL || (t->val.symbol != SYM_EQUALS &&
+                              t->val.symbol != SYM_NOT_EQUALS)) {
         *e = left;
         return true;
     }
     nextToken(l);
-    PARSE_EXPRESSION(right, l);
+    PARSE_EXPRESSION(right, l, SYM_SEMI);
 
     *e = createExpression(E_BINARY);
     (*e)->data.binary.op
-        = t->val.symbol == SYM_STAR ? EB_MULTIPLY : EB_DIVIDE;
+        = t->val.symbol == SYM_EQUALS ? EB_EQUAL : EB_NOT_EQUAL;
     (*e)->data.binary.left = left;
     (*e)->data.binary.right = right;
-    return true;
-}
-
-bool parseExpressionAdd(Lexer *l, Expression **e) {
-    Expression *left = NULL;
-    if (!parseExpressionTerm(l, &left)) {
-        return false;
-    }
-    Token *t = peekToken(l);
-    if (t->type != SYMBOL || (t->val.symbol != SYM_PLUS &&
-                              t->val.symbol != SYM_MINUS)) {
-        *e = left;
-        return true;
-    }
-    nextToken(l);
-    PARSE_EXPRESSION(right, l);
-
-    *e = createExpression(E_BINARY);
-    (*e)->data.binary.op = t->val.symbol == SYM_PLUS ? EB_ADD : EB_SUBTRACT;
-    (*e)->data.binary.left = left;
-    (*e)->data.binary.right = right;
-    return true;
-}
-
-bool parseExpressionTerm(Lexer *l, Expression **e) {
-    bracket(l, parseExpressionParen, e);
-    bracket(l, parseExpressionFuncall, e);
-    bracket(l, parseExpressionLiteral, e);
-    bracket(l, parseExpressionVar, e);
-    return false;
-}
-
-bool parseExpressionParen(Lexer *l, Expression **e) {
-    trySymbol(l, SYM_PAREN_OPEN, false);
-    PARSE_EXPRESSION(e_, l);
-    *e = e_;
-    expectSymbol_(l, SYM_PAREN_CLOSE, freeExpression(e_));
-    return true;
-}
-
-bool parseExpressionFuncall(Lexer *l, Expression **e) {
-    Token *t = peekToken(l);
-    if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
-        return false;
-    char *name = parseAnyId(l);
-    trySymbol(l, SYM_PAREN_OPEN, (free_c(name), false));
-    int argCount = 0;
-    Expression *argHead = parseArgListCall(l, &argCount);
-    expectSymbol_(l, SYM_PAREN_CLOSE, (free_c(name), freeExpression(argHead)));
-    *e = createExpression(E_FUNCALL);
-    (*e)->data.funcall.name = name;
-    (*e)->data.funcall.argCount = argCount;
-    (*e)->data.funcall.argHead = argHead;
-    return true;
-}
-
-bool parseExpressionLiteral(Lexer *l, Expression **e) {
-    Token *t = peekToken(l);
-    Value *v;
-
-    switch (t->type) {
-    case RESERVED:
-        if (t->val.reserved == RES_TRUE) {
-            v = createValue(T_BOOLEAN);
-            v->data.boolean = true;
-        } else if (t->val.reserved == RES_FALSE) {
-            v = createValue(T_BOOLEAN);
-            v->data.boolean = false;
-        } else {
-            return false;
-        }
-        break;
-    case LIT_INTEGER:
-        v = createValue(T_INTEGER);
-        v->data.integer = t->val.intVal;
-        break;
-    case LIT_STRING:
-        v = createValue(T_STRING);
-        v->data.str = strdup_(t->val.stringVal);
-        break;
-    case LIT_DOUBLE:
-        v = createValue(T_DOUBLE);
-        v->data.dbl = t->val.doubleVal;
-        break;
-    default:
-        return false;
-    }
-    *e = createExpression(E_VALUE);
-    (*e)->data.value = v;
-    nextToken(l);
-    return true;
-}
-
-bool parseExpressionVar(Lexer *l, Expression **e) {
-    Token *t = peekToken(l);
-    if (t->type != ID_SIMPLE && t->type != ID_COMPOUND)
-        return false;
-    char *name = parseAnyId(l);
-    *e = createExpression(E_REFERENCE);
-    (*e)->data.reference = name;
     return true;
 }
 
@@ -541,12 +501,13 @@ bool parseDeclaration(Lexer *l, Declaration **d) {
 }
 
 Declaration *parseArgListDecl(Lexer *l, int *argCount) {
-    Declaration *head = NULL;
-    if (!parseDeclaration(l, &head))
+    Declaration *d = NULL;
+    if (!parseDeclaration(l, &d))
         return NULL;
 
     (*argCount)++;
-    Declaration *d = NULL;
+    Declaration *head = d;
+    d = NULL;
     while (1) {
         trySymbol(l, SYM_COMMA, head);
         if (!parseDeclaration(l, &d)) {
@@ -555,27 +516,23 @@ Declaration *parseArgListDecl(Lexer *l, int *argCount) {
                    "Expected a type on line %d:%d, received '%s'.\n",
                    t->lineNum, t->lineChar, t->original);
         }
-        Declaration *new = createDeclaration(d->type, d->name);
         (*argCount)++;
-        new->next = head;
-        head = new;
-        #ifdef DEBUG
-        printf("ARGCOUNT : %d\n", *argCount);
-        printDeclaration(new);
-        #endif
+        d->next = head;
+        head = d;
+        d = NULL;
     }
 }
 
 Expression *parseArgListCall(Lexer *l, int *argCount) {
-    Expression *e = NULL;
-    if (!parseExpression(l, &e))
+    Expression *e = parseExpression(l, SYM_SEMI);
+    if (e == NULL)
         return NULL;
 
     (*argCount)++;
     Expression **f = &e->next;
     while (1) {
         trySymbol(l, SYM_COMMA, e);
-        PARSE_EXPRESSION(f_, l);
+        PARSE_EXPRESSION(f_, l, SYM_SEMI);
         *f = f_;
         (*argCount)++;
         f = &(*f)->next;
@@ -589,27 +546,17 @@ char *parseSimpleId(Lexer *l) {
 }
 char *parseAndQualifySimpleId(Lexer *l) {
     expectType(l, ID_SIMPLE);
-    return parseAndQualifyId(l);
-}
-char *parseAndQualifyId(Lexer *l) {
     Token *t = peekToken(l);
-    if (t->type == ID_COMPOUND) {
-        return strdup_(getToken(l)->val.id);
-    }
-    if (t->type == ID_SIMPLE) {
-        int classLength = strlen(l->lastClassName);
-        int idLength = strlen(t->val.id);
-        char *c = malloc_c((classLength + 1 + idLength + 1));
-        strcpy(c, l->lastClassName);
-        c[classLength] = '.';
-        strcpy(c + classLength + 1, t->val.id);
-        c[classLength + 1 + idLength] = '\0';
-        nextToken(l);
-        return c;
-    }
-    FERROR(ERR_SYNTAX,
-           "Expected an identifier on line %d:%d, received '%s'.\n",
-           t->lineNum, t->lineChar, t->original);
+    int classLength = strlen(l->lastClassName);
+    int idLength = strlen(t->val.id);
+    char *c = malloc((classLength + 1 + idLength + 1));
+    CHECK_ALLOC(c);
+    strcpy(c, l->lastClassName);
+    c[classLength] = '.';
+    strcpy(c + classLength + 1, t->val.id);
+    c[classLength + 1 + idLength] = '\0';
+    nextToken(l);
+    return c;
 }
 char *parseAnyId(Lexer *l) {
     Token *t = peekToken(l);

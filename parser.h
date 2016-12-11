@@ -134,14 +134,9 @@ bool commit(Lexer *l);
            "Expected a command on line %d:%d, received '%s'.\n",        \
            t->lineNum, t->lineChar, t->original);                       \
     } while (0);
-#define PARSE_EXPRESSION(e, l)                  \
-    Expression *e = NULL;                       \
-    if (!parseExpression(l, &e)) {              \
-        errorExpectedExpression(l);             \
-    }
-#define PARSE_EXPRESSION(e, l)                  \
-    Expression *e = NULL;                       \
-    if (!parseExpression(l, &e)) {              \
+#define PARSE_EXPRESSION(e, l, x)               \
+    Expression *e = parseExpression(l, x);      \
+    if (e == NULL) {                            \
         errorExpectedExpression(l);             \
     }
 
@@ -173,22 +168,14 @@ bool parseFor(Lexer *l, Block *b);
 bool parseCommand(Lexer *l, Block *b);
 
 bool parseAssign(Lexer *l, Block *b);
-bool parseAssignExpression(Lexer *l, Block *b);
+bool parseAssignExpression(Lexer *l, Block *b, SymbolType end);
 bool parseFuncall(Lexer *l, Block *b);
 bool parseContinue(Lexer *l, Block *b);
 bool parseBreak(Lexer *l, Block *b);
 bool parseReturn(Lexer *l, Block *b);
 bool parseBlock(Lexer *l, Block *b);
 
-bool parseExpression(Lexer *l, Expression **e);
-bool parseExpressionCmp(Lexer *l, Expression **e);
-bool parseExpressionMul(Lexer *l, Expression **e);
-bool parseExpressionAdd(Lexer *l, Expression **e);
-bool parseExpressionTerm(Lexer *l, Expression **e);
-bool parseExpressionParen(Lexer *l, Expression **e);
-bool parseExpressionFuncall(Lexer *l, Expression **e);
-bool parseExpressionLiteral(Lexer *l, Expression **e);
-bool parseExpressionVar(Lexer *l, Expression **e);
+Expression *parseExpression(Lexer *, SymbolType end);
 
 bool parseDeclaration(Lexer *l, Declaration **d);
 Declaration *parseArgListDecl(Lexer *l, int *argCount);
