@@ -58,26 +58,6 @@ int find(char *s, char *search) {
     return -1;
 }
 
-// Macro for sort
-#define newStart(first, second, counterF, counterS, pom, presun) do{    \
-    if (first > second){                                        \
-        if (second < counterF){     \
-            if (presun == false)  {counterS = second; }  \
-            else {counterS = second +1; }                                \
-        } else {                                                \
-            counterS = counterF;                                \
-            pom = counterF - second;                            \
-        }                                                       \
-    } else {                                                    \
-        if (second >= counterF){                                \
-            counterS = second;                                  \
-        } else {                                                \
-            counterS = counterF;                                \
-            pom = counterF - second;                            \
-        }                                                       \
-   }                                                            \
-} while(0);
-
 // List functions
 void deleteFirst(){
     List *pom = lStart;
@@ -119,6 +99,7 @@ void makeComponents(char* s){
         } else {
             array[i] = 0;
         }
+        printf("%d\n", array[i]);
     }
 
     for (int i = 0; i<sLen; i++){
@@ -147,13 +128,36 @@ char *sort(char *s)
     bool presun = false;
 
     while (lStart != lEnd) {
+
+        if (lStart->next->next != NULL){
+            if (lStart->index + lStart->length == len){
+                insertList(lStart->index, lStart->length);
+                deleteFirst();
+            }
+        } 
+
         first = lStart->index;
         lengthF = lStart->length;
         deleteFirst();
 
+
+        if (lStart->index + lStart->length == len){
+            insertList(lStart->index, lStart->length);
+            deleteFirst();
+        }
+
         second = lStart->index;
         lengthS = lStart->length;
         deleteFirst();
+
+        if (first > second){
+            pom = first;
+            first = second;
+            second = pom;
+            pom = lengthF;
+            lengthF = lengthS;
+            lengthS = pom;
+        }
 
         counterF = first;
         counterS = second;
@@ -162,7 +166,7 @@ char *sort(char *s)
         printf("second %d\n", counterS);
 
         while (counterF != second + lengthS - 1){ // Sort in lists
-            while (pom != second + lengthS){
+            while (counterS != second + lengthS){
                 printf("%d %d\n", counterF, counterS);
                 if (newString[counterF] > newString[counterS]){
                     tmp = newString[counterS];
@@ -173,36 +177,42 @@ char *sort(char *s)
 
                 if (posun == false && counterS >= first + lengthF){
                     if (lengthS == 1){
-                        pom++;
+                        counterS++;
                     } else {
-                        newStart(first, second, counterF, counterS, pom, presun);
+                        if (second < counterF){
+                            counterS = second;
+                        } else {
+                            counterS = counterF;
+                        }
+                        //counterS = second;
                         posun = true;
                     }
                 } else {
                     counterS++;
-                    pom++;
                 }
-
-                if (counterS == len){
-                    if (counterS < second + lengthS){
-                        counterS = 0;
-                    }
+                if (counterS == len) break;
+                
+                if (counterS < counterF){
+                    counterS = counterF;
                 }
-                if (pom == lengthS) break;
             }
             counterF++;
-           // if (counterF == lengthF) break;
 
-            if (counterF == first + lengthF){
-                counterF = second;
-                printf("jo\n");
-            }
             if (second < first && counterF == second) presun = true;
             if (counterF == len){
                 posun = false;
                 break;
             }
-            newStart(first, second, counterF, counterS, pom, presun);
+            if (second < counterF){
+                counterS = second;
+            } else {
+                counterS = counterF;
+            }  
+
+            if (counterS < counterF){
+                counterS = counterF;
+            }
+
             pom = 1;
             posun = false;
         }
@@ -210,7 +220,7 @@ char *sort(char *s)
     }
 
 // Last sorting for non-circle order
-    if (lStart->index != 0){
+ /*   if (lStart->index != 0){
         counterF = lStart->index;
         tmp = newString[lStart->index];
         for (unsigned i = lStart->index; i != len + 1; i++){
@@ -227,7 +237,7 @@ char *sort(char *s)
             }
         }
         newString[0] = tmp;
-    }
+    }*/
 
     return newString;
 }

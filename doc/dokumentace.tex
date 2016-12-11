@@ -76,7 +76,7 @@ Interpret má za úlohu vykonať to, čo sa nachádza v zdrojovom kóde interpre
 \par Metoda řazení pole využívající princip slučování (mergování) seznamů.
 V první fázi je vytvořeno pomocné pole indexů, které je následně využito pro najití začátků neklesajících poslupností. Konec posloupnosti je v pomocném poli vyznačen pomocí 0. Začátek každé posloupnosti je uložen do pomocné datové struktury typu seznam a přidán do fronty.
 
-\par Ve fázi druhé, pak vždy vezmene první dva prvky fronty a seřadíme je. Z těchto dvou prvků vznikne jeden větší, který umístíme na konec fronty. Takto postupujeme dokud nezůstane ve frontě pouze jeden seznam, který je výsledkem řazení. Jelikož naše implementace bere řetězec jako kruhový, může nastat situace kdy se index konečného seznamu, který ukazuje na začátek seřazeného řetězce, není zároveň indexem na začátek řetězce jako celku (Např. index = 2, pro cdab). Z tohoto důvodu je před ukončením funkce řetězec upraven do správné podoby.
+\par Ve fázi druhé, pak vždy vezmene první dva prvky fronty a seřadíme je. Z těchto dvou prvků vznikne jeden větší, který umístíme na konec fronty. Takto postupujeme dokud nezůstane ve frontě pouze jeden seznam, který je výsledkem řazení. Pro větší jednoduchost kódu, je před spojováním a řazením zaručeno pořadí tak, aby seznam obsahující nižší index byl vždy první z dvojice pro seřazení.
 
 \subsection{KMP Vyhledání podřetězce}
 \par Knuth-Morris-Prattův algoritmus se využívá pro urychlení hledání výskytu stejných podřetězců v hledaném řetězci. Algoritmus využívá pomocného pole obsahující informace o hledaném podřetězci. Toto pole musí být vytvořeno ještě předtím než je zahájeno hledání. Složitost algoritmu je $\mathcal{O}(n)$.
