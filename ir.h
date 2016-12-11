@@ -35,6 +35,7 @@ typedef enum {
 } ExpressionType;
 
 typedef enum {
+    U_ID,
     U_PREINC,
     U_POSTINC,
     U_PREDEC,

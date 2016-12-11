@@ -86,7 +86,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
 
     case C_DEFINE:
         ltype = c->data.define.declaration.type;
-        rtype = getExpressionType(c->data.define.expr);
+        rtype = getExpressionType(c->data.define.expr, hasString(c->data.define.expr));
         if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
 
@@ -118,7 +118,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
             MERROR(ERR_SEM_UNDEFINED, "Can't assign to a function");
         }
         ltype = n->data.value->type;
-        rtype = getExpressionType(c->data.assign.expr);
+        rtype = getExpressionType(c->data.assign.expr, hasString(c->data.assign.expr));
         if (!isAssignCompatible(ltype, rtype)) {
             freeSemantic();
             FERROR(ERR_SEM_TYPECHECK, "Cannot assign a(n) %s to %s.\n",
@@ -127,7 +127,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_IF:
-        rtype = getExpressionType(c->data.ifC.cond);
+        rtype = getExpressionType(c->data.ifC.cond, hasString(c->data.ifC.cond));
         if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
@@ -136,7 +136,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_WHILE:
-        rtype = getExpressionType(c->data.whileC.cond);
+        rtype = getExpressionType(c->data.whileC.cond, hasString(c->data.whileC.cond));
         if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSymbolTable(localTable);
             MERROR(ERR_SEM_TYPECHECK,
@@ -145,7 +145,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_DO_WHILE:
-        rtype = getExpressionType(c->data.doWhileC.cond);
+        rtype = getExpressionType(c->data.doWhileC.cond, hasString(c->data.doWhileC.cond));
         if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
@@ -156,7 +156,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
     case C_FOR:
         if (c->data.forC.initial != NULL) {
             ltype = c->data.forC.var.type;
-            rtype = getExpressionType(c->data.forC.initial);
+            rtype = getExpressionType(c->data.forC.initial, hasString(c->data.forC.initial));
             if (!isAssignCompatible(ltype, rtype)) {
                 freeSemantic();
                 FERROR(ERR_SEM_TYPECHECK,
@@ -167,7 +167,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         table_insert_dummy(localTable, c->data.forC.var);
 
         /* compare expression type of for condition if both types are ocmpatible */
-        rtype = getExpressionType(c->data.forC.cond);
+        rtype = getExpressionType(c->data.forC.cond, hasString(c->data.forC.cond));
         if (!isAssignCompatible(T_BOOLEAN, rtype)) {
             freeSemantic();
             MERROR(ERR_SEM_TYPECHECK,
@@ -176,7 +176,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
         break;
 
     case C_EXPRESSION:
-        getExpressionType(c->data.expr); //check for undefineds etc.
+        getExpressionType(c->data.expr, hasString(c->data.expr)); //check for undefineds etc.
         break;
 
     case C_RETURN:
@@ -195,7 +195,7 @@ void checkOperatorAssignmentTypeC(Function *f, Command *c) {
                        "Not returning a value from a non-void function");
             }
             ltype = f->returnType;
-            rtype = getExpressionType(c->data.expr);
+            rtype = getExpressionType(c->data.expr, hasString(c->data.expr));
             if (!isAssignCompatible(ltype, rtype)) {
                 freeSemantic();
                 FERROR(ERR_SEM_TYPECHECK,
@@ -320,7 +320,32 @@ void checkTopLevel(Function *f) {
     }
 }
 
-ValueType getExpressionType(Expression *e) {
+bool hasString(Expression *e) {
+    Node *n;
+    switch (e->type) {
+    case E_VALUE:
+        return e->data.value->type == T_STRING;
+    case E_FUNCALL:
+        n = table_lookup_either(symTable, NULL, className, e->data.funcall.name);
+        if (n == NULL || n->type != N_FUNCTION) {
+            return false;
+        }
+        return n->data.function->returnType == T_STRING;
+    case E_REFERENCE:
+        n = table_lookup_either(symTable, localTable, className, e->data.reference);
+        if (n == NULL || n->type != N_VALUE) {
+            return false;
+        }
+        return n->data.value->type == T_STRING;
+    case E_BINARY:
+        return hasString(e->data.binary.left) || hasString(e->data.binary.right);
+    case E_UNARY:
+        return hasString(e->data.unary.e);
+    }
+    return false;
+}
+
+ValueType getExpressionType(Expression *e, bool hasString_) {
     if (e == NULL) {
         freeSemantic();
         MERROR(ERR_INTERNAL, "NULL expression");
@@ -357,20 +382,11 @@ ValueType getExpressionType(Expression *e) {
         }
 
         arg = e->data.funcall.argHead;
-        #ifdef DEBUG
-        printf("\n");
-        printExpression(arg);
-        printf("\n");
-        printSymbolTable(localTable);
-        printSymbolTable(symTable);
-        printFunction(n->data.function);
-        printf("\n");
-        #endif
         for (int argNum = 0; arg != NULL; argNum++, arg = arg->next) {
             Declaration *d = n->data.function->argHead;
             for (int i = n->data.function->argCount - 1; i --> argNum;)
                 d = d->next;
-            ValueType rtype = getExpressionType(arg);
+            ValueType rtype = getExpressionType(arg, hasString(arg));
             if (!isAssignCompatible(d->type, rtype) && strcmp("ifj16.print", e->data.funcall.name) != 0) {
                 fprintf(stderr,
                        "Cannot convert %s to %s while calling function %s\n",
@@ -399,21 +415,21 @@ ValueType getExpressionType(Expression *e) {
 
     case E_BINARY:
         t = getBinExpType(e->data.binary.op,
-                          getExpressionType(e->data.binary.left),
-                          getExpressionType(e->data.binary.right));
-        if (t == T_VOID) {
-            fprintf(stderr,"Wrong operator types for operation %s: %s, %s.\n",
+                          getExpressionType(e->data.binary.left, hasString_),
+                          getExpressionType(e->data.binary.right, hasString_));
+        if (t == T_VOID && !hasString_) {
+            FERROR(ERR_SEM_TYPECHECK, "Wrong operator types for operation %s: %s, %s.\n",
                    showBinaryOperation(e->data.binary.op),
-                   showValueType(getExpressionType(e->data.binary.left)),
-                   showValueType(getExpressionType(e->data.binary.right)));
-            freeSemantic();
-            ERROR(ERR_SYNTAX);
+                   showValueType(getExpressionType(e->data.binary.left, hasString_)),
+                   showValueType(getExpressionType(e->data.binary.right, hasString_)));
         }
         return t;
 
     case E_UNARY:
-        t = getExpressionType(e->data.unary.e);
+        t = getExpressionType(e->data.unary.e, hasString_);
         switch (e->data.unary.op) {
+        case U_ID:
+            return t;
         case U_PREINC:
         case U_POSTINC:
         case U_PREDEC:

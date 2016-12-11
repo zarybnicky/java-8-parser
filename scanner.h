@@ -172,6 +172,6 @@ Token *createToken(TokenType, void *, char *);
 Token *chainTokens(Token *, ...);
 void freeToken(Token *t);
 void printToken(Token *t);
-AUTSTATES Get_Token(FILE *input, char **string, ReservedWord *reser, SymbolType *symbol, int *lineNumToken, int *lineColToken);
+AUTSTATES Get_Token(FILE *input, char **orig, char **string, ReservedWord *reser, SymbolType *symbol, int *lineNumToken, int *lineColToken);
 
 #endif /* IFJ_SCANNER_H */

@@ -32,9 +32,7 @@ static bool returnFlag = false;
     } while (0);
 
 Interpret *createInterpret(void) {
-    ///Invalid to free twice!?!?
-    Interpret *i = malloc(sizeof(Interpret));
-    CHECK_ALLOC(i);
+    Interpret *i = malloc_c(sizeof(Interpret));
     i->symTable.root = NULL;
 
     Declaration *printArg = createDeclaration(T_STRING, strdup_("x"));
@@ -74,7 +72,7 @@ int freeInterpret(Interpret *i) {
         return 1;
     if (i->symTable.root != NULL)
         freeNode(i->symTable.root);
-    free(i);
+    free_c(i);
     return 0;
 }
 
@@ -98,7 +96,6 @@ int interpretFunc(Stack *stack, Node *node) {
     Function *f = node->data.function;
 
     SymbolTable *localTable = createSymbolTable();
-    CHECK_ALLOC(localTable);
     dPrintf("%s", "Creating new local table.\n");
 
     for (Command *c = f->body.head; c != NULL; c = c->next) {
@@ -146,35 +143,19 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case C_DEFINE:
-            val = evalExpression(symTable, stack, className, cmd->data.define.expr);
-
-            #ifdef DEBUG
-            printf("VALUE BEFORE:\n");
-            printValue(val);
-            #endif
-
-            Value *newValue = NULL;
-            newValue = coerceTo(cmd->data.define.declaration.type, val);
-
-            #ifdef DEBUG
-            printf("\nNEWVALUE AFTER:\n");
-            printValue(newValue);
-            printf("\n");
-            #endif
-
-            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, newValue));
+            val = coerceTo(cmd->data.define.declaration.type,
+                           evalExpression(symTable, stack, className, cmd->data.define.expr, U_ID));
+            table_insert(symTable, createValueNode(cmd->data.define.declaration.name, val));
             break;
 
         case C_ASSIGN:
             node = table_lookup_either(symTableGlob, symTable, className, cmd->data.assign.name);
             if(node == NULL)
                 MERROR(ERR_INTERNAL, "Interpret: CMD: Assign: Variable not found in local or global symbol table.");
-            val = evalExpression(symTable, stack, className, cmd->data.assign.expr);
-            // printValue(val);
-            if(val == NULL)
+            val = evalExpression(symTable, stack, className, cmd->data.assign.expr, U_ID);
+            if (val == NULL)
                 MERROR(ERR_INTERNAL, "Interpret: CMD: Assign: Evaluation of value was not successful.")
 
-            // assign
             node->data.value = coerceTo(node->data.value->type, val);
             break;
 
@@ -191,12 +172,12 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
             break;
 
         case C_EXPRESSION:
-            val = evalExpression(symTable, stack, className, cmd->data.expr);
+            val = evalExpression(symTable, stack, className, cmd->data.expr, U_ID);
             break;
 
         case C_RETURN:
             if(cmd->data.expr != NULL){
-                val = evalExpression(symTable, stack, className, cmd->data.expr);
+                val = evalExpression(symTable, stack, className, cmd->data.expr, U_ID);
                 pushToStack(GlobalStack, val);
             }
             returnFlag = true;
@@ -212,7 +193,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
         case C_FOR:
             if (cmd->data.forC.initial != NULL) {
-                val = evalExpression(symTable, stack, className, cmd->data.forC.initial);
+                val = evalExpression(symTable, stack, className, cmd->data.forC.initial, U_ID);
                 val = coerceTo(cmd->data.forC.var.type, val);
             } else {
                 val = createValue(cmd->data.forC.var.type);
@@ -240,9 +221,6 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 
         case C_DO_WHILE:
             do {
-                // #ifdef DEBUG
-                // printExpression(cmd->data.doWhileC.cond);
-                // #endif
                 CYCLE_INNER(symTable, stack, className, cmd->data.doWhileC.bodyBlock, doWhile_end);
             } while (evalCondition(symTable, stack, className, cmd->data.doWhileC.cond));
     doWhile_end:
@@ -253,7 +231,7 @@ Value *evalCommand(SymbolTable *symTable, Stack *stack, Command *cmd, char *clas
 }
 
 bool evalCondition(SymbolTable *symTable, Stack *stack, char *funcName, Expression *cond) {
-    Value *val = evalExpression(symTable, stack, funcName, cond);
+    Value *val = evalExpression(symTable, stack, funcName, cond, U_ID);
     if (val == NULL)
         MERROR(ERR_RUNTIME_MISC, "Interpret: CMD: evalCondition: Evaluation was unsuccessful.");
     if (val->type != T_BOOLEAN)
@@ -265,7 +243,7 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
     Command *current = block->head;
 
     while (current != NULL) {
-        if(continueFlag)
+        if (continueFlag)
             continueFlag = false;
         evalCommand(symTable, stack, current,className);
 
@@ -285,80 +263,54 @@ int evalBlock(SymbolTable *symTable, Stack *stack, Block *block, char *className
     return 0;
 }
 
-Value *evalFunction(Stack *localStack, SymbolTable* localSymTable, char *name, int argCount, Expression *argHead, char *className){
-    (void) argCount;
-    (void) argHead;
-
-    Value *val = NULL;
+void evalFunction(Stack *localStack, SymbolTable* localSymTable, Function *fn, char *className) {
     #ifdef DEBUG
-    printf("evalFunction name: %s\n evalFunction: className %s\n", name,className);
+    printf("evalFunction: %s\n", fn->name);
     #endif
-    Node *node = table_lookup_either(symTableGlob,NULL,className, name);
-    Function *fn = node->data.function;
 
     // First check for builtins
     if (fn->builtin) {
-        builtInFunc(localSymTable, localStack, fn);
-        //freeSymbolTable(localTable);
-        return popFromStack(localStack);
+        builtInFunc(localStack, fn);
     }
     // Else push params to local sym table
     Declaration *d = fn->argHead;
     while (localStack->size > -1) {
-        val = popFromStack(localStack);
-        node=createValueNode(d->name,val);
-        table_insert(localSymTable,node);
-        d=d->next;
+        Value *val = popFromStack(localStack);
+        table_insert(localSymTable, createValueNode(d->name, val));
+        d = d->next;
     }
-    val = createValue(fn->returnType);
     evalBlock(localSymTable, localStack, &(fn->body), className);
-
-    return val;
 }
 
 /**
  * Look for builtin functions
  */
-int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
+int builtInFunc(Stack *stack, Function *fn){
     returnFlag = true;
     jirkaDouble = true;
     char *str = fn->name;
 
     if(!strcmp(str, "ifj16.print")){
         Value *v = coerceTo(T_STRING, popFromStack(stack));
-        // printf("v.data:'%s'\n",v->data.str);
-        print(v);
+        printf("%s", v->data.str);
         returnFlag = false;
         return 0;
     }
     else if(!strcmp(str, "ifj16.readInt") ){
         Value *val = createValue(T_INTEGER);
         I(val) = readInt();
-        if (I(val) == ERR_RUNTIME_INT_PARSE){
-            printSymbolTable(symTable);
-            if (symTable != NULL)
-                freeSymbolTable(symTable);
-            free_c(stack);
-            MERROR(ERR_RUNTIME_INT_PARSE, "");
-        }
         pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.readDouble") ){
         Value *val = createValue(T_DOUBLE);
         D(val) = readDouble();
-        if (D(val) == ERR_RUNTIME_INT_PARSE){
-            freeSymbolTable(symTable);
-            free_c(stack);
-            MERROR(ERR_RUNTIME_INT_PARSE, "");
-        }
         pushToStack(GlobalStack, val);
         return 0;
     }
     else if(!strcmp(str, "ifj16.readString") ){
         Value *val = createValue(T_STRING);
         S(val) = readString();
-
         pushToStack(GlobalStack, val);
         return 0;
     }
@@ -366,7 +318,7 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *v = coerceTo(T_STRING, popFromStack(stack));
 
         Value *val = createValue(T_INTEGER);
-        I(val) = length(S(v));
+        I(val) = strlen(S(v));
 
         pushToStack(GlobalStack, val);
         return 0;
@@ -387,7 +339,11 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
         Value *s1 = coerceTo(T_STRING, popFromStack(stack));
 
         Value *val = createValue(T_INTEGER);
-        I(val) = compare(S(s1), S(s2));
+        int i = strcmp(S(s1), S(s2));
+        I(val) =
+            i < 0 ? -1 :
+            i > 0 ? 1 :
+            0;
 
         pushToStack(GlobalStack, val);
         return 0;
@@ -417,85 +373,80 @@ int builtInFunc(SymbolTable *symTable, Stack *stack, Function *fn){
 
 int pushParamToStack(SymbolTable *symTable, Stack *stack, char* funcName, Expression *e) {
     assert(e != NULL);
-    pushToStack(stack, evalExpression(symTable, stack, funcName, e));
+    pushToStack(stack, evalExpression(symTable, stack, funcName, e, U_ID));
     return 0;
 }
 
 Value *evalUnaryExpression(UnaryOperation op, Value *v) {
-    if (v->undefined)
+    if (v->undefined) {
         ERROR(ERR_RUNTIME_UNINITIALIZED);
-
-    #ifdef DEBUG
-    printf("val: \n"); printValue(v);
-    printf("\n");
-    #endif
-
-    Value *r;
+    }
 
     if (v->type == T_BOOLEAN && op == U_NOT) {
-        r = createValue(T_BOOLEAN);
+        Value *r = createValue(T_BOOLEAN);
         B(r) = !B(v);
         return r;
     }
 
     if (v->type != T_DOUBLE && v->type != T_INTEGER) {
-        r = createValue(T_VOID);
+        Value *r = createValue(T_VOID);
         r->undefined = true;
         return r;
     }
 
     switch (op) {
+    case U_ID:
     case U_PREINC:
     case U_POSTINC:
     case U_PREDEC:
     case U_POSTDEC:
         return v; //FIXME: increment while evaluating the reference
     case U_NEG:
-        break;
-    case U_NOT:
         if (v->type == T_INTEGER) {
-            r = createValue(T_INTEGER);
+            Value *r = createValue(T_INTEGER);
             I(r) = -I(v);
             return r;
         } else if (v->type == T_DOUBLE) {
-            r = createValue(T_DOUBLE);
+            Value *r = createValue(T_DOUBLE);
             D(r) = -D(v);
+            return r;
+        }
+        break;
+    case U_NOT:
+        if (v->type == T_BOOLEAN) {
+            Value *r = createValue(T_BOOLEAN);
+            B(r) = !B(v);
             return r;
         }
         break;
     }
 
     //...the compiler can't do enum switch path analysis
-    r = createValue(T_VOID);
+    Value *r = createValue(T_VOID);
     r->undefined = true;
     return r;
 }
 
 Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
-    if (left->undefined || right->undefined)
+    if (left->undefined || right->undefined) {
         ERROR(ERR_RUNTIME_UNINITIALIZED);
-
-    #ifdef DEBUG
-    printf("left: "); printValue(left);
-    printf(" right: "); printValue(right);
-    printf("\n");
-    #endif
-
-    Value *result = createValue(T_BOOLEAN);
+    }
 
     if (left->type == T_VOID || right->type == T_VOID) {
+        Value *result = createValue(T_VOID);
         result->undefined = true;
         return result;
     }
 
     if (left->type == T_STRING || right->type == T_STRING) {
         if (op != EB_ADD) {
+            Value *result = createValue(T_VOID);
             result->undefined = true;
             return result;
         }
         char *l = ( left->type == T_STRING) ? S( left) : S(coerceTo(T_STRING, left));
         char *r = (right->type == T_STRING) ? S(right) : S(coerceTo(T_STRING, right));
-        result->type = T_STRING; // malloc_c
+        Value *result = createValue(T_STRING);
         S(result) = malloc_c(sizeof(char) * (strlen(l) + strlen(r) + 1));
         strcpy(S(result), l);
         strcat(S(result), r);
@@ -503,7 +454,8 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
     }
 
     if (left->type == T_BOOLEAN && right->type == T_BOOLEAN) {
-        switch(op){
+        Value *result = createValue(T_BOOLEAN);
+        switch(op) {
         case EB_EQUAL:
             B(result) = B(left) == B(right);
             return result;
@@ -517,13 +469,13 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             B(result) = B(left) || B(right);
             return result;
         default:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 
     if (left->type == T_INTEGER && right->type == T_INTEGER) {
-        switch(op){
+        Value *result = createValue(T_BOOLEAN);
+        switch(op) {
         case EB_EQUAL:
             B(result) = I(left) == I(right);
             return result;
@@ -561,13 +513,13 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             I(result) = I(left) / I(right);
             return result;
         default:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 
     if (( left->type == T_DOUBLE ||  left->type == T_INTEGER) &&
         (right->type == T_DOUBLE || right->type == T_INTEGER)) {
+        Value *result = createValue(T_BOOLEAN);
         switch(op) {
         case EB_EQUAL:
             B(result) = DVAL(left) == DVAL(right);
@@ -607,11 +559,11 @@ Value *evalBinaryExpression(BinaryOperation op, Value *left, Value *right) {
             return result;
         case EB_AND:
         case EB_OR:
-            result->undefined = true;
-            return result;
+            return evalBinaryExpression(op, coerceTo(T_STRING, left), coerceTo(T_STRING, right));
         }
     }
 
+    Value *result = createValue(T_VOID);
     result->undefined = true;
     return result;
 }
@@ -634,68 +586,96 @@ Value *evalStaticExpression(Expression *e) {
     return NULL; //Just to pacify the compiler...
 }
 
-Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expression *e) {
-
+Value *evalExpression(SymbolTable *symTable, Stack *stack, char *className, Expression *e, UnaryOperation op) {
     if (e == NULL) {
         MERROR(ERR_INTERNAL, "evalExpression: Expression je null");
-        return NULL;
     }
 
-    Node *node = NULL;
     Value *val = NULL;
     Stack *localStack;
     SymbolTable *localSymTable;
     Expression *exp;
+    static Value one = { .type = T_INTEGER, .data = { .integer = 1 } };
 
     switch (e->type) {
-        case E_FUNCALL:
-            localStack = createLocalStack(GlobalStack);
-            localSymTable = createSymbolTable();
+    case E_FUNCALL:
+        if (op > U_ID && op < U_NOT) {
+            MERROR(ERR_INTERNAL, "Trying to pre/postinc/dec a non-reference");
+        }
 
-            exp = e->data.funcall.argHead;
-            while (exp != NULL) {
-                pushToStack(localStack, evalExpression(symTable, localStack, className, exp));
-                exp = exp->next;
-            }
+        localStack = createLocalStack(GlobalStack);
+        localSymTable = createSymbolTable();
 
-            if (strchr(e->data.funcall.name, '.') != NULL) {
-                className = getClassName(e->data.funcall.name);
-            }
+        exp = e->data.funcall.argHead;
+        while (exp != NULL) {
+            pushToStack(localStack, evalExpression(symTable, localStack, className, exp, U_ID));
+            exp = exp->next;
+        }
 
-            evalFunction(localStack,
-                         localSymTable,
-                         e->data.funcall.name,
-                         e->data.funcall.argCount,
-                         e->data.funcall.argHead,
-                         className);
+        if (strchr(e->data.funcall.name, '.') != NULL) {
+            className = getClassName(e->data.funcall.name);
+        }
 
-            if (returnFlag) {
-                val = popFromStack(GlobalStack);
-                returnFlag = false;
-            }
-            free_c(localStack);
+        Node *node = table_lookup_either(symTableGlob, NULL, className, e->data.funcall.name);
+        Function *f = node->data.function;
 
-            return val;
+        evalFunction(localStack, localSymTable, f, className);
+        free_c(localStack);
 
-        case E_REFERENCE:
-            #ifdef DEBUG
-            printf("reference lookup: %s\n", e->data.reference);
-            #endif
-            node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
-            return node->data.value;
-        case E_VALUE:
-            if (e->data.value->undefined) {
-                MERROR(ERR_RUNTIME_UNINITIALIZED, "Trying to work with uninitialized value");
-            }
-            return e->data.value;
+        if (returnFlag) {
+            returnFlag = false;
+            return coerceTo(f->returnType, popFromStack(GlobalStack));
+        }
+        return NULL;
 
-        case E_BINARY:
-            return evalBinaryExpression(e->data.binary.op,
-                                        evalExpression(symTable, stack, className, e->data.binary.left),
-                                        evalExpression(symTable, stack, className, e->data.binary.right));
-        case E_UNARY:
-            // FIXME
+    case E_REFERENCE:
+        node = table_lookup_either(symTableGlob, symTable, className, e->data.reference);
+        val = node->data.value;
+        switch (op) {
+        case U_ID:
+        case U_NOT:
+        case U_NEG:
             break;
+        case U_PREINC:
+            node->data.value = evalBinaryExpression(EB_ADD, node->data.value, &one);
+            break;
+        case U_PREDEC:
+            node->data.value = evalBinaryExpression(EB_SUBTRACT, node->data.value, &one);
+            break;
+        case U_POSTINC:
+            val = copyValue(val);
+            node->data.value = evalBinaryExpression(EB_ADD, node->data.value, &one);
+            break;
+        case U_POSTDEC:
+            val = copyValue(val);
+            node->data.value = evalBinaryExpression(EB_SUBTRACT, node->data.value, &one);
+            break;
+        }
+        return val;
+
+    case E_VALUE:
+        if (op > U_ID && op < U_NOT) {
+            MERROR(ERR_INTERNAL, "Trying to pre/postinc/dec a non-reference");
+        }
+        if (e->data.value->undefined) {
+            MERROR(ERR_RUNTIME_UNINITIALIZED, "Trying to work with uninitialized value");
+        }
+        return e->data.value;
+
+    case E_BINARY:
+        if (op > U_ID && op < U_NOT) {
+            MERROR(ERR_INTERNAL, "Trying to pre/postinc/dec a non-reference");
+        }
+        return evalBinaryExpression(e->data.binary.op,
+                                    evalExpression(symTable, stack, className, e->data.binary.left, U_ID),
+                                    evalExpression(symTable, stack, className, e->data.binary.right, U_ID));
+
+    case E_UNARY:
+        if (op > U_ID && op < U_NOT) {
+            MERROR(ERR_INTERNAL, "Trying to pre/postinc/dec a non-reference");
+        }
+        return evalUnaryExpression(e->data.unary.op,
+                                   evalExpression(symTable, stack, className, e->data.unary.e, e->data.unary.op));
     }
     return NULL; //Just to pacify the compiler...
 }
@@ -719,22 +699,13 @@ void printStack(Stack *stack){
 
 
 Stack *createLocalStack(Stack *stack) {
-    //alocate space for 5 params.
-    Stack *tmp = malloc_c(sizeof(Stack) + 5 * sizeof(Value*));
+    //allocate space for 5 params.
+    Stack *tmp = malloc_c(sizeof(Stack) + 5 * sizeof(Value *));
 
     tmp->prev = stack;
     tmp->data[0] = NULL;
     tmp->size = -1;
     tmp->cap = 5;
-
-    return tmp;
-}
-
-Stack *deleteLocalStack(Stack *stack) {
-    assert(stack != NULL);
-
-    Stack *tmp = stack->prev;
-    free_c(stack);
 
     return tmp;
 }

@@ -10,32 +10,18 @@
 
 #include "stringology.h"
 
-int numberOfNum(char *s){
-    int num = 0;
-    while (*s != '\0'){
-        if (isdigit(*s))
-            num++;
-        s++;
-    }
-    return num;
-}
-
-int readInt() { // Int celé nezáporné číslo (3.1)
-    int c; // Urceno dle max delky int
+int readInt() {
+    int c = EOF - 1;
     unsigned vysledek = 0;
-    bool empty=true;
+
     while ((c = getchar()) != '\n' && c != EOF) {
-        empty=false;
         if (c < '0' || '9' < c) {
-            fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
-            return ERR_RUNTIME_INT_PARSE;
+            FERROR(ERR_RUNTIME_INT_PARSE, "Unexpected character: %c\n", c);
         }
-        vysledek = vysledek*10 + (c - '0'); // Prepis na cislo
+        vysledek = vysledek * 10 + (c - '0');
     }
-    if ( empty == true ){
-        //return ERR_RUNTIME_INT_PARSE
-        fprintf(stderr, "Error while parsing an integer, unexpected character: %c\n", c);
-        return ERR_RUNTIME_INT_PARSE;
+    if (c == EOF - 1) {
+        MERROR(ERR_RUNTIME_INT_PARSE, "No input\n");
     }
     return vysledek;
 }
@@ -45,50 +31,39 @@ double readDouble() {
 
     if (t->lineNum != -1){
         freeToken(t);
-        fprintf(stderr, "Error while parsing an double, unexpected character\n");
-        return ERR_RUNTIME_INT_PARSE;
+        MERROR(ERR_RUNTIME_INT_PARSE, "Unexpected character\n");
     }
-    switch(t->type){
+    switch(t->type) {
         case LIT_DOUBLE:;
             double tmp = t->val.doubleVal;
             freeToken(t);
             return tmp;
         case LIT_INTEGER:;
-            double pom = (double)t->val.intVal;
+            double pom = (double) t->val.intVal;
             freeToken(t);
             return pom;
-
         default:
             freeToken(t);
-            fprintf(stderr, "Error while parsing an double, unexpected character\n");
-            return ERR_RUNTIME_INT_PARSE;
+            MERROR(ERR_RUNTIME_INT_PARSE, "Unexpected character\n");
     }
 }
 
 char *readString() {
-    unsigned int Len = MAX_LEN;
+    unsigned len = 10;
     int c;
-    unsigned int i = 0;
+    unsigned i = 0;
 
-    char *Str = calloc_c(Len,sizeof(char));
-
-    *Str = '\0';
+    char *s = malloc_c(len * sizeof(char));
 
     while ((c = getchar()) != '\n' && c != EOF) {
-        if (i == Len) {
-            Len = Len + MAX_LEN;
-            Str = realloc_c(Str, Len);
+        if (i + 1 == len) {
+            len *= 2;
+            s = realloc_c(s, len);
         }
-
-        Str[i] = c;
-        i++;
+        s[i++] = c;
     }
-
-    return Str; // Potreba casem uvolnit
-}
-
-int length(char *s) {
-    return strlen(s);
+    s[i] = '\0';
+    return s;
 }
 
 char *substr(char *s,int i, int n) {
@@ -97,7 +72,7 @@ char *substr(char *s,int i, int n) {
     int sLen = strlen(s);
 
     if (sLen - 1 < i || sLen - 1 < n - 1 + i)
-        ERROR(ERR_RUNTIME_MISC); //
+        ERROR(ERR_RUNTIME_MISC);
 
     if (n != 0) {
         sLen = n+1;	// Set length
@@ -112,29 +87,4 @@ char *substr(char *s,int i, int n) {
 
     pom[sLen-1] = '\0';
     return pom; // Deallocation connected to ht_table
-}
-
-int compare(char *s1, char *s2) {
-    return strcmp(s1,s2);
-}
-
-void print(Value *term){
-
-    switch(term->type){
-
-        case T_STRING:
-            printf("%s",term->data.str);
-            break;
-        case T_BOOLEAN:
-            printf("%s",term->data.boolean ? "true" : "false");
-            break;
-        case T_DOUBLE:
-            printf("%g",term->data.dbl);
-            break;
-        case T_INTEGER:
-            printf("%d",term->data.integer);
-            break;
-        default:
-            break;
-    }
 }

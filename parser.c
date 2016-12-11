@@ -27,14 +27,12 @@ Token *getToken(Lexer *l) {
 }
 
 Lexer *createLexer(FILE *f, Interpret *i) {
-    Lexer *l = malloc(sizeof(Lexer));
-    CHECK_ALLOC(l);
+    Lexer *l = malloc_c(sizeof(Lexer));
     l->file = f;
     l->start = l->current = NULL;
     l->stackSize = 20;
     l->stackPtr = 0;
-    l->stack = malloc(l->stackSize * sizeof(Token *));
-    CHECK_ALLOC_(l->stack, free(l));
+    l->stack = malloc_c(l->stackSize * sizeof(Token *));
     l->interpret = i;
     l->lastClassName = NULL;
     return l;
@@ -50,16 +48,15 @@ void freeLexer(Lexer *l) {
             freeToken(l->start);
             l->start = t;
         }
-        free(l->stack);
-        free(l);
+        free_c(l->stack);
+        free_c(l);
     }
 }
 
 bool try(Lexer *l) {
     if (l->stackPtr == l->stackSize) {
         l->stackSize *= 2;
-        l->stack = realloc(l->stack, l->stackSize * sizeof(Token *));
-        CHECK_ALLOC(l->stack);
+        l->stack = realloc_c(l->stack, l->stackSize * sizeof(Token *));
     }
     l->stack[l->stackPtr++] = l->current;
     return true;
@@ -240,7 +237,7 @@ bool parseDoWhile(Lexer *l, Block *b) {
 
     expectReserved(l, RES_WHILE);
     expectSymbol(l, SYM_PAREN_OPEN);
-    PARSE_EXPRESSION(e, l, SYM_PAREN_OPEN);
+    PARSE_EXPRESSION(e, l, SYM_PAREN_CLOSE);
     c->data.doWhileC.cond = e;
     expectSymbol(l, SYM_PAREN_CLOSE);
     expectSymbol(l, SYM_SEMI);
@@ -549,8 +546,7 @@ char *parseAndQualifySimpleId(Lexer *l) {
     Token *t = peekToken(l);
     int classLength = strlen(l->lastClassName);
     int idLength = strlen(t->val.id);
-    char *c = malloc((classLength + 1 + idLength + 1));
-    CHECK_ALLOC(c);
+    char *c = malloc_c((classLength + 1 + idLength + 1));
     strcpy(c, l->lastClassName);
     c[classLength] = '.';
     strcpy(c + classLength + 1, t->val.id);
