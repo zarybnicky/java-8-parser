@@ -67,6 +67,9 @@ void freeExpression(Expression *e) {
             freeExpression(e->data.binary.left);
             freeExpression(e->data.binary.right);
             break;
+        case E_UNARY:
+            freeExpression(e->data.unary.e);
+            break;
         }
         free_c(e);
         e = f;
@@ -95,6 +98,10 @@ void printExpression(Expression *e) {
             printExpression(e->data.binary.left);
             printf(", ");
             printExpression(e->data.binary.right);
+            break;
+        case E_UNARY:
+            printf("%s, ", showUnaryOperation(e->data.unary.op));
+            printExpression(e->data.unary.e);
             break;
         }
         printf(")");
@@ -423,8 +430,20 @@ char *showExpressionType(ExpressionType x) {
     case E_VALUE:     return "Value";
     case E_REFERENCE: return "Reference";
     case E_BINARY:    return "Binary";
+    case E_UNARY:     return "Unary";
     }
     return "Unknown ExpressionType"; //Just to pacify the compiler...
+}
+char *showUnaryOperation(UnaryOperation x) {
+    switch (x) {
+    case U_NEG:     return "Negate";
+    case U_NOT:     return "Not";
+    case U_PREINC:  return "PreIncrement";
+    case U_POSTINC: return "PostIncrement";
+    case U_PREDEC:  return "PreDecrement";
+    case U_POSTDEC: return "PostDecrement";
+    }
+    return "Unknown UnaryOperation"; //Just to pacify the compiler...
 }
 char *showBinaryOperation(BinaryOperation x) {
     switch (x) {
@@ -438,6 +457,8 @@ char *showBinaryOperation(BinaryOperation x) {
     case EB_DIVIDE:        return "Divide";
     case EB_ADD:           return "Add";
     case EB_SUBTRACT:      return "Subtract";
+    case EB_AND:           return "And";
+    case EB_OR:            return "Or";
     }
     return "Unknown BinaryOperation"; //Just to pacify the compiler...
 }

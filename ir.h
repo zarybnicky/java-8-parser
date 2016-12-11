@@ -31,7 +31,17 @@ typedef enum {
     E_VALUE,
     E_REFERENCE,
     E_BINARY,
+    E_UNARY,
 } ExpressionType;
+
+typedef enum {
+    U_PREINC,
+    U_POSTINC,
+    U_PREDEC,
+    U_POSTDEC,
+    U_NOT,
+    U_NEG,
+} UnaryOperation;
 
 typedef enum {
     EB_EQUAL,
@@ -44,6 +54,8 @@ typedef enum {
     EB_DIVIDE,
     EB_ADD,
     EB_SUBTRACT,
+    EB_AND,
+    EB_OR,
 } BinaryOperation;
 
 typedef enum {
@@ -93,6 +105,10 @@ typedef struct tExpression {
         } funcall;
         Value *value;
         char *reference;
+        struct {
+            UnaryOperation op;
+            struct tExpression *e;
+        } unary;
         struct {
             BinaryOperation op;
             struct tExpression *left;
@@ -180,6 +196,7 @@ void traverseCommands(Function *, void (*f)(Function *, Command *), void (*onFor
 
 char *showValueType(ValueType);
 char *showExpressionType(ExpressionType);
+char *showUnaryOperation(UnaryOperation);
 char *showBinaryOperation(BinaryOperation);
 char *showCommandType(CommandType);
 

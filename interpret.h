@@ -41,25 +41,10 @@ typedef struct Stack{
     Value *data[];
 } Stack;
 
-// enum for builtins
-typedef enum{
-    FN_PRINT,
-    FN_READINT,
-    FN_READDBL,
-    FN_READSTR,
-    FN_LENGTH,
-    FN_SUBSTR,
-    FN_COMPARE,
-    FN_SORT,
-    FN_FIND,
-    FN_OTHER
-} FnTypes;
-
 /*-------------------------------Declarations-------------------------------*/
 
 
 Interpret *createInterpret(void);
-
 int freeInterpret(Interpret *);
 
 //  Main interpret function
@@ -79,10 +64,8 @@ Value *evalExpression(SymbolTable *, Stack *, char *, Expression *);
 Value *evalCommand(SymbolTable *, Stack *, Command *, char *);
 int evalBlock(SymbolTable *, Stack *, Block *, char *);
 Value *evalFunction(Stack *,SymbolTable *,char *,int,Expression *,char *);
+Value *evalUnaryExpression(UnaryOperation, Value *);
 Value *evalBinaryExpression(BinaryOperation, Value *, Value *);
-
-// Return content of value
-Value *coerceTo(ValueType, Value *);
 
 // Constructor and destructor for STACK
 Stack *createLocalStack(Stack *);

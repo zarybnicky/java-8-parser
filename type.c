@@ -22,8 +22,8 @@ ValueType getBinExpType(BinaryOperation op, ValueType left, ValueType right) {
     }
     if (left == T_BOOLEAN || right == T_BOOLEAN) {
         if (left == T_BOOLEAN && right == T_BOOLEAN &&
-            (op == EB_EQUAL || op == EB_NOT_EQUAL)) {
-            return T_BOOLEAN; //bool comparison
+            (op == EB_EQUAL || op == EB_NOT_EQUAL || op == EB_AND || op == EB_OR)) {
+            return T_BOOLEAN;
         }
         return T_VOID;
     }
@@ -45,6 +45,9 @@ ValueType getBinExpType(BinaryOperation op, ValueType left, ValueType right) {
     case EB_GREATER:
     case EB_GREATER_EQUAL:
         return T_BOOLEAN;
+    case EB_AND:
+    case EB_OR:
+        return T_VOID;
     }
     return T_VOID;
 }

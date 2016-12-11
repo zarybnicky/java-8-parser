@@ -404,6 +404,29 @@ ValueType getExpressionType(Expression *e) {
             ERROR(ERR_SEM_TYPECHECK);
         }
         return t;
+
+    case E_UNARY:
+        t = getExpressionType(e->data.unary.e);
+        switch (e->data.unary.op) {
+        case U_PREINC:
+        case U_POSTINC:
+        case U_PREDEC:
+        case U_POSTDEC:
+        case U_NEG:
+            if (t == T_INTEGER || t == T_DOUBLE) {
+                return t;
+            }
+            break;
+        case U_NOT:
+            if (t == T_BOOLEAN) {
+                return t;
+            }
+            break;
+        }
+        freeSemantic();
+        fprintf(stderr,"Wrong operand type for operation %s: %s.\n",
+                showUnaryOperation(e->data.unary.op), showValueType(t));
+        ERROR(ERR_SEM_TYPECHECK);
     }
 
     //...and appease the compiler

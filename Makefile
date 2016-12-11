@@ -13,13 +13,12 @@ CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99 -g
 LDFLAGS=-L.
 
-DOC_SRC=./dokumentace.tex
 PACK_CONT=Makefile rozdeleni rozsireni
 
 DOC_LOG=./dokumentace.log ./dokumentace.aux ./dokumentace.toc
 EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe
 
-LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o
+LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o expr.o
 
 .PHONY: all doc test val clean
 
@@ -31,7 +30,7 @@ debug: all
 debugInt: CFLAGS += -DDEBUG
 debugInt: debug
 
-test: ifj16 test/parser test/symbol-table
+test: ifj16 test/parser test/symbol-table test/stack
 	bash testsuite.sh
 
 #valgrind
@@ -45,17 +44,14 @@ ifj16: ifj16.o $(LIBOBJ)
 
 test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
+test/stack: test/stack.o $(LIBOBJ)
 
 #documentation + pack
-dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT)
-	make document
-	tar cvzf xzaryb00.tgz $^ dokumentace.pdf
+dist: $(wildcard *.c) $(wildcard *.h) $(PACK_CONT) dokumentace.pdf
+	tar cvzf xzaryb00.tgz $^
 
-document: $(DOC_OUT)
-	# WARNING WARNING WARNING WARNING
-	# musi to tu byt dva krat ten preklad nevymazavajte to !
-	cd doc && pdflatex $(DOC_SRC)
-	cd doc && pdflatex $(DOC_SRC)
-	mv ./doc/dokumentace.pdf ./dokumentace.pdf
+dokumentace.pdf: doc/dokumentace.tex
+	cd doc && pdflatex $(notdir $(DOC_SRC)) # musi to tu byt dva krat ten preklad nevymazavajte to !
+	cd doc && pdflatex $(notdir $(DOC_SRC))
+	mv doc/dokumentace.pdf .
 	cd doc && rm $(DOC_LOG)
-	cd ../
