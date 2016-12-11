@@ -66,10 +66,9 @@ void deleteFirst(){
 }
 
 void insertList(int val, int length){
-    List *new = malloc(sizeof(struct tList));
-    CHECK_ALLOC(new);
+    List *new = malloc_c(sizeof(struct tList));
 
-    if (lStart == NULL){
+    if (lStart == NULL){    // First list
         new->next = NULL;
         lEnd = new;        
     } else {
@@ -77,7 +76,7 @@ void insertList(int val, int length){
         lEnd->next = new;  
         lEnd = new;
     }
-    new->index = val;
+    new->index = val;   // Set values
     new->length = length;
 
     if (lStart == NULL){
@@ -92,17 +91,16 @@ void makeComponents(char* s){
 
     int length = 1;
 
-    for (int i = 0; i < sLen; i++){
+    for (int i = 0; i < sLen; i++){ // Preparation of array index
 
         if (s[i] < s[i+1]){
             array[i] = i + 1;
         } else {
             array[i] = 0;
         }
-        printf("%d\n", array[i]);
     }
 
-    for (int i = 0; i<sLen; i++){
+    for (int i = 0; i<sLen; i++){   // Add lists to queue 
         if (array[i] != 0){
             length++;
         } else {
@@ -122,6 +120,7 @@ char *sort(char *s)
     unsigned len = strlen(newString);
 
     makeComponents(newString);
+    
     unsigned first, second, counterF, counterS, pom, lengthF, lengthS;
     char tmp;
     bool posun = false;
@@ -129,6 +128,7 @@ char *sort(char *s)
 
     while (lStart != lEnd) {
 
+        // Check endind list
         if (lStart->next->next != NULL){
             if (lStart->index + lStart->length == len){
                 insertList(lStart->index, lStart->length);
@@ -150,6 +150,7 @@ char *sort(char *s)
         lengthS = lStart->length;
         deleteFirst();
 
+        // Move lesser index as first
         if (first > second){
             pom = first;
             first = second;
@@ -162,42 +163,44 @@ char *sort(char *s)
         counterF = first;
         counterS = second;
         pom = 0;
-        printf("first %d\n", counterF);
-        printf("second %d\n", counterS);
 
         while (counterF != second + lengthS - 1){ // Sort in lists
+
             while (counterS != second + lengthS){
-                printf("%d %d\n", counterF, counterS);
-                if (newString[counterF] > newString[counterS]){
+                if (newString[counterF] > newString[counterS]){ // swap
                     tmp = newString[counterS];
                     newString[counterS] = newString[counterF];
                     newString[counterF] = tmp;
-                     printf("%s\n", newString);
                 } 
 
+                // Prepare next test
                 if (posun == false && counterS >= first + lengthF){
+
                     if (lengthS == 1){
                         counterS++;
                     } else {
+
                         if (second < counterF){
                             counterS = second;
                         } else {
                             counterS = counterF;
                         }
-                        //counterS = second;
+
                         posun = true;
                     }
                 } else {
                     counterS++;
                 }
+
                 if (counterS == len) break;
-                
+
                 if (counterS < counterF){
                     counterS = counterF;
                 }
             }
             counterF++;
 
+            // Preparen next cycle of sorting
             if (second < first && counterF == second) presun = true;
             if (counterF == len){
                 posun = false;
@@ -216,32 +219,12 @@ char *sort(char *s)
             pom = 1;
             posun = false;
         }
+            // Add result to queue
             insertList(first, lengthF + lengthS);
     }
 
-// Last sorting for non-circle order
- /*   if (lStart->index != 0){
-        counterF = lStart->index;
-        tmp = newString[lStart->index];
-        for (unsigned i = lStart->index; i != len + 1; i++){
-            posun = false;
-
-            while (i - 1 != counterF){
-                newString[counterF] = newString[counterF - 1];
-                counterF--;
-                if (counterF == 0){
-                    newString[counterF] = newString[len - 1];    
-                    counterF = len - 1;
-                }
-
-            }
-        }
-        newString[0] = tmp;
-    }*/
-
     return newString;
 }
-
 
 /* Right left rotation of object */
 Node *table_rotate_right_left (Node *object){
