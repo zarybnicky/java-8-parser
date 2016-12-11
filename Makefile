@@ -13,7 +13,6 @@ CPPFLAGS=-pedantic -Wall -Wextra
 CFLAGS=-std=c99 -g
 LDFLAGS=-L.
 
-DOC_LOG=./dokumentace.log ./dokumentace.aux ./dokumentace.toc
 EXE=ifj16 ifj16.exe test/parser test/parser.exe ifj16.o test/parser.o test/symbol-table.o test/symbol-table test/symbol-table.exe
 
 LIBOBJ=ial.o ir.o parser.o scanner.o stringology.o sanity.o interpret.o int_memory_management.o type.o expr.o
@@ -35,6 +34,9 @@ test: ifj16 test/parser test/symbol-table test/stack
 val: ifj16 test/parser
 	bash valgrind.sh
 
+dist: xzaryb00.tgz
+document: dokumentace.pdf
+
 clean:
 	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ)
 ifj16: ifj16.o $(LIBOBJ)
@@ -43,15 +45,11 @@ test/parser: test/parser.o $(LIBOBJ)
 test/symbol-table: test/symbol-table.o $(LIBOBJ)
 test/stack: test/stack.o $(LIBOBJ)
 
-#documentation + pack
-dist: $(wildcard *.c) $(wildcard *.h) dokumentace.pdf Makefile rozsireni rozdeleni
-	tar cvzf xzaryb00.tgz $^
+xzaryb00.tgz: $(wildcard *.c) $(wildcard *.h) Makefile rozdeleni rozsireni dokumentace.pdf
+	tar cvzf $@ $^
 
-doc: dokumentace.pdf
-
-document: doc/dokumentace.tex
+dokumentace.pdf: doc/dokumentace.tex
+	cd doc && pdflatex $(notdir $^) # musi to tu byt dva krat ten preklad nevymazavajte to !
 	cd doc && pdflatex $(notdir $^)
-	cd doc && pdflatex $(notdir $^)
-	mv doc/dokumentace.pdf
-	cd doc && rm $(DOC_LOG)
-	cd ../
+	mv doc/dokumentace.pdf .
+	cd doc && rm dokumentace.log dokumentace.aux dokumentace.toc
