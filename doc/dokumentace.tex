@@ -10,6 +10,7 @@
 \usepackage{lmodern}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{hyperref}
 
 
 \begin{document}
@@ -58,7 +59,26 @@ Dokumentacia popisuje implementáciu interpretu jayzka IFJ16, ako podmnožinu ja
 \section{Lexikálna analýza}
 Lexikálna analýza alebo teda Scanner funguje na princípe konečného automatu. Postupne načitáva  znaky zo vstupného súboru a posiela ich syntaktickému analýzatoru vo forme tokenov.Poslany token obsahuje informácie o type, obsahu a pozicii(riadok,stĺpec) na ktorej sa v interpretovanom subore nachádza.Všetky tieto informácie su potrebné pre uľahčenie práce parseru.V prípade ,že načítame niečo čo nezapadá do pravidiel programovacieho jazyka IFJ16 nastane lexikálna chyba. Náš scanner podporuje aj všetky dostupne a povolené rozšírenia ako napríklad unárne operatory či rozširenie BASE a dalšie. Diagram konečného automatu si možete prezrieť v priloženej prílohe.V diagrame došlo k  upravám, kvôli prehľadnosti stavov, preto stavy v diagrame úplne nezodpovedajú stavom v kóde.
 \section{Syntaktická analýza}
-\textbf{\textit{TODO}}
+Syntaktická analýza byla původně psaná jako pokus o reimplementaci Parsecu
+(\url{https://hackage.haskell.org/package/parsec}) v C. Pak mi někdo připomněl,
+že se máme LL gramatiky držet docela blízko, takže hlavní parser je teď klasický
+\textit{recursive descent parser}. (Jsou tam pozůstatky předchozí verze, která
+pomocí spojového seznamu a zásobníku implementovala \textit{backtracking}.)
+\par Výrazy jsou dle zadání zpracované pomocí \textit{operator-precedence
+parser}u. Rozšíření UNARY vyžadovalo úpravu vstupu, na začátku vstupu, po
+otevírací závorce nebo po operátoru se $-$ přepíše na $u-$, tj. unární mínus.
+\par Výstup parseru je pak naplněná tabulka symbolů, s třídami (pro kontrolu
+redefinice), funkcemi a proměnnými (s jejich plně kvalifikovanými názvy, ať
+nemusíme pro každou třídu mít oddělenou tabulku). Funkce jsou implementované
+jako spojový seznam příkazů, ty jsou pak \textit{tagged union} všech možných
+příkazů (for, funcall, blok apod.). Výrazy jsou reprezentované jejich AST,
+pomocí rekurzivní \textit{tagged union}. Seznamy argumentů (při volání nebo
+deklaraci funkce) jsou opět implementované pomocí spojového seznamu.
+\par U parsování výrazu jsem si nejdřív špatně přečetl zadání a implementoval
+taky \textit{recursive descent parser} (s backtrackováním). Při reimplementaci jsem si ale nemohl
+nevšimnout, že výsledný kód je mnohem méně čitelný, tři- až čtyřikrát delší a algoritmus se
+ladil o dost hůř.
+
 \section{Sémantická analýza}
 Sémantická analýza kódu prebieha samostatne po syntaktickej analýze, z dôvodu jazyka IFJ16(Podmnožina java8), ktorý podporuje používanie staticky typovaných premenných aj v iných triedach.Dochádzalo by preto ku konfliktom(nevyplneným údajom v tabuľke symbolov) v prvom prechode syntaktickej analýzy. Rozšírenia ako CYCLES a BOOLOP museli rozšíriť sémantické kontroly o príkazy - break,continue, a rekurzívne spracovanie booleovských podmienok.
 \section{Interpret}
@@ -107,9 +127,9 @@ Tento projekt, implementácia interpretu IFJ16, bol veľkou výzvou hlavne po ko
 \section{Metriky}
 
 \begin{itemize}
-\item Počet súborov: \textbf{24}
-\item celkový počet riadkov zdrojového kódu: \textbf{8100}
-\item Počet Git commitov: \textbf{380}
+\item Počet súborov: \textbf{97} (\textbf{27} v C)
+\item celkový počet riadkov zdrojového kódu: \textbf{6622} (\textbf{5272} v C)
+\item Počet Git commitov: \textbf{392}
 \end{itemize}
 
 
