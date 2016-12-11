@@ -37,6 +37,7 @@ typedef struct {
 
 typedef struct tList {
     int index;
+    int length;
     struct tList *next;
 } List;
 
@@ -56,8 +57,8 @@ void printSymbolTable(SymbolTable *);
 int *Prefixcreator( char *, int );
 int find( char *, char * );
 void deleteFirst();
-void insertList(int val);
-int *makeComponents(char* s);
+void insertList(int val, int length);
+void makeComponents(char* s);
 char *sort( char * );
 
 /**

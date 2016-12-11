@@ -58,13 +58,34 @@ int find(char *s, char *search) {
     return -1;
 }
 
+// Macro for sort
+#define newStart(first, second, counterF, counterS, pom, presun) do{    \
+    if (first > second){                                        \
+        if (second < counterF){     \
+            if (presun == false)  {counterS = second; }  \
+            else {counterS = second +1; }                                \
+        } else {                                                \
+            counterS = counterF;                                \
+            pom = counterF - second;                            \
+        }                                                       \
+    } else {                                                    \
+        if (second >= counterF){                                \
+            counterS = second;                                  \
+        } else {                                                \
+            counterS = counterF;                                \
+            pom = counterF - second;                            \
+        }                                                       \
+   }                                                            \
+} while(0);
+
+// List functions
 void deleteFirst(){
     List *pom = lStart;
     lStart = lStart->next;
     free_c(pom);
 }
 
-void insertList(int val){
+void insertList(int val, int length){
     List *new = malloc(sizeof(struct tList));
     CHECK_ALLOC(new);
 
@@ -77,28 +98,38 @@ void insertList(int val){
         lEnd = new;
     }
     new->index = val;
+    new->length = length;
 
     if (lStart == NULL){
         lStart = lEnd;
     }
 }
 
-int *makeComponents(char* s){
+// Preparation for sort
+void makeComponents(char* s){
     int sLen = strlen(s); 
-    int *array = malloc(sLen * sizeof(int));
+    int *array = malloc_c(sLen * sizeof(int));
 
-    insertList(0);
+    int length = 1;
 
-    for (int i = 0; i < sLen-1; i++){
+    for (int i = 0; i < sLen; i++){
+
         if (s[i] < s[i+1]){
             array[i] = i + 1;
         } else {
             array[i] = 0;
-
-            insertList(i+1);
         }
     }
-    return array;
+
+    for (int i = 0; i<sLen; i++){
+        if (array[i] != 0){
+            length++;
+        } else {
+            insertList(i - (length - 1), length);
+            length = 1; 
+        }
+    }
+    free_c(array);
 }
 
 char *sort(char *s)
@@ -109,59 +140,95 @@ char *sort(char *s)
 
     unsigned len = strlen(newString);
 
-    int *array = makeComponents(newString);
-    unsigned first, second, counterF, counterS,pom;
+    makeComponents(newString);
+    unsigned first, second, counterF, counterS, pom, lengthF, lengthS;
     char tmp;
-    bool end = false;
+    bool posun = false;
+    bool presun = false;
 
     while (lStart != lEnd) {
         first = lStart->index;
-        counterF = first;
+        lengthF = lStart->length;
         deleteFirst();
+
         second = lStart->index;
-        counterS = second;
+        lengthS = lStart->length;
         deleteFirst();
 
-        while (counterF != counterS){ // Sort in list
-            printf("%d  %d\n",counterF,counterS);
-            printf("%c  %c\n", newString[counterF], newString[counterS]);
-                if (first < second){
-                    if (newString[counterF] > newString[counterS]){
-                    tmp = newString[counterF];
-                    for (int i = counterF ; array[i] != 0; i++){
-                        
+        counterF = first;
+        counterS = second;
+        pom = 0;
+        printf("first %d\n", counterF);
+        printf("second %d\n", counterS);
+
+        while (counterF != second + lengthS - 1){ // Sort in lists
+            while (pom != second + lengthS){
+                printf("%d %d\n", counterF, counterS);
+                if (newString[counterF] > newString[counterS]){
+                    tmp = newString[counterS];
+                    newString[counterS] = newString[counterF];
+                    newString[counterF] = tmp;
+                     printf("%s\n", newString);
+                } 
+
+                if (posun == false && counterS >= first + lengthF){
+                    if (lengthS == 1){
+                        pom++;
+                    } else {
+                        newStart(first, second, counterF, counterS, pom, presun);
+                        posun = true;
                     }
-
-                    printf("%s\n", newString);
-                    } 
                 } else {
-                    if (newString[counterF] > newString[counterS]){
-                        tmp = newString[counterS];
-                        newString[counterS] = newString[counterF];
-                        newString[counterF] = tmp;
-                        printf("%s\n", newString);
-                    } 
+                    counterS++;
+                    pom++;
                 }
-            counterF++;
-            if (counterF == counterS && array[counterS] == 0) break;
 
+                if (counterS == len){
+                    if (counterS < second + lengthS){
+                        counterS = 0;
+                    }
+                }
+                if (pom == lengthS) break;
+            }
+            counterF++;
+           // if (counterF == lengthF) break;
+
+            if (counterF == first + lengthF){
+                counterF = second;
+                printf("jo\n");
+            }
+            if (second < first && counterF == second) presun = true;
             if (counterF == len){
-                counterF = 0;
+                posun = false;
                 break;
             }
-            if (counterF == counterS && array[counterS] != 0){
-                second++;
-            }
-            if (array[counterF] == 0 && counterS != counterF){
-                array[counterF] = counterF + 1;
+            newStart(first, second, counterF, counterS, pom, presun);
+            pom = 1;
+            posun = false;
+        }
+            insertList(first, lengthF + lengthS);
+    }
+
+// Last sorting for non-circle order
+    if (lStart->index != 0){
+        counterF = lStart->index;
+        tmp = newString[lStart->index];
+        for (unsigned i = lStart->index; i != len + 1; i++){
+            posun = false;
+
+            while (i - 1 != counterF){
+                newString[counterF] = newString[counterF - 1];
+                counterF--;
+                if (counterF == 0){
+                    newString[counterF] = newString[len - 1];    
+                    counterF = len - 1;
+                }
+
             }
         }
-        if (first < second){
-            insertList(first);
-        } else {
-            insertList(second);
-        } 
+        newString[0] = tmp;
     }
+
     return newString;
 }
 
