@@ -1,0 +1,149 @@
+\documentclass[13pt]{beamer}
+\usetheme{CambridgeUS}
+\usecolortheme{dolphin}
+
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usepackage[czech,slovak]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{times}
+
+\usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
+    decorations.pathreplacing,decorations.pathmorphing,shapes,%
+    matrix,shapes.symbols}
+
+\title{Interpret jazyka IFJ16}
+\subtitle{Semestrální projekt IFJ}
+\institute{FIT VUT Brno}
+\author[ Vaško,Vaško,Zárybnický,Záleský,Tamaškovič]
+{Michal~Vaško, Martin~Vaško, Jakub~Zárybnický, Jiří~Záleský, Marek~Tamaškovič}
+\date{14. prosince 2016}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Obsah}
+  \tableofcontents
+\end{frame}
+
+\section{Úvod}
+
+\subsection{Zadání}
+
+\begin{frame}{Zadání}
+\end{frame}
+
+\section{Architektura}
+
+\begin{frame}{Přehled architektury}
+\begin{center}
+\begin{tikzpicture}
+[node distance = 1cm, auto,,
+every node/.style={node distance=2cm},
+force/.style={rectangle, rounded corners, draw=black, very thick,
+text width=8em, text badly centered, minimum height=3em}] 
+
+% Draw forces
+\node [force] (center) {Hlavní řadič};
+\node [force, left=.5cm of center] (database) {Databáze};
+\node [force, below=.5cm of center] (gui) {Grafické rozhraní};
+\node [force, below=.5cm of gui] (user) {Uživatel};
+\node [force, right=.5cm of center] (server) {Server};
+
+\path[->,thick,shorten >=1pt,shorten <=1pt]
+(center) edge (database)
+(center) edge (gui)
+(center) edge (server)
+(gui) edge (center)
+(server) edge (center)
+(database) edge (center)
+(user) edge (gui)
+(gui) edge (user);
+
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{Datové typy (AST)}
+\end{frame}
+
+\begin{frame}{Hierarchie typů}
+\end{frame}
+
+\section{Komponenty}
+\subsection{Lexer}
+
+\begin{frame}{Poznámky k implementaci (změnit název?)}
+počítání line, char, BASE
+\end{frame}
+
+\begin{frame}{Stavový diagram lexeru}
+\begin{center}
+\begin{tikzpicture}
+  [>=stealth',
+  punktchain/.style={
+    rectangle, 
+    rounded corners,
+    draw=black, very thick,
+    text width=10em, 
+    minimum height=2.5em, 
+    text centered, 
+    on chain},
+  every join/.style={->, thick,shorten >=1pt},
+  node distance=.5cm, start chain=going below,]
+  \node[punktchain, join] {Anal\'yza};
+  \node[punktchain, join] {Návrh};
+  \node[punktchain, join] {Implementace};
+  \node[punktchain, join] {Testov\'an\'i};
+  \node[punktchain, join] {Publikování};
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\subsection{Parser}
+
+\begin{frame}{Poznámky k implementaci (změnit název?)}
+UNARY, re-re-re-implemeentace, makra
+\end{frame}
+
+\begin{frame}{LL gramatika}
+\end{frame}
+
+\begin{frame}{Precedenční tabulka}
+\end{frame}
+
+\subsection{Sémantická analýza}
+
+\begin{frame}{Poznámky k implementaci (změnit název?)}
+funkcionální styl, příklady různých kontrol (break, getExpressionType, isAssignCompatible)?
+\end{frame}
+
+\subsection{Interpret}
+
+\begin{frame}{Poznámky k implementaci (změnit název?)}
+S(x), cykly, goto vs Dijkstra (reference: https://dl.acm.org/citation.cfm?id=362947), GC
+\end{frame}
+
+\section{Algoritmy}
+
+\begin{frame}{Algoritmy...}
+\end{frame}
+
+\section{Závěr}
+
+\begin{frame}{Statistiky}
+\end{frame}
+
+\begin{frame}{Očekávání, rozpočet}
+31/10
+\end{frame}
+
+\begin{frame}{Zhodnocení}
+jazykové bariéry, ?
+\end{frame}
+
+\end{document}
