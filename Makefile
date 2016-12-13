@@ -35,7 +35,7 @@ val: ifj16 test/parser
 	bash valgrind.sh
 
 dist: xzaryb00.tgz
-document: dokumentace.pdf
+document: dokumentace.pdf slides.pdf
 
 clean:
 	$(RM) $(EXE) xzaryb00.tgz $(LIBOBJ)
@@ -54,3 +54,9 @@ dokumentace.pdf: doc/dokumentace.tex
 	cd doc && pdflatex $(notdir $^)
 	mv doc/dokumentace.pdf .
 	cd doc && rm dokumentace.log dokumentace.aux dokumentace.toc
+
+slides.pdf: doc/slides.tex
+	cd doc && pdflatex $(notdir $^) # musi to tu byt dva krat ten preklad nevymazavajte to !
+	cd doc && pdflatex $(notdir $^)
+	mv doc/slides.pdf .
+	cd doc && rm slides.log slides.aux slides.toc
