@@ -12,7 +12,6 @@
 \usepackage{pgfpages}
 \usepackage{amssymb}
 \usepackage{graphicx}
-\usepackage{enumitem}
 \usepackage{listings}
 \usepackage{palatino}
 
@@ -22,7 +21,7 @@
     decorations.pathreplacing,decorations.pathmorphing,shapes,%
     matrix,shapes.symbols}
 
-\title{Interpret jazyka IFJ16}
+\title{Interpret jazyka IFJ16 (a/4/I)}
 \subtitle{Semestrální projekt IFJ}
 \institute{FIT VUT Brno}
 \author[ Tamaškovič,Vaško,Vaško,Záleský,Zárybnický]
@@ -190,9 +189,8 @@ anyId = simpleId | compoundId
 
 \begin{frame}{Zaujimavosti v implementácii ???}
   \begin{itemize}
-    \item V projekte používame \'funkcionálne\' programovanie.
-    \item Nachádzajú sa tam rôzne kontroly napr.: \ttfamily getExpressionType, isAssignCompatible
-    \sffamily
+    \item V projekte používame funkcionálné programovanie.
+    \item Nachádzajú sa tam rôzne kontroly napr.: \texttt{getExpressionType, isAssignCompatible}
   \end{itemize}
 \end{frame}
 
@@ -200,13 +198,18 @@ anyId = simpleId | compoundId
 
 \begin{frame}{Poznámky k implementaci (změnit název?)}
 
+\note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
+
   \begin{itemize}
-    \item \ttfamily \par\#define I(x) (x)->data.integer
-    \item \sffamily Telo cyklu je makro (cykly sa líšia len v tom čo sa deje pred alebo po vykonaní tela cyklu)
-    \item AntiDijsktra kód (Nachádza sa v ňom 3 krát goto, ktoré nevedie k erroru)
+    \item Makra opět tvoří velkou část kódu
+    \item \texttt{\#define I(x) (x)->data.integer}
+    \item \texttt{I(result) = I(left) + I(right)}
+    \item \texttt{CYCLE\_INNER(...)} (break, continue, return handling)
+    \item \texttt{while (evalExpression(...)) \{ CYCLE\_INNER(...); \}}
+    \item We didn't consider GOTO harmful (Dijkstra, 1968)
+    \item Základní garbage collector (GC pouze při skončení)
   \end{itemize}
 
-%S(x), cykly, goto vs Dijkstra (reference: https://dl.acm.org/citation.cfm?id=362947), GC
 \end{frame}
 
 \section{Vestavěné funkce + Algoritmy}
@@ -218,7 +221,7 @@ anyId = simpleId | compoundId
     \item Najít podřetězec v řetězci - Knutt-Morris-Pratt $\mathcal{O}(n)$
     \item Tabulka symbolů - BVS - vyhledání $\mathcal{O}(log (n))$
   \end{itemize}
-  \note[item] {Binární vyhledávací strom - základem je vkladání a nalezení uzlu, AVL strom sme se rozhodli vyvažovat z důvodu mnoha uzlů (hlavně vestavěné funkce), a tím pádem rychleji daný uzel najít.}
+  \note[item] {Binární vyhledávací strom - základem je vkladání a nalezení uzlu, AVL strom sme se rozhodli vyvažovat z důvodu mnoha uzlů (hlavně vestavěné funkce), a tím pádem rychleji daný uzel najít. - spíše teoretické cvičení, na skutečnou rychlost nemá velký vliv}
 \end{frame}
 
 \section{Závěr}
