@@ -10,15 +10,13 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{times}
 \usepackage{pgfpages}
-\usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
-\usepackage{lmodern}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{palatino}
 
-%\setbeameroption{show notes on second screen=right} % Both
-\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
+\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}
 
 \usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
     decorations.pathreplacing,decorations.pathmorphing,shapes,%
@@ -30,6 +28,8 @@
 \author[ Tamaškovič,Vaško,Vaško,Záleský,Zárybnický]
 {Marek~Tamaškovič,Martin~Vaško, Michal~Vaško, Jiří~Záleský, Jakub~Zárybnický}
 \date{14. prosince 2016}
+
+\newsavebox{\grammarbox}
 
 \begin{document}
 
@@ -117,14 +117,15 @@ počítání line, char, BASE
 UNARY, re-re-re-implemeentace, makra
 \end{frame}
 
-\begin{frame}{LL gramatika}
-\begin{lstlisting}
+\begin{frame}[fragile]{LL gramatika}
+\begin{lrbox}{\grammarbox}%
+    \begin{lstlisting}%
 ifj16 = \$ | class ifj16
 class = "class" "{" classBody
 classBody = "}" | "static" type simpleId classBody'
 classBody' = ";"
            | "=" expression ";"
-                      | "(" declarationList "{" functionBody
+           | "(" declarationList "{" functionBody
 functionBody = "}"
               | type simpleId(q) functionBody'
               | command
@@ -149,13 +150,12 @@ argumentList  = ")" | expression argumentList'
 argumentList' = ")" | "," expression argumentList'
 type = "int" | "double" | "boolean" | "String" | "void"
 anyId = simpleId | compoundId
-
-expression = [see operator-precedence grammar]
-\end{lstlisting}
+    \end{lstlisting}%
+\end{lrbox}%
+\scalebox{0.52}{\usebox{\grammarbox}}
 \end{frame}
 
 \begin{frame}{Precedenční tabulka}
-%\begin{flushleft}
 \scalebox{0.55}{
 \begin{tabular}[pos]{r|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l}
     &(&)&++&--&u-& !& *& /& +& -& <& >&<=&>=&==&!=&\&\&&$\|$&id&li&tf&,& \$ \\
@@ -184,7 +184,6 @@ expression = [see operator-precedence grammar]
     \$& L& O& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& O& O
 \end{tabular}
 }
-%\end{flushleft}
 \end{frame}
 
 \subsection{Sémantická analýza}
