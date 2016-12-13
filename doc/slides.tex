@@ -1,3 +1,5 @@
+%& --shell-escape
+
 \documentclass[13pt]{beamer}
 \usetheme{CambridgeUS}
 \usecolortheme{dolphin}
@@ -13,7 +15,8 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{listings}
-
+\usepackage{minted}
+\usepackage[showboxes, overlay]{textpos}
 
 \setbeameroption{show notes on second screen=right} % Both
 \setbeamertemplate{show notes}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
@@ -26,7 +29,7 @@
 \subtitle{Semestrální projekt IFJ}
 \institute{FIT VUT Brno}
 \author[ Tamaškovič,Vaško,Vaško,Záleský,Zárybnický]
-{Marek~Tamaškovič,Martin~Vaško, Michal~Vaško, Jiří~Záleský, Jakub~Zárybnický}
+{Marek~Tamaškovič, Martin~Vaško, Michal~Vaško, Jiří~Záleský, Jakub~Zárybnický}
 \date{14. prosince 2016}
 
 \newsavebox{\grammarbox}
@@ -46,51 +49,119 @@
 
 \begin{frame}{Přehled architektury}
   \begin{center}
-    \begin{tikzpicture}
-      [node distance = 1cm, auto,,
-      every node/.style={node distance=2cm},
-      force/.style={rectangle, rounded corners, draw=black, very thick,
-      text width=8em, text badly centered, minimum height=3em}]
+\begin{tikzpicture}
+[box/.style={rectangle, rounded corners, draw=black,
+minimum width=5em, minimum height=2em}]
+\node[box] (local1) at (7,-2) {Local SymTable};
+\node[box] (local2) at (7,-3.5) {Local SymTable};
+\node[box] (interpret) at (3.5,-3.5) {interpret.c};
+\node[box] (sanity) at (3.5,-2) {sanity.c};
+\node[box] (parser) at (3.5,0) {parser.c};
+\node[box] (lexer) at (3.5,1.5) {lexer.c};
+\node (file) at (-1.5,1.5) {FILE *};
+\node[box] (global) at (-1.5,-3.5) {Global SymTable};
+\node[box] (ifj) at (-1.5,0) {ifj16.c};
+\node (stdin) at (2.75,-4.5) {stdin};
+\node (stdout) at (4.25,-4.5) {stdout};
 
-      % Draw forces
-      \node [force] (center) {Hlavní řadič};
-      \node [force, left=.5cm of center] (database) {Databáze};
-      \node [force, below=.5cm of center] (gui) {Grafické rozhraní};
-      \node [force, below=.5cm of gui] (user) {Uživatel};
-      \node [force, right=.5cm of center] (server) {Server};
-
-      \path[->,thick,shorten >=1pt,shorten <=1pt]
-      (center) edge (database)
-      (center) edge (gui)
-      (center) edge (server)
-      (gui) edge (center)
-      (server) edge (center)
-      (database) edge (center)
-      (user) edge (gui)
-      (gui) edge (user);
-
-    \end{tikzpicture}
+ \begin{scope}[every node/.style={scale=.7}]
+\path[-latex] (ifj) edge node[right]{fopen} (file)
+				 edge node[above]{parseFile} (parser)
+				 edge node[above,rotate=-21]{runSemanticAnalysis} (sanity)
+				 edge node[above,rotate=-35]{evalMain} (interpret);
+\draw[-latex]  (file) edge node[above]{getChar} (lexer);
+\draw[-latex]  (parser) [bend right=10]edge node[right]{getNextToken} (lexer);
+\draw[-latex]  (lexer) [bend right=10]edge node[left]{Token*} (parser);
+\draw[-latex]  (parser) edge (global);
+\draw[-latex]  (global) edge (sanity);
+\draw[-latex]  (sanity) [bend right=10]edge (local1);
+\draw[-latex]  (local1) [bend right=10]edge (sanity);
+\draw[-latex]  (interpret) [bend right=10]edge (local2);
+\draw[-latex]  (local2) [bend right=10]edge (interpret);
+\draw[-latex]  (interpret) edge (stdout);
+\draw[-latex]  (stdin) edge (interpret);
+\draw[-latex]  (global) [bend right=10]edge (interpret);
+\draw[-latex]  (interpret) [bend right=10]edge (global);
+\end{scope}
+\end{tikzpicture}
   \end{center}
 \end{frame}
 
-\begin{frame}{Datové typy (AST)}
+\begin{frame}[fragile]{Datové typy (AST)}
+
+\textblockcolour{white}
+\TPMargin{5pt}
+
+\begin{textblock}{10}(0, -4.5)
+\begin{minted}{haskell}
+data Value = ValInteger Int
+           | ValDouble Double
+           | ValBool Bool
+           | ValString String
+\end{minted}
+\end{textblock}
+
+\pause
+\begin{textblock}{16}(0, 0)
+\begin{minted}{haskell}
+data UnaryOp = PreInc | PostInc | PreDec | ...
+data BinaryOp = Equal | NotEqual | Less | ...
+data Expression = ExprFuncall String [Expression]
+                | ExprValue Value
+                | ExprReference String
+                | ExprUnary UnaryOp Expression
+                | ExprBinary BinaryOp Expression Expression
+\end{minted}
+\end{textblock}
+
+\pause
+\begin{textblock}{14}(2, -3.5)
+\begin{minted}{haskell}
+data Type = TString | TInteger | TDouble | ...
+data Declaration = Declaration Type String
+data Command = CmdDeclare Declaration
+             | CmdDefine Declaration Expression
+             | CmdAssign String Expression
+             | CmdBlock [Command]
+             | CmdReturn (Maybe Expression)
+             | CmdFor { var :: Declaration
+             	 , init :: Expression
+                      , cond :: Expression
+                      , iter :: Expression
+                      , block :: Command }
+             | ...
+\end{minted}
+\end{textblock}
+
+\pause
+\begin{textblock}{13.5}(1.5, 2)
+\begin{minted}{haskell}
+data Function = { fnName :: String
+                , fnReturnType :: Type
+                , fnArguments :: [Declaration]
+                , fnBody :: [Command]
+                , fnBuiltin :: Bool
+                }
+\end{minted}
+\end{textblock}
+
 \end{frame}
 
 \begin{frame}{Hierarchie typů}
 \end{frame}
 
 \section{Komponenty}
-\subsection{Lexer}
+\subsection{Lexikální analýza}
 
-\begin{frame}{Poznámky k implementaci lexikální analýzy}
-\begin{itemize}
- \item vytvoření makra getchar
- \item token dokáže posílat informace o řádku a sloupci na kterém se daný znak nachází
- \item implementovane rozšíření jako UNARY, BOOLOP, CYCLES
- \item mírně problémy s rozšířením BASE, kde bylo třeba dodatečně implementovat funkci hexToDbl
+\begin{frame}{Lexikální analýza}
+  \begin{itemize}
+    \item makro GET\_CHAR (implicitní zpracování chyb)
+    \item token ví, na jakém řádku a sloupci se nachází
+    \item UNARY, BOOLOP, CYCLES, BASE
+    \item mírně problémy s rozšířením BASE (převod desetinných čísel)
+ \end{itemize}
   \note[item]{Lexikálna analýza funguje na princípe konečného automatu. Ten načíta zo vstupného súboru znaky, lexikálna analýza ich vyhodnotí a posiela ako tokeny do syntaktického analyzátora. Tokeny obsahujú informácie o type a obsahu. Taktiež sme si ale implementovali aj macro GetChar vďaka ktorému dokáže náš token posielať nielen základne informácie o type ci obsahu ale pridáva k nim aj ďalšie informácie o riadku a stĺpci na ktorej sa tieto znaky v interpretovanom súbore nachádzajú a výrazne tak uľahčuje prácu syntaktickému analyzátoru.}
   \note[item] {Ako si môžete všimnúť aj v diagrame ,implementovali sme aj všetky dostupne rozšírenia. Menovite BOOLOP , Unarne ale aj cykly typu for a do-while. Menší problém však bol s rozšírením BASE. Konkrétne s prevodom hexadecimálnej sústavy v desatinnom tvare. Tu sme museli implementovať funkciu hexToDbl ktorá to následne prekonvertovala do desiatkovej sústavy.}
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Stavový diagram lexeru}
@@ -102,7 +173,7 @@
 
 \subsection{Syntaktická analýza}
 
-\begin{frame}{Podrobnosti o implementaci syntaktické analýzy}
+\begin{frame}{Syntaktická analýza}
   \begin{itemize}
   \item analýza rekurzivním sestupem, precedenční analýza
   \item stávající implementace je druhá, původní byla rekurzivním sestupem všude
@@ -110,7 +181,7 @@
   \item bez použití maker by bylo kódu cca o 300\% víc
   \item např. \texttt{expectSymbol(l, SYM\_SEMI);} odpovídá 15 řádkům kódu
   \item umožňuje skoro přímý přepis gramatiky do C
-  \item UNARY - podmíněný přepis \textbf{-} na \textbf{u-} (za znaky \$, ( a za operátory)
+  \item UNARY - podmíněné nahrazení \textbf{-} za \textbf{u-} (za znaky \$, ( a za operátory)
   \end{itemize}
 \end{frame}
 
@@ -187,7 +258,7 @@ anyId = simpleId | compoundId
 
 \begin{frame}{Sémantická analýza}
   \begin{itemize}
-    \item V projekte používame funkcionálné programovanie.
+    \item Funkcionální C - např. \texttt{traverseCommands(testReturnType)}
     \item Nachádzajú sa tam rôzne kontroly napr.: \texttt{getExpressionType, isAssignCompatible}
   \end{itemize}
   \note[item]{Sémantické kontroly se delají pomoci průchodu stromu s funkci která ďelá konkrétni kontrolu(např. typovu nebo správny počet parametrů).K tomu aby jsme byli schopni takhle zavolat konkrétni uzel z globálni nebo lokálni tabulky používame také funkci která procházi příkazy s danou funkci, kde se vytváří nové lokálni tabulky a kde jsme schopni určit, zda jsme chybu v lokálni právě vyplněné tabulce nebo v globálni, pro ulehčení jsme také zavedli dvojí kontrolu(v lokalni a současne v globálni tabulce) i s názvem konkrétni třídy, kterou voláme případně ve které nyní jsme.}
@@ -195,9 +266,11 @@ anyId = simpleId | compoundId
 
 \subsection{Interpret}
 
-\begin{frame}{Podrobnosti o implementaci interpretu}
+\begin{frame}{Interpret}
 
-    % FIXME cestina
+\note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
+\note[item] {Dovolili jsme si použít GOTO jako nástroj pro vypsáni erroru i když Djisktra ho považuje za škodlivej.
+Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo}
 
   \begin{itemize}
     \item Makra opět tvoří velkou část kódu
@@ -227,12 +300,12 @@ anyId = simpleId | compoundId
 
 \section{Algoritmy}
 
-\begin{frame}{Podrobnosti o implementaci algoritmů}
+\begin{frame}{Algoritmy}
 
   \begin{itemize}
-    \item Seřazení prvků v poli - List-Merge sort $\mathcal{O}(n log(n))$
+    \item Seřazení prvků v poli - List-Merge sort $\mathcal{O}(n\log{n})$
     \item Najít podřetězec v řetězci - Knutt-Morris-Pratt $\mathcal{O}(n)$
-    \item Tabulka symbolů - BVS - vyhledání $\mathcal{O}(log (n))$
+    \item Tabulka symbolů - BVS - vyhledání $\mathcal{O}(\log{n})$
   \end{itemize}
    \note[item] {List-Merge Princip založen jak už název napovídá na mergování (slévání). Před samotným mergováním, je vytvořeno pomocné pole do něhož indexy nebo nuly umístěny jsou. Nula nechť znakem je pro konec posloupnosti neklesající. Po najití všech neklesajících posloupnosí jsou jejich začátky vloženy do datové struktury typu seznam a zařazeny za sebou tvoří frontu. Při mergování vezmeme dva první prvky a postupně je spojíme do jednoho seřazeného seznamu, který následně na konec vložíme. Takto postupujeme dokud nezůstane už jen jeden seznam, který obsahuje vše a seřazené. Pozn. k Implem. Při vybírání prvních dvou kontrolujeme zda nejde o seznam vložený při přípravě jako konečný, aby nedošlo ke spojení seznamů přes hranu pole. Původně to tak bylo řešeno, ale kvůli neočekávanému chování to zavrženo bylo. Dále také pro jednoduchost zpracování je zajištěno (v případě nepravdivosti se před merg. prohodí), že seznam, který je více vlevo (má nižší index), je považovám při mergování za první a tudíž po slití umístěn na konec fronty.}
   \note[item] {KMP nejprve vyhledává podřetězce v hledaném podřetězci a uklada pozice podřetězců do pomocného pole. Po zkompletování pomocného pole začne vyhledávání v zadaném řetězci. Dochází k porovnávání a narazí-li se na neshodu vrátí se pouze o část specifikovanou v pomocném poli a pokračuje v porovnávání. Může nastat situace kdy ani posunutí o určitý poček znaků nepomůže a tak se u hledaného podřetězce začne od začátku. Urychlení spočívá právě v tom, že se nemusí vždy začínat od začátku. Jelikož začíná naše pole od 0, je jako znak pro návrat na začátek -1. (Ve videu 0, ale maji pole od 1)}
@@ -243,19 +316,20 @@ anyId = simpleId | compoundId
 % Dobře vysvětlený knutt-moriis-pratt - https://www.youtube.com/watch?v=HaAu5ZGj6fc
 
 \section{Závěr}
-\begin{frame}{Statistiky - Git}
+\subsection{Statistiky}
+\begin{frame}{Commity v Gitv}
   \begin{center}
     \includegraphics[width=0.65\textwidth]{./img/git_commit.pdf}
   \end{center}
 \end{frame}
 
-\begin{frame}{Statistiky - Git}
+\begin{frame}{Počet přidaných řádků}
   \begin{center}
     \includegraphics[width=0.65\textwidth]{./img/git_additions.pdf}
   \end{center}
 \end{frame}
 
-\begin{frame}{Statistiky - Git}
+\begin{frame}{Počet smazaných řádků}
   \begin{center}
     \includegraphics[width=0.65\textwidth]{./img/git_del.pdf}
   \end{center}
@@ -263,9 +337,9 @@ anyId = simpleId | compoundId
 
 \begin{frame}{Statistiky, očekávání, rozpočet a zhodnocení}
 \begin{itemize}
-\item Počet súborov: \textbf{97} (\textbf{27} v C)
-\item celkový počet riadkov zdrojového kódu: \textbf{6622} (\textbf{5272} v C)
-\item Počet Git commitov: \textbf{396}
+\item Počet souborů: \textbf{97} (\textbf{27} v C)
+\item Řádky zdrojového kódu: \textbf{6622} (\textbf{5272} v C)
+\item Commity v Gitu: \textbf{396}
 \end{itemize}
 
 \begin{itemize}
