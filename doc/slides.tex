@@ -217,6 +217,8 @@ anyId = simpleId | compoundId
     \item Najít podřetězec v řetězci - Knutt-Morris-Pratt $\mathcal{O}(n)$
     \item Tabulka symbolů - BVS - vyhledání $\mathcal{O}(log (n))$
   \end{itemize}
+   \note[item] {List-Merge Princip založen jak už název napovídá na mergování (slévání). Před samotným mergováním, je vytvořeno pomocné pole do něhož indexy nebo nuly umístěny jsou. Nula nechť znakem je pro konec posloupnosti neklesající. Po najití všech neklesajících posloupnosí jsou jejich začátky vloženy do datové struktury typu seznam a zařazeny za sebou tvoří frontu. Při mergování vezmeme dva první prvky a postupně je spojíme do jednoho seřazeného seznamu, který následně na konec vložíme. Takto postupujeme dokud nezůstane už jen jeden seznam, který obsahuje vše a seřazené. Pozn. k Implem. Při vybírání prvních dvou kontrolujeme zda nejde o seznam vložený při přípravě jako konečný, aby nedošlo ke spojení seznamů přes hranu pole. Původně to tak bylo řešeno, ale kvůli neočekávanému chování to zavrženo bylo. Dále také pro jednoduchost zpracování je zajištěno (v případě nepravdivosti se před merg. prohodí), že seznam, který je více vlevo (má nižší index), je považovám při mergování za první a tudíž po slití umístěn na konec fronty.}
+  \note[item] {KMP nejprve vyhledává podřetězce v hledaném podřetězci a uklada pozice podřetězců do pomocného pole. Po zkompletování pomocného pole začne vyhledávání v zadaném řetězci. Dochází k porovnávání a narazí-li se na neshodu vrátí se pouze o část specifikovanou v pomocném poli a pokračuje v porovnávání. Může nastat situace kdy ani posunutí o určitý poček znaků nepomůže a tak se u hledaného podřetězce začne od začátku. Urychlení spočívá právě v tom, že se nemusí vždy začínat od začátku. Jelikož začíná naše pole od 0, je jako znak pro návrat na začátek -1. (Ve videu 0, ale maji pole od 1)}
   \note[item] {Binární vyhledávací strom - základem je vkladání a nalezení uzlu, AVL strom sme se rozhodli vyvažovat z důvodu mnoha uzlů (hlavně vestavěné funkce), a tím pádem rychleji daný uzel najít. - spíše teoretické cvičení, na skutečnou rychlost nemá velký vliv}
 \end{frame}
 
@@ -252,7 +254,7 @@ anyId = simpleId | compoundId
 \begin{itemize}
 \item Plánované datum dokončení - 31.10.
 \item Skutečné datum dokončení - 11.12.
-\item Plánovaný peněžní zisk - 0Kč/EU
+\item Plánovaný peněžní zisk - 0 CZK/EUR
 \item Finanční stav po ukončení projektu - záporný
 \end{itemize}
 
