@@ -9,6 +9,15 @@
 \usepackage[czech,slovak]{babel}
 \usepackage[utf8x]{inputenc}
 \usepackage{times}
+\usepackage{pgfpages}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{listings}
+
+%\setbeameroption{show notes on second screen=right} % Both
+%\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
 
 \usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
     decorations.pathreplacing,decorations.pathmorphing,shapes,%
@@ -17,26 +26,20 @@
 \title{Interpret jazyka IFJ16}
 \subtitle{Semestrální projekt IFJ}
 \institute{FIT VUT Brno}
-\author[ Vaško,Vaško,Zárybnický,Záleský,Tamaškovič]
-{Michal~Vaško, Martin~Vaško, Jakub~Zárybnický, Jiří~Záleský, Marek~Tamaškovič}
+\author[ Tamaškovič,Vaško,Vaško,Záleský,Zárybnický]
+{Martin~Vaško, Michal~Vaško, Jakub~Zárybnický, Jiří~Záleský, Marek~Tamaškovič}
 \date{14. prosince 2016}
 
 \begin{document}
 
 \begin{frame}
   \titlepage
-\end{frame}
-
-\begin{frame}{Obsah}
-  \tableofcontents
+  \note[item]{Varianta a/4/I - Knuth–Morris–Pratt(KMP) algoritmus pre vyhledáni podřetezce v řetezci, jako seřaďovací algoritmus byl použit List-Merge a tabulka symbolu byla implementovaná pomoci BVS (Binárního vyhledavácího stromu).}
 \end{frame}
 
 \section{Úvod}
 
 \subsection{Zadání}
-
-\begin{frame}{Zadání}
-\end{frame}
 
 \section{Architektura}
 
@@ -83,26 +86,29 @@ počítání line, char, BASE
 \end{frame}
 
 \begin{frame}{Stavový diagram lexeru}
-\begin{center}
-\begin{tikzpicture}
-  [>=stealth',
-  punktchain/.style={
-    rectangle,
-    rounded corners,
-    draw=black, very thick,
-    text width=10em,
-    minimum height=2.5em,
-    text centered,
-    on chain},
-  every join/.style={->, thick,shorten >=1pt},
-  node distance=.5cm, start chain=going below,]
-  \node[punktchain, join] {Anal\'yza};
-  \node[punktchain, join] {Návrh};
-  \node[punktchain, join] {Implementace};
-  \node[punktchain, join] {Testov\'an\'i};
-  \node[punktchain, join] {Publikování};
-\end{tikzpicture}
-\end{center}
+\includegraphics[width=1\textwidth]{./img/lex1.pdf}
+\iffalse
+  \begin{center}
+  \begin{tikzpicture}
+    [>=stealth',
+    punktchain/.style={
+      rectangle,
+      rounded corners,
+      draw=black, very thick,
+      text width=10em,
+      minimum height=2.5em,
+      text centered,
+      on chain},
+    every join/.style={->, thick,shorten >=1pt},
+    node distance=.5cm, start chain=going below,]
+    \node[punktchain, join] {Anal\'yza};
+    \node[punktchain, join] {Návrh};
+    \node[punktchain, join] {Implementace};
+    \node[punktchain, join] {Testov\'an\'i};
+    \node[punktchain, join] {Publikování};
+  \end{tikzpicture}
+  \end{center}
+\fi
 \end{frame}
 
 \subsection{Parser}
@@ -112,21 +118,83 @@ UNARY, re-re-re-implemeentace, makra
 \end{frame}
 
 \begin{frame}{LL gramatika}
+\begin{lstlisting}
+ifj16 = \$ | class ifj16
+class = "class" "{" classBody
+classBody = "}" | "static" type simpleId classBody'
+classBody' = ";"
+           | "=" expression ";"
+                      | "(" declarationList "{" functionBody
+functionBody = "}"
+              | type simpleId(q) functionBody'
+              | command
+functionBody' = ";" | "=" expression ";"
+command = "if" "(" expression ")" command
+        | "while" "(" expression ")" command
+        | "do" command "while" "(" expression ")" ";"
+        | "for" "(" type simpleId for'
+        | "return" return'
+        | "{" commandList
+        | "break" ";"
+        | "continue" ";"
+        | anyId command'
+for' = ";" for'' | "=" expression ";" for''
+for'' = expression ";" anyId "=" expression ")" command
+return' = ";" | expression ";"
+commandList = "}" | command commandList
+command' = "(" argumentList ";" | "=" expression ";"
+declarationList  = ")" | type simpleId declarationList'
+declarationList' = ")" | "," type simpleId declarationList'
+argumentList  = ")" | expression argumentList'
+argumentList' = ")" | "," expression argumentList'
+type = "int" | "double" | "boolean" | "String" | "void"
+anyId = simpleId | compoundId
+
+expression = [see operator-precedence grammar]
+\end{lstlisting}
 \end{frame}
 
 \begin{frame}{Precedenční tabulka}
+%\begin{flushleft}
+\scalebox{0.55}{
+\begin{tabular}[pos]{r|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l|l}
+    &(&)&++&--&u-& !& *& /& +& -& <& >&<=&>=&==&!=&\&\&&$\|$&id&li&tf&,& \$ \\
+    (& L& E& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& E& O \\
+    )& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    ++& O& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& L& O& O& G& G \\
+    --& O& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& L& O& O& G& G \\
+    u-& L& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& G& G& L& G& L& O& G \\
+    !& L& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& G& G& L& G& L& O& G \\
+    *& L& G& L& L& L& L& G& G& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    /& L& G& L& L& L& L& G& G& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    +& L& G& L& L& L& L& L& L& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    -& L& G& L& L& L& L& L& L& G& G& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    <& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    >& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    <=& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    >=& L& G& L& L& L& L& L& L& L& L& G& G& G& G& G& G& G& G& L& L& L& G& G \\
+    ==& L& G& L& L& L& L& L& L& L& L& L& L& L& L& G& G& G& G& L& L& L& G& G \\
+    !=& L& G& L& L& L& L& L& L& L& L& L& L& L& L& G& G& G& G& L& L& L& G& G \\
+    \&\&& L& G& L& L& L& L& L& L& L& L& L& L& L& L& L& L& G& G& L& L& L& G& G \\
+    $\|$& L& G& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& G& L& L& L& G& G \\
+    id& E& G& G& G& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    literal& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    true/false& O& G& O& O& O& O& G& G& G& G& G& G& G& G& G& G& G& G& O& O& O& G& G \\
+    ,& L& E& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& E& O \\
+    \$& L& O& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& L& O& O
+\end{tabular}
+}
+%\end{flushleft}
 \end{frame}
 
 \subsection{Sémantická analýza}
 
 \begin{frame}{Zaujimavosti v implementácii ???}
   \begin{itemize}
-    \item AST
     \item V projekte používame \'funkcionálne\' programovanie.
     \item Nachádzajú sa tam rôzne kontroly napr.: \ttfamily getExpressionType, isAssignCompatible
     \sffamily
   \end{itemize}
-funkcionální styl, příklady různých kontrol (break, getExpressionType, isAssignCompatible)?
 \end{frame}
 
 \subsection{Interpret}
@@ -142,29 +210,22 @@ funkcionální styl, příklady různých kontrol (break, getExpressionType, isA
 %S(x), cykly, goto vs Dijkstra (reference: https://dl.acm.org/citation.cfm?id=362947), GC
 \end{frame}
 
-\section{Algoritmy}
+\section{Vestavěné funkce + Algoritmy}
 
-\begin{frame}{Algoritmy...}
+\begin{frame}{Vestavěné funkce + Algoritmy}
 
   \begin{itemize}
     \item Seřazení prvků v poli -> List-Merge sort O(n log n)
     \item Najít podřetězec v řetězci -> Knutt-Morris-Pratt O(n)
     \item Tabulka symbolů -> BVS
   \end{itemize}
-  
+  \note[item] {Binární vyhledávací strom - základem je vkladání a nalezení uzlu, AVL strom sme se rozhodli vyvažovat z důvodu mnoha uzlů (hlavně vestavěné funkce), a tím pádem rychleji daný uzel najít.}
 \end{frame}
 
 \section{Závěr}
 
-\begin{frame}{Statistiky}
-\end{frame}
-
-\begin{frame}{Očekávání, rozpočet}
-31/10
-\end{frame}
-
-\begin{frame}{Zhodnocení}
-jazykové bariéry, ?
+\begin{frame}{Statistiky, očekávání, rozpočet a zhodnocení}
+Ďekujeme za pozornost
 \end{frame}
 
 \end{document}
