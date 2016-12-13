@@ -183,7 +183,7 @@ anyId = simpleId | compoundId
 
 \subsection{Podrobnosti o implementaci Sémantické analýzy}
 
-\begin{frame}{Interpret}
+\begin{frame}{Sémantická analýza}
   \begin{itemize}
     \item V projekte používame funkcionálné programovanie.
     \item Nachádzajú sa tam rôzne kontroly napr.: \texttt{getExpressionType, isAssignCompatible}
@@ -194,18 +194,32 @@ anyId = simpleId | compoundId
 
 \begin{frame}{Podrobnosti o implementaci Interpretu}
 
-\note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
+    % FIXME cestina
 
   \begin{itemize}
     \item Makra opět tvoří velkou část kódu
     \item \texttt{\#define I(x) (x)->data.integer}
     \item \texttt{I(result) = I(left) + I(right)}
+    \item Cykli jsou implementované stejným spůsobem ako v jazyce C
     \item \texttt{CYCLE\_INNER(...)} (break, continue, return handling)
     \item \texttt{while (evalExpression(...)) \{ CYCLE\_INNER(...); \}}
+  \end{itemize}
+  \note[item] {Dovolili jsme si použít GOTO jako nástroj pro vypsáni erroru i když Djisktra ho považuje za škodlivej. Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo}
+  \note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
+\end{frame}
+
+\begin{frame}{Zajimavosti o implementaci Interpretu}
+  \begin{itemize}
+    % FIXME cestina
+    \item Interpret interpretuje přímo AST a ne tříadresný kód
     \item We didn't consider GOTO harmful (Dijkstra, 1968)
     \item Základní garbage collector (GC pouze při skončení)
+    \item Padl nejeden návrh na implementaci skryté funkcionality \texttt{ifj16.launchMissiles()}
   \end{itemize}
-    \note[item] {Dovolili jsme si použít GOTO jako nástroj pro vypsáni erroru i když Djisktra ho považuje za škodlivej. Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo}
+  \note[item] {AST - interpretace nemusí být volána ze syn. an.}
+  \note[item] {Goto - Museli jsme použít goto pri cyklech. Nebylo jíne východisko :) }
+  \note[item] {GC - všechny malloc, calloc, realloc, free jsou nahrazeny ekvivalentmi v GC}
+  \note[item] {Návrh byl potlačen násilím}
 \end{frame}
 
 \section{Algoritmy}
