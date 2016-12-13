@@ -10,6 +10,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{times}
 \usepackage{pgfpages}
+\usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{lmodern}
@@ -17,7 +18,7 @@
 \usepackage{listings}
 
 %\setbeameroption{show notes on second screen=right} % Both
-%\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
+\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
 
 \usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
     decorations.pathreplacing,decorations.pathmorphing,shapes,%
@@ -27,14 +28,14 @@
 \subtitle{Semestrální projekt IFJ}
 \institute{FIT VUT Brno}
 \author[ Tamaškovič,Vaško,Vaško,Záleský,Zárybnický]
-{Martin~Vaško, Michal~Vaško, Jakub~Zárybnický, Jiří~Záleský, Marek~Tamaškovič}
+{Marek~Tamaškovič,Martin~Vaško, Michal~Vaško, Jiří~Záleský, Jakub~Zárybnický}
 \date{14. prosince 2016}
 
 \begin{document}
 
 \begin{frame}
   \titlepage
-  \note[item]{Varianta a/4/I - Knuth–Morris–Pratt(KMP) algoritmus pre vyhledáni podřetezce v řetezci, jako seřaďovací algoritmus byl použit List-Merge a tabulka symbolu byla implementovaná pomoci BVS (Binárního vyhledavácího stromu).}
+  \note[item]{Varianta a/4/I - Knuth–Morris–Pratt algoritmus pre vyhledáni podřetezce v řetezci, jako seřaďovací algoritmus byl použit List-Merge a tabulka symbolu byla implementovaná pomoci BVS.}
 \end{frame}
 
 \section{Úvod}
@@ -86,29 +87,28 @@ počítání line, char, BASE
 \end{frame}
 
 \begin{frame}{Stavový diagram lexeru}
-\includegraphics[width=1\textwidth]{./img/lex1.pdf}
-\iffalse
-  \begin{center}
-  \begin{tikzpicture}
-    [>=stealth',
-    punktchain/.style={
-      rectangle,
-      rounded corners,
-      draw=black, very thick,
-      text width=10em,
-      minimum height=2.5em,
-      text centered,
-      on chain},
-    every join/.style={->, thick,shorten >=1pt},
-    node distance=.5cm, start chain=going below,]
-    \node[punktchain, join] {Anal\'yza};
-    \node[punktchain, join] {Návrh};
-    \node[punktchain, join] {Implementace};
-    \node[punktchain, join] {Testov\'an\'i};
-    \node[punktchain, join] {Publikování};
-  \end{tikzpicture}
-  \end{center}
-\fi
+\includegraphics[width=0.9\textwidth]{./img/lex1.pdf}
+% \begin{center}
+% \begin{tikzpicture}
+%    [>=stealth',
+%    punktchain/.style={
+%      rectangle,
+%      rounded corners,
+%      draw=black, very thick,
+%      text width=10em,
+%      minimum height=2.5em,
+%      text centered,
+%     on chain},
+%    every join/.style={->, thick,shorten >=1pt},
+%    \node distance=.5cm, start chain=going below,]
+%    \node[punktchain, join] {Anal\'yza};
+%    \node[punktchain, join] {Návrh};
+%    \node[punktchain, join] {Implementace};
+%    \node[punktchain, join] {Testov\'an\'i};
+%    \node[punktchain, join] {Publikování};
+%  \end{tikzpicture}
+%  \end{center}
+
 \end{frame}
 
 \subsection{Parser}
@@ -215,9 +215,9 @@ expression = [see operator-precedence grammar]
 \begin{frame}{Vestavěné funkce + Algoritmy}
 
   \begin{itemize}
-    \item Seřazení prvků v poli -> List-Merge sort O(n log n)
-    \item Najít podřetězec v řetězci -> Knutt-Morris-Pratt O(n)
-    \item Tabulka symbolů -> BVS
+    \item Seřazení prvků v poli - List-Merge sort $\mathcal{O}(n log(n))$
+    \item Najít podřetězec v řetězci - Knutt-Morris-Pratt $\mathcal{O}(n)$
+    \item Tabulka symbolů - BVS - vyhledání $\mathcal{O}(log (n))$
   \end{itemize}
   \note[item] {Binární vyhledávací strom - základem je vkladání a nalezení uzlu, AVL strom sme se rozhodli vyvažovat z důvodu mnoha uzlů (hlavně vestavěné funkce), a tím pádem rychleji daný uzel najít.}
 \end{frame}
