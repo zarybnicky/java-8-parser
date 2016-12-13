@@ -13,9 +13,10 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{listings}
-\usepackage{palatino}
 
-\setbeamertemplate{note page}{\pagecolor{yellow!5}\insertnote}
+
+\setbeameroption{show notes on second screen=right} % Both
+\setbeamertemplate{show notes}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
 
 \usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
     decorations.pathreplacing,decorations.pathmorphing,shapes,%
@@ -112,8 +113,16 @@ počítání line, char, BASE
 
 \subsection{Parser}
 
-\begin{frame}{Poznámky k implementaci (změnit název?)}
-UNARY, re-re-re-implemeentace, makra
+\begin{frame}{Poznámky k implementaci}
+\begin{itemize}
+\item analýza rekurzivním sestupem, precedenční analýza
+\item stávající implementace je druhá, původní byla rekurzivním sestupem všude
+\item nová implementace mnohem delší a méně elegantní, i když asi rychlejší
+\item bez použití maker by bylo kódu cca o 300\% víc
+\item např. \texttt{expectSymbol(l, SYM\_SEMI);} odpovídá 15 řádkům kódu
+\item umožňuje skoro přímý přepis gramatiky do C
+\item UNARY - podmíněný přepis \textbf{-} na \textbf{u-} (za znaky \$, ( a za operátory)
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{LL gramatika}
