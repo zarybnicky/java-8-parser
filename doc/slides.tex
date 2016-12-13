@@ -92,32 +92,12 @@
   \begin{center}
     \includegraphics[width=0.8\textwidth]{img/lex1.pdf}
   \end{center}
-% \begin{center}
-% \begin{tikzpicture}
-%    [>=stealth',
-%    punktchain/.style={
-%      rectangle,
-%      rounded corners,
-%      draw=black, very thick,
-%      text width=10em,
-%      minimum height=2.5em,
-%      text centered,
-%     on chain},
-%    every join/.style={->, thick,shorten >=1pt},
-%    \node distance=.5cm, start chain=going below,]
-%    \node[punktchain, join] {Anal\'yza};
-%    \node[punktchain, join] {Návrh};
-%    \node[punktchain, join] {Implementace};
-%    \node[punktchain, join] {Testov\'an\'i};
-%    \node[punktchain, join] {Publikování};
-%  \end{tikzpicture}
-%  \end{center}
 % \note Čo sa týka diagram ktorý vidíte na obrazovke, urobil som par zmien aby sa zvýšila prehľadnosť diagramu. Konkrétne pri Symboloch kde som vytvoril jeden stav a pomenoval ho symbol a tam poslal všetky symboly ktoré nepotrebovali implementovať stav v automate a taktiež pri ďalších symboloch ako >,<,+++,-- atď.(o ktoré symboly sa jedna je  vidno na diagrame, pravá strana) kde som miesto jedného stavu pridal aj druhy ktorý v kóde nie je a to preto aby som názorne ukázal ako prebieha jednotlivé načítanie znakov v lexikálnej analýze i aj keď nie sú už súčasnou stavov avšak úplne zodpovedajú tomu ako lexikálna analýza funguje.
 \end{frame}
 
-\subsection{Parser}
+\subsection{Syntaktická analýza}
 
-\begin{frame}{Poznámky k implementaci}
+\begin{frame}{Podrobnosti o implementaci Syntaktické analýzy}
   \begin{itemize}
   \item analýza rekurzivním sestupem, precedenční analýza
   \item stávající implementace je druhá, původní byla rekurzivním sestupem všude
@@ -198,9 +178,9 @@ anyId = simpleId | compoundId
 }
 \end{frame}
 
-\subsection{Sémantická analýza}
+\subsection{Podrobnosti o implementaci Sémantické analýzy}
 
-\begin{frame}{Zaujimavosti v implementácii ???}
+\begin{frame}{Interpretu}
   \begin{itemize}
     \item V projekte používame funkcionálné programovanie.
     \item Nachádzajú sa tam rôzne kontroly napr.: \texttt{getExpressionType, isAssignCompatible}
@@ -209,7 +189,7 @@ anyId = simpleId | compoundId
 
 \subsection{Interpret}
 
-\begin{frame}{Poznámky k implementaci (změnit název?)}
+\begin{frame}{Podrobnosti o implementaci Interpretu}
 
 \note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
 
@@ -222,12 +202,12 @@ anyId = simpleId | compoundId
     \item We didn't consider GOTO harmful (Dijkstra, 1968)
     \item Základní garbage collector (GC pouze při skončení)
   \end{itemize}
-
+    \note[item] {Dovolili jsme si použít GOTO jako nástroj pro vypsáni erroru i když Djisktra ho považuje za škodlivej. Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo}
 \end{frame}
 
-\section{Vestavěné funkce + Algoritmy}
+\section{Algoritmy}
 
-\begin{frame}{Vestavěné funkce + Algoritmy}
+\begin{frame}{Podrobnosti o implementaci Algoritmů}
 
   \begin{itemize}
     \item Seřazení prvků v poli - List-Merge sort $\mathcal{O}(n log(n))$
@@ -272,7 +252,7 @@ anyId = simpleId | compoundId
 \item Plánovaný peněžní zisk - 0Kč/EU
 \item Finanční stav po ukončení projektu - záporný
 \end{itemize}
-%Dakujem za pozornost sa do prezentacie nedava to sa iba povie
+
 \end{frame}
 
 \end{document}
