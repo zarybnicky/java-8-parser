@@ -86,7 +86,7 @@
 \begin{itemize}
  \item vytvoření makra getchar
  \item token dokáže posílat informace o řádku a sloupci na kterém se daný znak nachází
- \item implementovane rozšíření jako UNARY, BOLOP, CYCLES
+ \item implementovane rozšíření jako UNARY, BOOLOP, CYCLES
  \item mírně problémy s rozšířením BASE, kde bylo třeba dodatečně implementovat funkci hexToDbl
   \note[item]{Lexikálna analýza funguje na princípe konečného automatu. Ten načíta zo vstupného súboru znaky, lexikálna analýza ich vyhodnotí a posiela ako tokeny do syntaktického analyzátora. Tokeny obsahujú informácie o type a obsahu. Taktiež sme si ale implementovali aj macro GetChar vďaka ktorému dokáže náš token posielať nielen základne informácie o type ci obsahu ale pridáva k nim aj ďalšie informácie o riadku a stĺpci na ktorej sa tieto znaky v interpretovanom súbore nachádzajú a výrazne tak uľahčuje prácu syntaktickému analyzátoru.}
   \note[item] {Ako si môžete všimnúť aj v diagrame ,implementovali sme aj všetky dostupne rozšírenia. Menovite BOOLOP , Unarne ale aj cykly typu for a do-while. Menší problém však bol s rozšírením BASE. Konkrétne s prevodom hexadecimálnej sústavy v desatinnom tvare. Tu sme museli implementovať funkciu hexToDbl ktorá to následne prekonvertovala do desiatkovej sústavy.}
