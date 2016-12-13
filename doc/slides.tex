@@ -82,7 +82,7 @@
 \section{Komponenty}
 \subsection{Lexer}
 
-\begin{frame}{Poznámky k implementaci (změnit název?)}
+\begin{frame}{Poznámky k implementaci lexikální analýzy}
 \begin{itemize}
  \item vytvoření makra getchar
  \item token dokáže posílat informace o řádku a sloupci na kterém se daný znak nachází
@@ -102,7 +102,7 @@
 
 \subsection{Syntaktická analýza}
 
-\begin{frame}{Podrobnosti o implementaci Syntaktické analýzy}
+\begin{frame}{Podrobnosti o implementaci syntaktické analýzy}
   \begin{itemize}
   \item analýza rekurzivním sestupem, precedenční analýza
   \item stávající implementace je druhá, původní byla rekurzivním sestupem všude
@@ -183,18 +183,19 @@ anyId = simpleId | compoundId
 }
 \end{frame}
 
-\subsection{Podrobnosti o implementaci Sémantické analýzy}
+\subsection{Podrobnosti o implementaci sémantické analýzy}
 
 \begin{frame}{Sémantická analýza}
   \begin{itemize}
     \item V projekte používame funkcionálné programovanie.
     \item Nachádzajú sa tam rôzne kontroly napr.: \texttt{getExpressionType, isAssignCompatible}
   \end{itemize}
+  \note[item]{Sémantické kontroly se delají pomoci průchodu stromu s funkci která ďelá konkrétni kontrolu(např. typovu nebo správny počet parametrů).K tomu aby jsme byli schopni takhle zavolat konkrétni uzel z globálni nebo lokálni tabulky používame také funkci která procházi příkazy s danou funkci, kde se vytváří nové lokálni tabulky a kde jsme schopni určit, zda jsme chybu v lokálni právě vyplněné tabulce nebo v globálni, pro ulehčení jsme také zavedli dvojí kontrolu(v lokalni a současne v globálni tabulce) i s názvem konkrétni třídy, kterou voláme případně ve které nyní jsme.}
 \end{frame}
 
 \subsection{Interpret}
 
-\begin{frame}{Podrobnosti o implementaci Interpretu}
+\begin{frame}{Podrobnosti o implementaci interpretu}
 
     % FIXME cestina
 
@@ -210,7 +211,7 @@ anyId = simpleId | compoundId
   \note[item]{Doslovný přepis cyklů - for v ifj16 je for v C apod.}
 \end{frame}
 
-\begin{frame}{Zajimavosti o implementaci Interpretu}
+\begin{frame}{Zajimavosti o implementaci interpretu}
   \begin{itemize}
     % FIXME cestina
     \item Interpret interpretuje přímo AST a ne tříadresný kód
@@ -226,7 +227,7 @@ anyId = simpleId | compoundId
 
 \section{Algoritmy}
 
-\begin{frame}{Podrobnosti o implementaci Algoritmů}
+\begin{frame}{Podrobnosti o implementaci algoritmů}
 
   \begin{itemize}
     \item Seřazení prvků v poli - List-Merge sort $\mathcal{O}(n log(n))$
