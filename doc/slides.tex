@@ -45,32 +45,32 @@
 \section{Architektura}
 
 \begin{frame}{Přehled architektury}
-\begin{center}
-\begin{tikzpicture}
-[node distance = 1cm, auto,,
-every node/.style={node distance=2cm},
-force/.style={rectangle, rounded corners, draw=black, very thick,
-text width=8em, text badly centered, minimum height=3em}]
+  \begin{center}
+    \begin{tikzpicture}
+      [node distance = 1cm, auto,,
+      every node/.style={node distance=2cm},
+      force/.style={rectangle, rounded corners, draw=black, very thick,
+      text width=8em, text badly centered, minimum height=3em}]
 
-% Draw forces
-\node [force] (center) {Hlavní řadič};
-\node [force, left=.5cm of center] (database) {Databáze};
-\node [force, below=.5cm of center] (gui) {Grafické rozhraní};
-\node [force, below=.5cm of gui] (user) {Uživatel};
-\node [force, right=.5cm of center] (server) {Server};
+      % Draw forces
+      \node [force] (center) {Hlavní řadič};
+      \node [force, left=.5cm of center] (database) {Databáze};
+      \node [force, below=.5cm of center] (gui) {Grafické rozhraní};
+      \node [force, below=.5cm of gui] (user) {Uživatel};
+      \node [force, right=.5cm of center] (server) {Server};
 
-\path[->,thick,shorten >=1pt,shorten <=1pt]
-(center) edge (database)
-(center) edge (gui)
-(center) edge (server)
-(gui) edge (center)
-(server) edge (center)
-(database) edge (center)
-(user) edge (gui)
-(gui) edge (user);
+      \path[->,thick,shorten >=1pt,shorten <=1pt]
+      (center) edge (database)
+      (center) edge (gui)
+      (center) edge (server)
+      (gui) edge (center)
+      (server) edge (center)
+      (database) edge (center)
+      (user) edge (gui)
+      (gui) edge (user);
 
-\end{tikzpicture}
-\end{center}
+    \end{tikzpicture}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Datové typy (AST)}
@@ -83,13 +83,13 @@ text width=8em, text badly centered, minimum height=3em}]
 \subsection{Lexer}
 
 \begin{frame}{Poznámky k implementaci (změnit název?)}
-počítání line, char, BASE
-\note Lexikálna analýza funguje na princípe konečného automatu. Ten načíta zo vstupného súboru znaky, lexikálna analýza ich vyhodnotí a posiela ako tokeny do syntaktického analyzátora. Tokeny obsahujú informácie o type a obsahu. Taktiež sme si ale implementovali aj macro GetChar vďaka ktorému dokáže náš token posielať nielen základne informácie o type ci obsahu ale pridáva k nim aj ďalšie informácie o riadku a stĺpci na ktorej sa tieto znaky v interpretovanom súbore nachádzajú a výrazne tak uľahčuje prácu syntaktickému analyzátoru.
-\note Ako si môžete všimnúť aj v diagrame ,implementovali sme aj všetky dostupne rozšírenia. Menovite BOOLOP , Unarne ale aj cykly typu for a do-while. Menší problém však bol s rozšírením BASE. Konkrétne s prevodom hexadecimálnej sústavy v desatinnom tvare. Tu sme museli implementovať funkciu hexToDbl ktorá to následne prekonvertovala do desiatkovej sústavy.
+  počítání line, char, BASE
+  \note Lexikálna analýza funguje na princípe konečného automatu. Ten načíta zo vstupného súboru znaky, lexikálna analýza ich vyhodnotí a posiela ako tokeny do syntaktického analyzátora. Tokeny obsahujú informácie o type a obsahu. Taktiež sme si ale implementovali aj macro GetChar vďaka ktorému dokáže náš token posielať nielen základne informácie o type ci obsahu ale pridáva k nim aj ďalšie informácie o riadku a stĺpci na ktorej sa tieto znaky v interpretovanom súbore nachádzajú a výrazne tak uľahčuje prácu syntaktickému analyzátoru.
+  \note Ako si môžete všimnúť aj v diagrame ,implementovali sme aj všetky dostupne rozšírenia. Menovite BOOLOP , Unarne ale aj cykly typu for a do-while. Menší problém však bol s rozšírením BASE. Konkrétne s prevodom hexadecimálnej sústavy v desatinnom tvare. Tu sme museli implementovať funkciu hexToDbl ktorá to následne prekonvertovala do desiatkovej sústavy.
 \end{frame}
 
 \begin{frame}{Stavový diagram lexeru}
-\includegraphics[width=0.9\textwidth]{./img/lex1.pdf}
+  \includegraphics[width=0.1\textwidth]{img/lex1.pdf}
 % \begin{center}
 % \begin{tikzpicture}
 %    [>=stealth',
@@ -110,21 +110,21 @@ počítání line, char, BASE
 %    \node[punktchain, join] {Publikování};
 %  \end{tikzpicture}
 %  \end{center}
-\note Čo sa týka diagram ktorý vidíte na obrazovke, urobil som par zmien aby sa zvýšila prehľadnosť diagramu. Konkrétne pri Symboloch kde som vytvoril jeden stav a pomenoval ho symbol a tam poslal všetky symboly ktoré nepotrebovali implementovať stav v automate a taktiež pri ďalších symboloch ako >,<,+++,-- atď.(o ktoré symboly sa jedna je  vidno na diagrame, pravá strana) kde som miesto jedného stavu pridal aj druhy ktorý v kóde nie je a to preto aby som názorne ukázal ako prebieha jednotlivé načítanie znakov v lexikálnej analýze i aj keď nie sú už súčasnou stavov avšak úplne zodpovedajú tomu ako lexikálna analýza funguje.
+% \note Čo sa týka diagram ktorý vidíte na obrazovke, urobil som par zmien aby sa zvýšila prehľadnosť diagramu. Konkrétne pri Symboloch kde som vytvoril jeden stav a pomenoval ho symbol a tam poslal všetky symboly ktoré nepotrebovali implementovať stav v automate a taktiež pri ďalších symboloch ako >,<,+++,-- atď.(o ktoré symboly sa jedna je  vidno na diagrame, pravá strana) kde som miesto jedného stavu pridal aj druhy ktorý v kóde nie je a to preto aby som názorne ukázal ako prebieha jednotlivé načítanie znakov v lexikálnej analýze i aj keď nie sú už súčasnou stavov avšak úplne zodpovedajú tomu ako lexikálna analýza funguje.
 \end{frame}
 
 \subsection{Parser}
 
 \begin{frame}{Poznámky k implementaci}
-\begin{itemize}
-\item analýza rekurzivním sestupem, precedenční analýza
-\item stávající implementace je druhá, původní byla rekurzivním sestupem všude
-\item nová implementace mnohem delší a méně elegantní, i když asi rychlejší
-\item bez použití maker by bylo kódu cca o 300\% víc
-\item např. \texttt{expectSymbol(l, SYM\_SEMI);} odpovídá 15 řádkům kódu
-\item umožňuje skoro přímý přepis gramatiky do C
-\item UNARY - podmíněný přepis \textbf{-} na \textbf{u-} (za znaky \$, ( a za operátory)
-\end{itemize}
+  \begin{itemize}
+  \item analýza rekurzivním sestupem, precedenční analýza
+  \item stávající implementace je druhá, původní byla rekurzivním sestupem všude
+  \item nová implementace mnohem delší a méně elegantní, i když asi rychlejší
+  \item bez použití maker by bylo kódu cca o 300\% víc
+  \item např. \texttt{expectSymbol(l, SYM\_SEMI);} odpovídá 15 řádkům kódu
+  \item umožňuje skoro přímý přepis gramatiky do C
+  \item UNARY - podmíněný přepis \textbf{-} na \textbf{u-} (za znaky \$, ( a za operátory)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{LL gramatika}
@@ -239,6 +239,23 @@ anyId = simpleId | compoundId
 % Dobře vysvětlený knutt-moriis-pratt - https://www.youtube.com/watch?v=HaAu5ZGj6fc
 
 \section{Závěr}
+\begin{frame}{Statistiky - Git}
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{./img/git_commit.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Statistiky - Git}
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{./img/git_additions.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Statistiky - Git}
+  \begin{center}
+    \includegraphics[width=0.65\textwidth]{./img/git_del.pdf}
+  \end{center}
+\end{frame}
 
 \begin{frame}{Statistiky, očekávání, rozpočet a zhodnocení}
 \begin{itemize}
@@ -253,7 +270,7 @@ anyId = simpleId | compoundId
 \item Plánovaný peněžní zisk - 0Kč/EU
 \item Finanční stav po ukončení projektu - záporný
 \end{itemize}
-Děkujeme za pozornost
+%Dakujem za pozornost sa do prezentacie nedava to sa iba povie
 \end{frame}
 
 \end{document}
