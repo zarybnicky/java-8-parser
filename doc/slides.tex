@@ -18,7 +18,8 @@
 \usepackage{minted}
 \usepackage[showboxes, overlay]{textpos}
 
-\setbeameroption{show notes on second screen=right} % Both
+%\setbeameroption{show notes on second screen=right} % Both
+\setbeameroption{show only notes}
 \setbeamertemplate{show notes}{\pagecolor{yellow!5}\insertnote}\usepackage{palatino}
 
 \usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
@@ -89,6 +90,9 @@ minimum width=5em, minimum height=2em}]
 
 \begin{frame}[fragile]{Datové typy (AST)}
 
+\note[item]{Pro názornost součtových typů, typy zapsané pomocí syntaxe Haskellu}
+\note[item]{``$\vert$'' znamená ``nebo''}
+
 \textblockcolour{white}
 \TPMargin{5pt}
 
@@ -147,7 +151,18 @@ data Function = { fnName :: String
 
 \end{frame}
 
-\begin{frame}{Hierarchie typů}
+\begin{frame}{Vztahy typů}
+  \begin{center}
+    \includegraphics[width=0.55\textwidth]{./img/AST.pdf}
+  \end{center}
+\note[item]{Markovo umělecké dílo}
+\end{frame}
+
+\begin{frame}{Demonstrace AST}
+  \begin{center}
+    \includegraphics[width=1\textwidth]{./img/ast2.pdf}
+  \end{center}
+\note[item]{Lehká demonstrace vzhledu interpretovaného AST}
 \end{frame}
 
 \section{Komponenty}
@@ -266,7 +281,7 @@ anyId = simpleId | compoundId
     \item Úplný průchod stromu s pomocnými lokálními tabulkami symbolů 
     \item Funkcionální C - např. \texttt{traverseCommands(testReturnType)}
     \item Rozšíření vyžadovala kontroly navíc (např. break musí být uvnitř cyklu)
-    \item Velké změny na poslední chvíli (původně bottom up, \texttt{true + true + '\\n''} by jinak nefungovalo)
+    \item Velké změny na poslední chvíli (původně bottom up, \texttt{true + true + "\textbackslash n"} by jinak nefungovalo)
   \end{itemize}
   \note[item]{Sémantické kontroly se delají pomoci průchodu stromu s funkci která ďelá konkrétni kontrolu(např. typovu nebo správny počet parametrů).K tomu aby jsme byli schopni takhle zavolat konkrétni uzel z globálni nebo lokálni tabulky používame také funkci která procházi příkazy s danou funkci, kde se vytváří nové lokálni tabulky a kde jsme schopni určit, zda jsme chybu v lokálni právě vyplněné tabulce nebo v globálni, pro ulehčení jsme také zavedli dvojí kontrolu(v lokalni a současne v globálni tabulce) i s názvem konkrétni třídy, kterou voláme případně ve které nyní jsme.}
 \end{frame}
@@ -283,7 +298,7 @@ Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo
     \item Makra opět tvoří velkou část kódu
     \item \texttt{\#define I(x) (x)->data.integer}
     \item \texttt{I(result) = I(left) + I(right)}
-    \item Cykli jsou implementované stejným spůsobem ako v jazyce C
+    \item Cykly vypadají v ifj16 stejně jako v C
     \item \texttt{CYCLE\_INNER(...)} (break, continue, return handling)
     \item \texttt{while (evalExpression(...)) \{ CYCLE\_INNER(...); \}}
   \end{itemize}
@@ -359,7 +374,7 @@ Ulehčili jsme si přitom práci s cykly, které se znova pomoci makra usnadnilo
 \item Skutečné datum dokončení - 11.12.
 \item Plánovaný peněžní zisk - 0 CZK/EUR
 \item Finanční stav po ukončení projektu - záporný
-\note[item] A dnes večer bude po teambuildingu ještě zápornější...
+\note[item]{A dnes večer bude po teambuildingu ještě zápornější...}
 \end{itemize}
 
 \end{frame}
